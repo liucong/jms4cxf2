@@ -111,6 +111,10 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             throw new RuntimeException("Exchange to be sent has no outMessage");
         }
 
+        if (outMessage.getAttachments() != null && outMessage.getAttachments().size() > 0) {
+            jmsConfig.setMessageType(JMSConstants.BYTE_MESSAGE_TYPE);
+        }
+        
         JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
             .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
 
