@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.message.Exchange;
-import org.apache.cxf.message.Message;
 
 /**
  * Outputstream that sends a message when the exchange is closed
@@ -53,15 +52,6 @@ class JMSOutputStream extends CachedOutputStream {
      * Close the stream and send the message out
      */
     protected void doClose() throws IOException {
-        Message outMessage = exchange.getOutMessage();
-        if (outMessage == null) {
-            throw new RuntimeException("Exchange to be sent has no outMessage");
-        }
-
-        if (outMessage.getAttachments() != null && outMessage.getAttachments().size() > 0) {
-            this.isTextPayload = false;
-        } 
-        
         Object payload = retrieveRequestFromStream(isTextPayload);
         this.sender.sendExchange(exchange, payload);
     }
