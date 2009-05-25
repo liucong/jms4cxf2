@@ -29,9 +29,6 @@ import javax.jms.QueueSender;
 import javax.jms.Session;
 import javax.jms.TopicPublisher;
 
-import org.apache.camel.RuntimeCamelException;
-import org.apache.camel.util.ObjectHelper;
-import org.apache.camel.util.PackageHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -53,7 +50,6 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
-import static org.apache.camel.util.ObjectHelper.removeStartingCharacters;
 /**
  * @version $Revision: 748503 $
  */
@@ -147,12 +143,11 @@ public class JMSConfiguration implements Cloneable {
      */
     public JMSConfiguration copy() {
         try {
-            return (JMSConfiguration) clone();
+            return (JMSConfiguration)clone();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeCamelException(e);
+            throw new RuntimeException(e);
         }
     }
-
 
     public static interface MessageSentCallback {
         void sent(Message message);
@@ -166,8 +161,7 @@ public class JMSConfiguration implements Cloneable {
             this.config = config;
         }
 
-        public void send(final String destinationName,
-                         final MessageCreator messageCreator,
+        public void send(final String destinationName, final MessageCreator messageCreator,
                          final MessageSentCallback callback) throws JmsException {
             execute(new SessionCallback() {
                 public Object doInJms(Session session) throws JMSException {
@@ -177,8 +171,7 @@ public class JMSConfiguration implements Cloneable {
             }, false);
         }
 
-        public void send(final Destination destination,
-                         final MessageCreator messageCreator,
+        public void send(final Destination destination, final MessageCreator messageCreator,
                          final MessageSentCallback callback) throws JmsException {
             execute(new SessionCallback() {
                 public Object doInJms(Session session) throws JMSException {
@@ -189,8 +182,8 @@ public class JMSConfiguration implements Cloneable {
 
         private Object doSendToDestination(final Destination destination,
                                            final MessageCreator messageCreator,
-                                           final MessageSentCallback callback,
-                                           final Session session) throws JMSException {
+                                           final MessageSentCallback callback, final Session session)
+            throws JMSException {
 
             Assert.notNull(messageCreator, "MessageCreator must not be null");
             MessageProducer producer = createProducer(session, destination);
@@ -216,8 +209,7 @@ public class JMSConfiguration implements Cloneable {
         }
 
         /**
-         * Override so we can support preserving the Qos settings that have
-         * been set on the message.
+         * Override so we can support preserving the Qos settings that have been set on the message.
          */
         @Override
         protected void doSend(MessageProducer producer, Message message) throws JMSException {
@@ -241,13 +233,13 @@ public class JMSConfiguration implements Cloneable {
     public static class CamelJmsTeemplate102 extends JmsTemplate102 {
         private JMSConfiguration config;
 
-        public CamelJmsTeemplate102(JMSConfiguration config, ConnectionFactory connectionFactory, boolean pubSubDomain) {
+        public CamelJmsTeemplate102(JMSConfiguration config, ConnectionFactory connectionFactory,
+                                    boolean pubSubDomain) {
             super(connectionFactory, pubSubDomain);
             this.config = config;
         }
 
-        public void send(final String destinationName,
-                         final MessageCreator messageCreator,
+        public void send(final String destinationName, final MessageCreator messageCreator,
                          final MessageSentCallback callback) throws JmsException {
             execute(new SessionCallback() {
                 public Object doInJms(Session session) throws JMSException {
@@ -280,8 +272,7 @@ public class JMSConfiguration implements Cloneable {
         }
 
         /**
-         * Override so we can support preserving the Qos settings that have
-         * been set on the message.
+         * Override so we can support preserving the Qos settings that have been set on the message.
          */
         @Override
         protected void doSend(MessageProducer producer, Message message) throws JMSException {
@@ -296,11 +287,11 @@ public class JMSConfiguration implements Cloneable {
                     }
                 }
                 if (isPubSubDomain()) {
-                    ((TopicPublisher) producer).publish(message, message.getJMSDeliveryMode(),
-                            message.getJMSPriority(), ttl);
+                    ((TopicPublisher)producer).publish(message, message.getJMSDeliveryMode(),
+                                                       message.getJMSPriority(), ttl);
                 } else {
-                    ((QueueSender) producer).send(message, message.getJMSDeliveryMode(),
-                            message.getJMSPriority(), ttl);
+                    ((QueueSender)producer).send(message, message.getJMSDeliveryMode(), message
+                        .getJMSPriority(), ttl);
                 }
             } else {
                 super.doSend(producer, message);
@@ -308,17 +299,16 @@ public class JMSConfiguration implements Cloneable {
         }
     }
 
-
     /**
-     * Creates a {@link JmsOperations} object used for request/response using a request
-     * timeout value
+     * Creates a {@link JmsOperations} object used for request/response using a request timeout value
      */
-    public JmsOperations createInOutTemplate(JMSEndpoint endpoint, boolean pubSubDomain, String destination, long requestTimeout) {
+    public JmsOperations createInOutTemplate(JMSEndpoint endpoint, boolean pubSubDomain,
+                                             String destination, long reqTimeout) {
         JmsOperations answer = createInOnlyTemplate(endpoint, pubSubDomain, destination);
-        if (answer instanceof JmsTemplate && requestTimeout > 0) {
-            JmsTemplate jmsTemplate = (JmsTemplate) answer;
+        if (answer instanceof JmsTemplate && reqTimeout > 0) {
+            JmsTemplate jmsTemplate = (JmsTemplate)answer;
             jmsTemplate.setExplicitQosEnabled(true);
-            jmsTemplate.setTimeToLive(requestTimeout);
+            jmsTemplate.setTimeToLive(reqTimeout);
             jmsTemplate.setSessionTransacted(isTransactedInOut());
             if (isTransactedInOut()) {
                 jmsTemplate.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
@@ -339,7 +329,8 @@ public class JMSConfiguration implements Cloneable {
     /**
      * Creates a {@link JmsOperations} object used for one way messaging
      */
-    public JmsOperations createInOnlyTemplate(JMSEndpoint endpoint, boolean pubSubDomain, String destination) {
+    public JmsOperations createInOnlyTemplate(JMSEndpoint endpoint, boolean pubSubDomain,
+                                              String destination) {
 
         if (jmsOperations != null) {
             return jmsOperations;
@@ -348,17 +339,18 @@ public class JMSConfiguration implements Cloneable {
         ConnectionFactory factory = getTemplateConnectionFactory();
 
         JmsTemplate template = useVersion102
-                ? new CamelJmsTeemplate102(this, factory, pubSubDomain)
-                : new CamelJmsTemplate(this, factory);
+            ? new CamelJmsTeemplate102(this, factory, pubSubDomain) : new CamelJmsTemplate(this,
+                                                                                           factory);
 
         template.setPubSubDomain(pubSubDomain);
         if (destinationResolver != null) {
             template.setDestinationResolver(destinationResolver);
             if (endpoint instanceof DestinationEndpoint) {
-                LOG.debug("You are overloading the destinationResolver property on a DestinationEndpoint; are you sure you want to do that?");
+                LOG.debug("You are overloading the destinationResolver property on " + ""
+                          + "a DestinationEndpoint; are you sure you want to do that?");
             }
         } else if (endpoint instanceof DestinationEndpoint) {
-            DestinationEndpoint destinationEndpoint = (DestinationEndpoint) endpoint;
+            DestinationEndpoint destinationEndpoint = (DestinationEndpoint)endpoint;
             template.setDestinationResolver(createDestinationResolver(destinationEndpoint));
         }
         template.setDefaultDestinationName(destination);
@@ -402,7 +394,6 @@ public class JMSConfiguration implements Cloneable {
         return container;
     }
 
-
     // Properties
     // -------------------------------------------------------------------------
     public ConnectionFactory getConnectionFactory() {
@@ -413,11 +404,10 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Sets the default connection factory to be used if a connection factory is
-     * not specified for either
+     * Sets the default connection factory to be used if a connection factory is not specified for either
      * {@link #setTemplateConnectionFactory(ConnectionFactory)} or
      * {@link #setListenerConnectionFactory(ConnectionFactory)}
-     *
+     * 
      * @param connectionFactory the default connection factory to use
      */
     public void setConnectionFactory(ConnectionFactory connectionFactory) {
@@ -434,9 +424,8 @@ public class JMSConfiguration implements Cloneable {
     /**
      * Sets the connection factory to be used for consuming messages via the
      * {@link #createMessageListenerContainer(JMSEndpoint)}
-     *
-     * @param listenerConnectionFactory the connection factory to use for
-     *                                  consuming messages
+     * 
+     * @param listenerConnectionFactory the connection factory to use for consuming messages
      */
     public void setListenerConnectionFactory(ConnectionFactory listenerConnectionFactory) {
         this.listenerConnectionFactory = listenerConnectionFactory;
@@ -450,9 +439,9 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Sets the connection factory to be used for sending messages via the
-     * {@link JmsTemplate} via {@link #createInOnlyTemplate(JMSEndpoint,boolean, String)}
-     *
+     * Sets the connection factory to be used for sending messages via the {@link JmsTemplate} via
+     * {@link #createInOnlyTemplate(JMSEndpoint,boolean, String)}
+     * 
      * @param templateConnectionFactory the connection factory for sending messages
      */
     public void setTemplateConnectionFactory(ConnectionFactory templateConnectionFactory) {
@@ -757,13 +746,12 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Enables eager loading of JMS properties as soon as a message is loaded
-     * which generally is inefficient as the JMS properties may not be required
-     * but sometimes can catch early any issues with the underlying JMS provider
-     * and the use of JMS properties
-     *
-     * @param eagerLoadingOfProperties whether or not to enable eager loading of
-     *                                 JMS properties on inbound messages
+     * Enables eager loading of JMS properties as soon as a message is loaded which generally is inefficient
+     * as the JMS properties may not be required but sometimes can catch early any issues with the underlying
+     * JMS provider and the use of JMS properties
+     * 
+     * @param eagerLoadingOfProperties whether or not to enable eager loading of JMS properties on inbound
+     *            messages
      */
     public void setEagerLoadingOfProperties(boolean eagerLoadingOfProperties) {
         this.eagerLoadingOfProperties = eagerLoadingOfProperties;
@@ -774,20 +762,18 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Disables the use of the JMSReplyTo header for consumers so that inbound
-     * messages are treated as InOnly rather than InOut requests.
-     *
-     * @param disableReplyTo whether or not to disable the use of JMSReplyTo
-     *                       header indicating an InOut
+     * Disables the use of the JMSReplyTo header for consumers so that inbound messages are treated as InOnly
+     * rather than InOut requests.
+     * 
+     * @param disableReplyTo whether or not to disable the use of JMSReplyTo header indicating an InOut
      */
     public void setDisableReplyTo(boolean disableReplyTo) {
         this.disableReplyTo = disableReplyTo;
     }
 
     /**
-     * Set to true if you want to send message using the QoS settings specified
-     * on the message. Normally the QoS settings used are the one configured on
-     * this Object.
+     * Set to true if you want to send message using the QoS settings specified on the message. Normally the
+     * QoS settings used are the one configured on this Object.
      */
     public void setPreserveMessageQos(boolean preserveMessageQos) {
         this.preserveMessageQos = preserveMessageQos;
@@ -814,8 +800,7 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Sets the frequency that the requestMap for InOut exchanges is purged for
-     * timed out message exchanges
+     * Sets the frequency that the requestMap for InOut exchanges is purged for timed out message exchanges
      */
     public void setRequestMapPurgePollTimeMillis(long requestMapPurgePollTimeMillis) {
         this.requestMapPurgePollTimeMillis = requestMapPurgePollTimeMillis;
@@ -826,8 +811,8 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Allows the provider metadata to be explicitly configured. Typically this is not required
-     * and Camel will auto-detect the provider metadata from the underlying provider.
+     * Allows the provider metadata to be explicitly configured. Typically this is not required and Camel will
+     * auto-detect the provider metadata from the underlying provider.
      */
     public void setProviderMetadata(JMSProviderMetadata providerMetadata) {
         this.providerMetadata = providerMetadata;
@@ -844,31 +829,32 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Sets the {@link JmsOperations} used to deduce the {@link JMSProviderMetadata} details which if none
-     * is customized one is lazily created on demand
+     * Sets the {@link JmsOperations} used to deduce the {@link JMSProviderMetadata} details which if none is
+     * customized one is lazily created on demand
      */
     public void setMetadataJmsOperations(JmsOperations metadataJmsOperations) {
         this.metadataJmsOperations = metadataJmsOperations;
     }
 
-
     // Implementation methods
     // -------------------------------------------------------------------------
 
-    public static DestinationResolver createDestinationResolver(final DestinationEndpoint destinationEndpoint) {
+    public static DestinationResolver createDestinationResolver(
+                   final DestinationEndpoint destinationEndpoint) {
         return new DestinationResolver() {
-            public Destination resolveDestinationName(Session session, String destinationName, boolean pubSubDomain) throws JMSException {
+            public Destination resolveDestinationName(Session session, String destinationName,
+                                                      boolean pubSubDomain) throws JMSException {
                 return destinationEndpoint.getJmsDestination(session);
             }
         };
     }
 
-
     protected void configureMessageListenerContainer(AbstractMessageListenerContainer container,
                                                      JMSEndpoint endpoint) {
         container.setConnectionFactory(getListenerConnectionFactory());
         if (endpoint instanceof DestinationEndpoint) {
-            container.setDestinationResolver(createDestinationResolver((DestinationEndpoint) endpoint));
+            container
+                .setDestinationResolver(createDestinationResolver((DestinationEndpoint)endpoint));
         } else if (destinationResolver != null) {
             container.setDestinationResolver(destinationResolver);
         }
@@ -913,7 +899,7 @@ public class JMSConfiguration implements Cloneable {
 
         if (container instanceof DefaultMessageListenerContainer) {
             // this includes DefaultMessageListenerContainer102
-            DefaultMessageListenerContainer listenerContainer = (DefaultMessageListenerContainer) container;
+            DefaultMessageListenerContainer listenerContainer = (DefaultMessageListenerContainer)container;
             if (concurrentConsumers >= 0) {
                 listenerContainer.setConcurrentConsumers(concurrentConsumers);
             }
@@ -949,7 +935,9 @@ public class JMSConfiguration implements Cloneable {
             if (tm != null && transacted) {
                 listenerContainer.setTransactionManager(tm);
             } else if (transacted) {
-                throw new IllegalArgumentException("Property transacted is enabled but a transactionManager was not injected!");
+                throw new IllegalArgumentException(
+                                                   "Property transacted is enabled but "
+                                                   + "a transactionManager was not injected!");
             }
             if (transactionName != null) {
                 listenerContainer.setTransactionName(transactionName);
@@ -959,7 +947,7 @@ public class JMSConfiguration implements Cloneable {
             }
         } else if (container instanceof SimpleMessageListenerContainer) {
             // this includes SimpleMessageListenerContainer102
-            SimpleMessageListenerContainer listenerContainer = (SimpleMessageListenerContainer) container;
+            SimpleMessageListenerContainer listenerContainer = (SimpleMessageListenerContainer)container;
             if (concurrentConsumers >= 0) {
                 listenerContainer.setConcurrentConsumers(concurrentConsumers);
             }
@@ -967,24 +955,6 @@ public class JMSConfiguration implements Cloneable {
             if (taskExecutor != null) {
                 listenerContainer.setTaskExecutor(taskExecutor);
             }
-        }
-    }
-
-    public void configure(EndpointMessageListener listener) {
-        if (isDisableReplyTo()) {
-            listener.setDisableReplyTo(true);
-        }
-        if (isEagerLoadingOfProperties()) {
-            listener.setEagerLoadingOfProperties(true);
-        }
-        // TODO: REVISIT: We really ought to change the model and let JmsProducer
-        // and JmsConsumer have their own JmsConfiguration instance
-        // This way producer's and consumer's QoS can differ and be
-        // independently configured
-        JmsOperations operations = listener.getTemplate();
-        if (operations instanceof JmsTemplate) {
-            JmsTemplate template = (JmsTemplate) operations;
-            template.setDeliveryPersistent(isReplyToDeliveryPersistent());
         }
     }
 
@@ -1003,15 +973,12 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Defaults the JMS cache level if none is explicitly specified. Note that
-     * due to this <a
-     * href="http://opensource.atlassian.com/projects/spring/browse/SPR-3890">Spring
-     * Bug</a> we cannot use CACHE_CONSUMER by default (which we should do as
-     * its most efficient) unless the spring version is 2.5.1 or later. Instead
-     * we use CACHE_CONNECTION - part from for non-durable topics which must use
-     * CACHE_CONSUMER to avoid missing messages (due to the consumer being
-     * created and destroyed per message).
-     *
+     * Defaults the JMS cache level if none is explicitly specified. Note that due to this <a
+     * href="http://opensource.atlassian.com/projects/spring/browse/SPR-3890">Spring Bug</a> we cannot use
+     * CACHE_CONSUMER by default (which we should do as its most efficient) unless the spring version is 2.5.1
+     * or later. Instead we use CACHE_CONNECTION - part from for non-durable topics which must use
+     * CACHE_CONSUMER to avoid missing messages (due to the consumer being created and destroyed per message).
+     * 
      * @param endpoint the endpoint
      * @return the cacne level
      */
@@ -1035,33 +1002,28 @@ public class JMSConfiguration implements Cloneable {
     }
 
     /**
-     * Factory method which allows derived classes to customize the lazy
-     * creation
+     * Factory method which allows derived classes to customize the lazy creation
      */
     protected ConnectionFactory createConnectionFactory() {
-        ObjectHelper.notNull(connectionFactory, "connectionFactory");
-        return null;
+        return connectionFactory;
     }
 
     /**
-     * Factory method which allows derived classes to customize the lazy
-     * creation
+     * Factory method which allows derived classes to customize the lazy creation
      */
     protected ConnectionFactory createListenerConnectionFactory() {
         return getConnectionFactory();
     }
 
     /**
-     * Factory method which allows derived classes to customize the lazy
-     * creation
+     * Factory method which allows derived classes to customize the lazy creation
      */
     protected ConnectionFactory createTemplateConnectionFactory() {
         return getConnectionFactory();
     }
 
     /**
-     * Factory method which which allows derived classes to customize the lazy
-     * transcationManager creation
+     * Factory method which which allows derived classes to customize the lazy transcationManager creation
      */
     protected PlatformTransactionManager createTransactionManager() {
         JmsTransactionManager answer = new JmsTransactionManager();
@@ -1075,15 +1037,14 @@ public class JMSConfiguration implements Cloneable {
 
     /**
      * When one of the QoS properties are configured such as {@link #setDeliveryPersistent(boolean)},
-     * {@link #setPriority(int)} or {@link #setTimeToLive(long)} then we should auto default the
-     * setting of {@link #setExplicitQosEnabled(boolean)} if its not been configured yet
+     * {@link #setPriority(int)} or {@link #setTimeToLive(long)} then we should auto default the setting of
+     * {@link #setExplicitQosEnabled(boolean)} if its not been configured yet
      */
     protected void configuredQoS() {
         if (explicitQosEnabled == null) {
             explicitQosEnabled = true;
         }
     }
-
 
     public boolean isAlwaysCopyMessage() {
         return alwaysCopyMessage;
@@ -1105,8 +1066,7 @@ public class JMSConfiguration implements Cloneable {
         return replyToTempDestinationAffinity;
     }
 
-    public void setReplyToTempDestinationAffinity(
-            String replyToTempDestinationAffinity) {
+    public void setReplyToTempDestinationAffinity(String replyToTempDestinationAffinity) {
         this.replyToTempDestinationAffinity = replyToTempDestinationAffinity;
     }
 
@@ -1125,13 +1085,14 @@ public class JMSConfiguration implements Cloneable {
         return replyToDestination;
     }
 
-    public void setReplyTo(String replyToDestination) {
-        if (!replyToDestination.startsWith(QUEUE_PREFIX)) {
-            throw new IllegalArgumentException("ReplyTo destination value has to be of type queue; "
-                    + "e.g: \"queue:replyQueue\"");
+    public void setReplyTo(String replyToDest) {
+        if (!replyToDest.startsWith(QUEUE_PREFIX)) {
+            throw new IllegalArgumentException(
+                                               "ReplyTo destination value has to be of type queue; "
+                                                   + "e.g: \"queue:replyQueue\"");
         }
-        this.replyToDestination =
-                removeStartingCharacters(replyToDestination.substring(QUEUE_PREFIX.length()), '/');
+        this.replyToDestination = removeStartingCharacters(replyToDest.substring(QUEUE_PREFIX
+            .length()), '/');
     }
 
     public String getReplyToDestinationSelectorName() {
@@ -1146,5 +1107,23 @@ public class JMSConfiguration implements Cloneable {
         if (replyToDestinationSelectorName != null) {
             setAlwaysCopyMessage(true);
         }
+    }
+
+    /**
+     * Removes any starting characters on the given text which match the given character
+     * 
+     * @param text the string
+     * @param ch the initial characters to remove
+     * @return either the original string or the new substring
+     */
+    public String removeStartingCharacters(String text, char ch) {
+        int idx = 0;
+        while (text.charAt(idx) == ch) {
+            idx++;
+        }
+        if (idx > 0) {
+            return text.substring(idx);
+        }
+        return text;
     }
 }

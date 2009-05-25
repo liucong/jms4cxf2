@@ -24,7 +24,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jms.ConnectionFactory;
+
 import org.apache.cxf.common.logging.LogUtils;
+import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter;
 
 /**
  * 
@@ -153,28 +156,28 @@ public class JMSEndpointParser {
         // lets make sure we copy the configuration as each endpoint can
         // customize its own version
         JMSConfiguration newConfiguration = getConfiguration().copy();
-        JMSEndpoint endpoint;
+        JMSEndpoint endpoint = null;
         if (pubSubDomain) {
             if (tempDestination) {
-                endpoint = new JmsTemporaryTopicEndpoint(uri, this, subject, newConfiguration);
+                endpoint = new JMSTemporaryTopicEndpoint(uri, subject, newConfiguration);
             } else {
-                endpoint = new JMSEndpoint(uri, this, subject, pubSubDomain, newConfiguration);
+                endpoint = new JMSEndpoint(uri, subject, pubSubDomain, newConfiguration);
             }
         } else {
-            QueueBrowseStrategy strategy = getQueueBrowseStrategy();
+            /*QueueBrowseStrategy strategy = getQueueBrowseStrategy();
             if (tempDestination) {
-                endpoint = new JmsTemporaryQueueEndpoint(uri, this, subject, newConfiguration, strategy);
+                endpoint = new JMSTemporaryQueueEndpoint(uri, this, subject, newConfiguration, strategy);
             } else {
-                endpoint = new JmsQueueEndpoint(uri, this, subject, newConfiguration, strategy);
-            }
+                endpoint = new JMSQueueEndpoint(uri, this, subject, newConfiguration, strategy);
+            }*/
         }
 
-        String selector = getAndRemoveParameter(parameters, "selector", String.class);
+        String selector = getAndRemoveParameter(parameters, "selector");
         if (selector != null) {
             endpoint.setSelector(selector);
         }
-        String username = getAndRemoveParameter(parameters, "username", String.class);
-        String password = getAndRemoveParameter(parameters, "password", String.class);
+        String username = getAndRemoveParameter(parameters, "username");
+        String password = getAndRemoveParameter(parameters, "password");
         if (username != null && password != null) {
             ConnectionFactory cf = endpoint.getConfiguration().getConnectionFactory();
             UserCredentialsConnectionFactoryAdapter ucfa = new UserCredentialsConnectionFactoryAdapter();
@@ -188,50 +191,37 @@ public class JMSEndpointParser {
                 throw new IllegalArgumentException("The JmsComponent's username or password is null");
             }
         }
-        setProperties(endpoint.getConfiguration(), parameters);
+        //setProperties(endpoint.getConfiguration(), parameters);
 
-        endpoint.setHeaderFilterStrategy(getHeaderFilterStrategy());
+        //endpoint.setHeaderFilterStrategy(getHeaderFilterStrategy());
 
         return endpoint;
-        return null;
     }
 
     /**
-     * Is the given parameter a reference parameter (starting with a # char)
+     * @param parameters
+     * @param string
+     * @return
      */
-    protected boolean isReferenceParameter(String parameter) {
-        return parameter != null && parameter.startsWith("#");
+    private String getAndRemoveParameter(Map parameters, String key) {
+        Object value = parameters.remove(key);
+        return (String)value;
     }
 
-    /*    *//**
-     * Derived classes may wish to overload this to prevent the default introspection of URI parameters
-     * on the created Endpoint instance
+    /**
+     * A strategy method allowing the URI destination to be translated into the
+     * actual JMS destination name (say by looking up in JNDI or something)
      */
-    /*
-     * protected boolean useIntrospectionOnEndpoint() { return true; }
-     */
-
+    protected String convertPathToActualDestination(String path, Map parameters) {
+        return path;
+    }
+    
+    public JMSConfiguration getConfiguration() {
+        return null;
+    }
+    
     // Some helper methods
     // -------------------------------------------------------------------------
-    /**
-     * Returns the reminder of the text if it starts with the prefix.
-     * <p/>
-     * Is useable for string parameters that contains commands.
-     * 
-     * @param prefix the prefix
-     * @param text the text
-     * @return the reminder, or null if no reminder
-     */
-    protected String ifStartsWithReturnRemainder(String prefix, String text) {
-        if (text.startsWith(prefix)) {
-            String remainder = text.substring(prefix.length());
-            if (remainder.length() > 0) {
-                return remainder;
-            }
-        }
-        return null;
-    }
-
     /**
      * Removes any starting characters on the given text which match the given character
      * 

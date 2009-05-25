@@ -24,43 +24,30 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
-import org.apache.camel.Component;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.HeaderFilterStrategyAware;
-import org.apache.camel.PollingConsumer;
-import org.apache.camel.Processor;
-import org.apache.camel.component.jms.requestor.Requestor;
-import org.apache.camel.impl.DefaultEndpoint;
-import org.apache.camel.spi.HeaderFilterStrategy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.core.JmsOperations;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * A <a href="http://activemq.apache.org/jms.html">JMS Endpoint</a>
- *
+ * 
  * @version $Revision:520964 $
  */
-public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategyAware {
-    private HeaderFilterStrategy headerFilterStrategy;
+public class JMSEndpoint {
+    private String endpointUrl;
     private boolean pubSubDomain;
-    private JmsBinding binding;
     private String destinationName;
     private Destination destination;
     private String selector;
     private JMSConfiguration configuration;
-    private Requestor requestor;
 
     public JMSEndpoint() {
         this(null, null);
@@ -71,23 +58,23 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         this.destination = destination;
     }
 
-    public JMSEndpoint(String uri, JmsComponent component, String destinationName, boolean pubSubDomain, JMSConfiguration configuration) {
-        super(uri, component);
+    public JMSEndpoint(String uri, String destinationName,
+                       boolean pubSubDomain, JMSConfiguration configuration) {
         this.configuration = configuration;
         this.destinationName = destinationName;
         this.pubSubDomain = pubSubDomain;
     }
 
-    public JMSEndpoint(String endpointUri, JmsBinding binding, JMSConfiguration configuration, String destinationName, boolean pubSubDomain) {
-        super(endpointUri);
-        this.binding = binding;
+    public JMSEndpoint(String endpointUri, JMSConfiguration configuration,
+                       String destinationName, boolean pubSubDomain) {
+        this.endpointUrl = endpointUri;
         this.configuration = configuration;
         this.destinationName = destinationName;
         this.pubSubDomain = pubSubDomain;
     }
 
     public JMSEndpoint(String endpointUri, String destinationName, boolean pubSubDomain) {
-        this(endpointUri, new JmsBinding(), new JMSConfiguration(), destinationName, pubSubDomain);
+        this(endpointUri, new JMSConfiguration(), destinationName, pubSubDomain);
     }
 
     /**
@@ -97,158 +84,25 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         this(endpointUri, destinationName, true);
     }
 
-
-    /**
-     * Returns a new JMS endpoint for the given JMS destination using the configuration from the given JMS component
-     */
-    public static JMSEndpoint newInstance(Destination destination, JmsComponent component) throws JMSException {
-        JMSEndpoint answer = newInstance(destination);
-        JMSConfiguration newConfiguration = component.getConfiguration().copy();
-        answer.setConfiguration(newConfiguration);
-        answer.setCamelContext(component.getCamelContext());
-        return answer;
-    }
-
     /**
      * Returns a new JMS endpoint for the given JMS destination
      */
     public static JMSEndpoint newInstance(Destination destination) throws JMSException {
         if (destination instanceof TemporaryQueue) {
-            return new JmsTemporaryQueueEndpoint((TemporaryQueue) destination);
+            return new JMSTemporaryQueueEndpoint((TemporaryQueue)destination);
         }
         if (destination instanceof TemporaryTopic) {
-            return new JmsTemporaryTopicEndpoint((TemporaryTopic) destination);
+            return new JMSTemporaryTopicEndpoint((TemporaryTopic)destination);
         }
         if (destination instanceof Queue) {
-            return new JmsQueueEndpoint((Queue) destination);
+            return new JMSQueueEndpoint((Queue)destination);
         } else {
-            return new JMSEndpoint((Topic) destination);
+            return new JMSEndpoint((Topic)destination);
         }
-    }
-
-    public JmsProducer createProducer() throws Exception {
-        return new JmsProducer(this);
-    }
-
-    /**
-     * Creates a producer using the given template for InOnly message exchanges
-     */
-    public JmsProducer createProducer(JmsOperations template) throws Exception {
-        JmsProducer answer = createProducer();
-        if (template instanceof JmsTemplate) {
-            JmsTemplate jmsTemplate = (JmsTemplate) template;
-            jmsTemplate.setPubSubDomain(pubSubDomain);
-            if (destinationName != null) {
-                jmsTemplate.setDefaultDestinationName(destinationName);
-            } else if (destination != null) {
-                jmsTemplate.setDefaultDestination(destination);
-            }
-            // TODO: Why is this destination resolver disabled for producer? Its enable for consumer!
-            /*
-            else {
-                DestinationResolver resolver = getDestinationResolver();
-                if (resolver != null) {
-                    jmsTemplate.setDestinationResolver(resolver);
-                }
-                else {
-                    throw new IllegalArgumentException("Neither destination, destinationName or destinationResolver are specified on this endpoint!");
-                }
-            }
-            */
-        }
-        answer.setInOnlyTemplate(template);
-        return answer;
-    }
-
-
-    public JmsConsumer createConsumer(Processor processor) throws Exception {
-        AbstractMessageListenerContainer listenerContainer = configuration.createMessageListenerContainer(this);
-        return createConsumer(processor, listenerContainer);
-    }
-
-    /**
-     * Creates a consumer using the given processor and listener container
-     *
-     * @param processor         the processor to use to process the messages
-     * @param listenerContainer the listener container
-     * @return a newly created consumer
-     * @throws Exception if the consumer cannot be created
-     */
-    public JmsConsumer createConsumer(Processor processor, AbstractMessageListenerContainer listenerContainer) throws Exception {
-        if (destinationName != null) {
-            listenerContainer.setDestinationName(destinationName);
-        } else if (destination != null) {
-            listenerContainer.setDestination(destination);
-        } else {
-            DestinationResolver resolver = getDestinationResolver();
-            if (resolver != null) {
-                listenerContainer.setDestinationResolver(resolver);
-            } else {
-                throw new IllegalArgumentException("Neither destination, destinationName or destinationResolver are specified on this endpoint!");
-            }
-        }
-        listenerContainer.setPubSubDomain(pubSubDomain);
-        return new JmsConsumer(this, processor, listenerContainer);
-    }
-
-    @Override
-    public PollingConsumer createPollingConsumer() throws Exception {
-        JmsOperations template = createInOnlyTemplate();
-        return new JmsPollingConsumer(this, template);
-    }
-
-    @Override
-    public Exchange createExchange(ExchangePattern pattern) {
-        return new JmsExchange(this, pattern, getBinding());
-    }
-
-    public JmsExchange createExchange(Message message) {
-        return new JmsExchange(this, getExchangePattern(), getBinding(), message);
-    }
-
-    /**
-     * Factory method for creating a new template for InOnly message exchanges
-     */
-    public JmsOperations createInOnlyTemplate() {
-        return configuration.createInOnlyTemplate(this, pubSubDomain, destinationName);
-    }
-
-    /**
-     * Factory method for creating a new template for InOut message exchanges
-     */
-    public JmsOperations createInOutTemplate() {
-        return configuration.createInOutTemplate(this, pubSubDomain, destinationName, configuration.getRequestTimeout());
     }
 
     // Properties
     // -------------------------------------------------------------------------
-    public HeaderFilterStrategy getHeaderFilterStrategy() {
-        if (headerFilterStrategy == null) {
-            headerFilterStrategy = new JmsHeaderFilterStrategy();
-        }
-        return headerFilterStrategy;
-    }
-
-    public void setHeaderFilterStrategy(HeaderFilterStrategy strategy) {
-        this.headerFilterStrategy = strategy;
-    }
-
-    public JmsBinding getBinding() {
-        if (binding == null) {
-            binding = new JmsBinding(this);
-        }
-        return binding;
-    }
-
-    /**
-     * Sets the binding used to convert from a Camel message to and from a JMS
-     * message
-     *
-     * @param binding the binding to use
-     */
-    public void setBinding(JmsBinding binding) {
-        this.binding = binding;
-    }
 
     public String getDestinationName() {
         return destinationName;
@@ -292,26 +146,13 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         return false;
     }
 
-    public synchronized Requestor getRequestor() throws Exception {
-        if (requestor == null) {
-            requestor = new Requestor(getConfiguration(), getExecutorService());
-            requestor.start();
-        }
-        return requestor;
-    }
-
-    public void setRequestor(Requestor requestor) {
-        this.requestor = requestor;
-    }
-
     public boolean isPubSubDomain() {
         return pubSubDomain;
     }
 
     /**
-     * Lazily loads the temporary queue type if one has not been explicitly configured
-     * via calling the {@link JMSProviderMetadata#setTemporaryQueueType(Class)}
-     * on the {@link #getConfiguration()} instance
+     * Lazily loads the temporary queue type if one has not been explicitly configured via calling the
+     * {@link JMSProviderMetadata#setTemporaryQueueType(Class)} on the {@link #getConfiguration()} instance
      */
     public Class<? extends TemporaryQueue> getTemporaryQueueType() {
         JMSProviderMetadata metadata = getProviderMetadata();
@@ -320,9 +161,8 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
     }
 
     /**
-     * Lazily loads the temporary topic type if one has not been explicitly configured
-     * via calling the {@link JMSProviderMetadata#setTemporaryTopicType(Class)}
-     * on the {@link #getConfiguration()} instance
+     * Lazily loads the temporary topic type if one has not been explicitly configured via calling the
+     * {@link JMSProviderMetadata#setTemporaryTopicType(Class)} on the {@link #getConfiguration()} instance
      */
     public Class<? extends TemporaryTopic> getTemporaryTopicType() {
         JmsOperations template = getMetadataJmsOperations();
@@ -339,7 +179,6 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         return metadata;
     }
 
-
     /**
      * Returns the {@link JmsOperations} used for metadata operations such as creating temporary destinations
      */
@@ -354,14 +193,15 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
     public void checkValidTemplate(JmsTemplate template) {
         if (template.getDestinationResolver() == null) {
             if (this instanceof DestinationEndpoint) {
-                final DestinationEndpoint destinationEndpoint = (DestinationEndpoint) this;
-                template.setDestinationResolver(JMSConfiguration.createDestinationResolver(destinationEndpoint));
+                final DestinationEndpoint destinationEndpoint = (DestinationEndpoint)this;
+                template.setDestinationResolver(JMSConfiguration
+                    .createDestinationResolver(destinationEndpoint));
             }
         }
     }
 
     // Delegated properties from the configuration
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     public int getAcknowledgementMode() {
         return getConfiguration().getAcknowledgementMode();
     }
@@ -614,7 +454,6 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         getConfiguration().setDestinationResolver(destinationResolver);
     }
 
-
     public void setDisableReplyTo(boolean disableReplyTo) {
         getConfiguration().setDisableReplyTo(disableReplyTo);
     }
@@ -768,15 +607,10 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
     }
 
     // Implementation methods
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    @Override
     protected String createEndpointUri() {
         String scheme = "jms";
-        Component owner = getComponent();
-        if (owner != null) {
-            // TODO get the scheme of the component?
-        }
         if (destination != null) {
             return scheme + ":" + destination;
         } else if (destinationName != null) {
@@ -786,7 +620,7 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
         if (resolver != null) {
             return scheme + ":" + resolver;
         }
-        return super.createEndpointUri();
+        return createEndpointUri();
     }
 
     /**
@@ -794,7 +628,7 @@ public class JMSEndpoint extends DefaultEndpoint implements HeaderFilterStrategy
      */
     public void configureProperties(Map parameters) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }
