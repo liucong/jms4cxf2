@@ -19,37 +19,25 @@
 
 package org.apache.cxf.transport.jms.uri.spec;
 
-import java.util.Map;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * 
- */
-public class JMSEndpoint {
-    private String endpointUri;
-    private JMSConfiguration jmsConfiguration;
+
+public class JMSEndpointTest extends Assert {
     
-    public JMSEndpoint(String endpointUri) {
-        this.endpointUri = endpointUri;
-    }
-    
-    public void get() {
-        
+    @Test
+    public void testBasicQueue() throws Exception {
+        JMSEndpoint endpoint = (JMSEndpoint) resolveEndpoint("jms:queue:Foo.Bar");
+        assertTrue(endpoint instanceof JMSQueueEndpoint);
     }
 
-    /**
-     * @param parameters
-     */
-    public void configureProperties(Map parameters) {
-        // TODO Auto-generated method stub
-        
+    private JMSEndpoint resolveEndpoint(String uri) {
+        JMSEndpoint endpoint = null;
+        try {
+            endpoint = JMSEndpointParser.createEndpoint(uri);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return endpoint;
     }
-
-    /**
-     * @return
-     */
-    public Object getConfiguration() {
-        // TODO Auto-generated method stub
-        return jmsConfiguration;
-    }
-    
 }

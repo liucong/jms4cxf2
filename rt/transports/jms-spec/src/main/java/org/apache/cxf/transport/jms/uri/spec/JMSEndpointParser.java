@@ -24,10 +24,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.cxf.common.logging.LogUtils;
-import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter;
 
 /**
  * 
@@ -64,34 +61,10 @@ public final class JMSEndpointParser {
 
         if (parameters != null) {
             endpoint.configureProperties(parameters);
-            /*
-             * if (useIntrospectionOnEndpoint()) { setProperties(endpoint, parameters); } // if endpoint is
-             * strict (not lenient) and we have unknown parameters configured then // fail if there are
-             * parameters that could not be set, then they are probably miss spelt or not // supported at all
-             * if (!endpoint.isLenientProperties()) { validateParameters(uri, parameters, null); }
-             */
         }
 
         return endpoint;
     }
-
-    /**
-     * Strategy for validation of parameters, that was not able to be resolved to any endpoint options.
-     * 
-     * @param uri the uri - the uri the end user provided untouched
-     * @param parameters the parameters, an empty map if no parameters given
-     * @param optionPrefix optional prefix to filter the parameters for validation. Use <tt>null</tt> for
-     *            validate all.
-     * @throws ResolveEndpointFailedException should be thrown if the URI validation failed
-     */
-    /*
-     * protected void validateParameters(String uri, Map parameters, String optionPrefix) { Map param =
-     * parameters; if (optionPrefix != null) { param = IntrospectionSupport.extractProperties(parameters,
-     * optionPrefix); } if (param.size() > 0) { throw new ResolveEndpointFailedException( uri, "There are " +
-     * param.size() + " parameters that couldn't be set on the endpoint." +
-     * " Check the uri if the parameters are spelt correctly and that they are properties of the endpoint." +
-     * " Unknown parameters=[" + param + "]"); } }
-     */
 
     /**
      * Strategy for validation of the uri when creating the endpoint.
@@ -133,26 +106,15 @@ public final class JMSEndpointParser {
      */
     protected static JMSEndpoint createEndpoint(String uri, String remaining, Map parameters)
         throws Exception {
-        boolean pubSubDomain = false;
-        boolean tempDestination = false;
         if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
-            pubSubDomain = false;
             remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.QUEUE_PREFIX
                 .length()), '/');
         } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
-            pubSubDomain = true;
             remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TOPIC_PREFIX
                 .length()), '/');
-        } else if (remaining.startsWith(JMSConfiguration.TEMP_QUEUE_PREFIX)) {
-            pubSubDomain = false;
-            tempDestination = true;
-            remaining = removeStartingCharacters(remaining
-                .substring(JMSConfiguration.TEMP_QUEUE_PREFIX.length()), '/');
-        } else if (remaining.startsWith(JMSConfiguration.TEMP_TOPIC_PREFIX)) {
-            pubSubDomain = true;
-            tempDestination = true;
-            remaining = removeStartingCharacters(remaining
-                .substring(JMSConfiguration.TEMP_TOPIC_PREFIX.length()), '/');
+        } else if (remaining.startsWith(JMSConfiguration.JNDI_PREFIX)) {
+            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.JNDI_PREFIX
+                .length()), '/');
         }
 
         final String subject = convertPathToActualDestination(remaining, parameters);
@@ -161,44 +123,13 @@ public final class JMSEndpointParser {
         // customize its own version
         // JMSConfiguration newConfiguration = getConfiguration().copy();
         JMSEndpoint endpoint = null;
-        if (pubSubDomain) {
-            if (tempDestination) {
-                endpoint = new JMSTemporaryTopicEndpoint(uri, subject);
-            } else {
-                endpoint = new JMSEndpoint(uri, subject, pubSubDomain);
-            }
-        } else {
-            if (tempDestination) {
-                endpoint = new JMSTemporaryQueueEndpoint(uri, subject);
-            } else {
-                endpoint = new JMSQueueEndpoint(uri, subject);
-            }
+        if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
+            endpoint = new JMSQueueEndpoint(uri, subject);
+        } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
+            endpoint = new JMSTopicEndpoint(uri, subject);
+        } else if (remaining.startsWith(JMSConfiguration.JNDI_PREFIX)) {
+            endpoint = new JMSJNDIEndpoint(uri, subject);
         }
-
-        String selector = getAndRemoveParameter(parameters, "selector");
-        if (selector != null) {
-            endpoint.setSelector(selector);
-        }
-        String username = getAndRemoveParameter(parameters, "username");
-        String password = getAndRemoveParameter(parameters, "password");
-        if (username != null && password != null) {
-            ConnectionFactory cf = endpoint.getConfiguration().getConnectionFactory();
-            UserCredentialsConnectionFactoryAdapter ucfa = new UserCredentialsConnectionFactoryAdapter();
-            ucfa.setTargetConnectionFactory(cf);
-            ucfa.setPassword(password);
-            ucfa.setUsername(username);
-            endpoint.getConfiguration().setConnectionFactory(ucfa);
-        } else {
-            if (username != null || password != null) {
-                // exclude the the saturation of username and password are all empty
-                throw new IllegalArgumentException(
-                                                   "The JmsComponent's username or password is null");
-            }
-        }
-        // setProperties(endpoint.getConfiguration(), parameters);
-
-        // endpoint.setHeaderFilterStrategy(getHeaderFilterStrategy());
-
         return endpoint;
     }
 

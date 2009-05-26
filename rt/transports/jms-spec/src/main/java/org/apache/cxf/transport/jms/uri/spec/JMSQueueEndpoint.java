@@ -16,40 +16,35 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.cxf.transport.jms.uri.spec;
 
-import java.util.Map;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * 
+ * An endpoint for a JMS Queue which is also browsable
+ *
+ * @version $Revision: 749939 $
  */
-public class JMSEndpoint {
-    private String endpointUri;
-    private JMSConfiguration jmsConfiguration;
+public class JMSQueueEndpoint extends JMSEndpoint {
     
-    public JMSEndpoint(String endpointUri) {
-        this.endpointUri = endpointUri;
-    }
+    private static final transient Log LOG = LogFactory.getLog(JMSQueueEndpoint.class);
+
     
-    public void get() {
-        
+    /**
+     * @param endpointUri
+     */
+    public JMSQueueEndpoint(String endpointUri) {
+        super(endpointUri);
+        // TODO Auto-generated constructor stub
     }
 
-    /**
-     * @param parameters
-     */
-    public void configureProperties(Map parameters) {
-        // TODO Auto-generated method stub
-        
-    }
 
     /**
-     * @return
+     * @param uri
+     * @param subject
      */
-    public Object getConfiguration() {
-        // TODO Auto-generated method stub
-        return jmsConfiguration;
+    public JMSQueueEndpoint(String uri, String subject) {
+        super(uri);
     }
-    
 }

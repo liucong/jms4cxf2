@@ -19,37 +19,25 @@
 
 package org.apache.cxf.transport.jms.uri.spec;
 
-import java.util.Map;
-
 /**
  * 
  */
-public class JMSEndpoint {
-    private String endpointUri;
-    private JMSConfiguration jmsConfiguration;
-    
-    public JMSEndpoint(String endpointUri) {
-        this.endpointUri = endpointUri;
-    }
-    
-    public void get() {
-        
+public class JMSJNDIEndpoint extends JMSEndpoint {
+
+    /**
+     * @param endpointUri
+     */
+    public JMSJNDIEndpoint(String endpointUri) {
+        super(endpointUri);
+        // TODO Auto-generated constructor stub
     }
 
     /**
-     * @param parameters
+     * @param uri
+     * @param subject
      */
-    public void configureProperties(Map parameters) {
-        // TODO Auto-generated method stub
-        
+    public JMSJNDIEndpoint(String uri, String subject) {
+        super(uri);
     }
 
-    /**
-     * @return
-     */
-    public Object getConfiguration() {
-        // TODO Auto-generated method stub
-        return jmsConfiguration;
-    }
-    
 }
