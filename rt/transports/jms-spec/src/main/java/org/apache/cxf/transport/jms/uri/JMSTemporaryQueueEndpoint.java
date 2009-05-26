@@ -32,10 +32,10 @@ import javax.jms.TemporaryQueue;
 public class JMSTemporaryQueueEndpoint extends JMSQueueEndpoint implements DestinationEndpoint {
     private Destination jmsDestination;
 
-    public JMSTemporaryQueueEndpoint(String uri, String destination,
+/*    public JMSTemporaryQueueEndpoint(String uri, String destination,
                                      JMSConfiguration configuration) {
         super(uri, destination, configuration);
-    }
+    }*/
 
     public JMSTemporaryQueueEndpoint(String endpointUri, String destination) {
         super(endpointUri, destination);

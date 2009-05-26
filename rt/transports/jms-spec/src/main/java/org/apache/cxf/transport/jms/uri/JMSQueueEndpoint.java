@@ -37,10 +37,10 @@ public class JMSQueueEndpoint extends JMSEndpoint {
         setDestination(destination);
     }
 
-    public JMSQueueEndpoint(String uri, String destination,
+/*    public JMSQueueEndpoint(String uri, String destination,
             JMSConfiguration configuration) {
         super(uri, destination, false, configuration);
-    }
+    }*/
 
     public JMSQueueEndpoint(String endpointUri, String destination) {
         super(endpointUri, destination, false);

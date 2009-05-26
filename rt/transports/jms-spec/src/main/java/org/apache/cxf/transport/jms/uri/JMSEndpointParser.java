@@ -32,13 +32,13 @@ import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapte
 /**
  * 
  */
-public class JMSEndpointParser {
+public final class JMSEndpointParser {
     private static final Logger LOG = LogUtils.getL7dLogger(JMSEndpointParser.class);
 
-    public JMSEndpointParser() {
+    private JMSEndpointParser() {
     }
 
-    public JMSEndpoint createEndpoint(String uri) throws Exception {
+    public static JMSEndpoint createEndpoint(String uri) throws Exception {
         // encode URI string to the unsafe URI characters
         URI u = new URI(UnsafeUriCharactersEncoder.encode(uri));
         String path = u.getSchemeSpecificPart();
@@ -55,8 +55,8 @@ public class JMSEndpointParser {
 
         validateURI(uri, path, parameters);
 
-        LOG.log(Level.FINE, "Creating endpoint uri=[" + uri + "], path=[" + path + "], parameters=["
-                            + parameters + "]");
+        LOG.log(Level.FINE, "Creating endpoint uri=[" + uri + "], path=[" + path
+                            + "], parameters=[" + parameters + "]");
         JMSEndpoint endpoint = createEndpoint(uri, path, parameters);
         if (endpoint == null) {
             return null;
@@ -101,13 +101,15 @@ public class JMSEndpointParser {
      * @param parameters the parameters, an empty map if no parameters given
      * @throws ResolveEndpointFailedException should be thrown if the URI validation failed
      */
-    protected void validateURI(String uri, String path, Map parameters) 
+    protected static void validateURI(String uri, String path, Map parameters)
         throws ResolveEndpointFailedException {
         // check for uri containing & but no ? marker
         if (uri.contains("&") && !uri.contains("?")) {
-            throw new ResolveEndpointFailedException(uri, "Invalid uri syntax: no ? marker however the uri "
-                                                          + "has & parameter separators. "
-                                                          + "Check the uri if its missing a ? marker.");
+            throw new ResolveEndpointFailedException(
+                                                     uri,
+                                                     "Invalid uri syntax: no ? marker however the uri "
+                                                         + "has & parameter separators. "
+                                                         + "Check the uri if its missing a ? marker.");
 
         }
 
@@ -115,7 +117,8 @@ public class JMSEndpointParser {
         if (uri.contains("&&")) {
             throw new ResolveEndpointFailedException(uri,
                                                      "Invalid uri syntax: Double && marker found. "
-                                                     + "Check the uri and remove the duplicate & marker.");
+                                                         + "Check the uri and remove the "
+                                                         + "duplicate & marker.");
         }
     }
 
@@ -128,48 +131,48 @@ public class JMSEndpointParser {
      * @param parameters the optional parameters passed in
      * @return a newly created endpoint or null if the endpoint cannot be created based on the inputs
      */
-    protected JMSEndpoint createEndpoint(String uri, String remaining, Map parameters) throws Exception {
+    protected static JMSEndpoint createEndpoint(String uri, String remaining, Map parameters)
+        throws Exception {
         boolean pubSubDomain = false;
         boolean tempDestination = false;
         if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
             pubSubDomain = false;
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.QUEUE_PREFIX.length()),
-                                                 '/');
+            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.QUEUE_PREFIX
+                .length()), '/');
         } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
             pubSubDomain = true;
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TOPIC_PREFIX.length()),
-                                                 '/');
+            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TOPIC_PREFIX
+                .length()), '/');
         } else if (remaining.startsWith(JMSConfiguration.TEMP_QUEUE_PREFIX)) {
             pubSubDomain = false;
             tempDestination = true;
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TEMP_QUEUE_PREFIX
-                .length()), '/');
+            remaining = removeStartingCharacters(remaining
+                .substring(JMSConfiguration.TEMP_QUEUE_PREFIX.length()), '/');
         } else if (remaining.startsWith(JMSConfiguration.TEMP_TOPIC_PREFIX)) {
             pubSubDomain = true;
             tempDestination = true;
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TEMP_TOPIC_PREFIX
-                .length()), '/');
+            remaining = removeStartingCharacters(remaining
+                .substring(JMSConfiguration.TEMP_TOPIC_PREFIX.length()), '/');
         }
 
         final String subject = convertPathToActualDestination(remaining, parameters);
 
         // lets make sure we copy the configuration as each endpoint can
         // customize its own version
-        JMSConfiguration newConfiguration = getConfiguration().copy();
+        // JMSConfiguration newConfiguration = getConfiguration().copy();
         JMSEndpoint endpoint = null;
         if (pubSubDomain) {
             if (tempDestination) {
-                endpoint = new JMSTemporaryTopicEndpoint(uri, subject, newConfiguration);
+                endpoint = new JMSTemporaryTopicEndpoint(uri, subject);
             } else {
-                endpoint = new JMSEndpoint(uri, subject, pubSubDomain, newConfiguration);
+                endpoint = new JMSEndpoint(uri, subject, pubSubDomain);
             }
         } else {
-            /*QueueBrowseStrategy strategy = getQueueBrowseStrategy();
             if (tempDestination) {
-                endpoint = new JMSTemporaryQueueEndpoint(uri, this, subject, newConfiguration, strategy);
+                endpoint = new JMSTemporaryQueueEndpoint(uri, subject);
             } else {
-                endpoint = new JMSQueueEndpoint(uri, this, subject, newConfiguration, strategy);
-            }*/
+                endpoint = new JMSQueueEndpoint(uri, subject);
+            }
         }
 
         String selector = getAndRemoveParameter(parameters, "selector");
@@ -188,12 +191,13 @@ public class JMSEndpointParser {
         } else {
             if (username != null || password != null) {
                 // exclude the the saturation of username and password are all empty
-                throw new IllegalArgumentException("The JmsComponent's username or password is null");
+                throw new IllegalArgumentException(
+                                                   "The JmsComponent's username or password is null");
             }
         }
-        //setProperties(endpoint.getConfiguration(), parameters);
+        // setProperties(endpoint.getConfiguration(), parameters);
 
-        //endpoint.setHeaderFilterStrategy(getHeaderFilterStrategy());
+        // endpoint.setHeaderFilterStrategy(getHeaderFilterStrategy());
 
         return endpoint;
     }
@@ -203,23 +207,23 @@ public class JMSEndpointParser {
      * @param string
      * @return
      */
-    private String getAndRemoveParameter(Map parameters, String key) {
+    private static String getAndRemoveParameter(Map parameters, String key) {
         Object value = parameters.remove(key);
         return (String)value;
     }
 
     /**
-     * A strategy method allowing the URI destination to be translated into the
-     * actual JMS destination name (say by looking up in JNDI or something)
+     * A strategy method allowing the URI destination to be translated into the actual JMS destination name
+     * (say by looking up in JNDI or something)
      */
-    protected String convertPathToActualDestination(String path, Map parameters) {
+    protected static String convertPathToActualDestination(String path, Map parameters) {
         return path;
     }
-    
-    public JMSConfiguration getConfiguration() {
+
+    public static JMSConfiguration getConfiguration() {
         return null;
     }
-    
+
     // Some helper methods
     // -------------------------------------------------------------------------
     /**
