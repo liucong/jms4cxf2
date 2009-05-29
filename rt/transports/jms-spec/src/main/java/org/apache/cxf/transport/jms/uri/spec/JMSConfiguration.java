@@ -39,7 +39,7 @@ public class JMSConfiguration {
     
     //jndi parameters
     public static final String JNDICONNECTIONFACTORYNAME_PARAMETER_NAME = "jndiConnectionFactoryName";
-    public static final String JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME = "jndiInitialContextFacroty";
+    public static final String JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME = "jndiInitialContextFactory";
     public static final String JNDIURL_PARAMETER_NAME = "jndiURL";
     public static final String JNDI_PREFIX_PARAMETER_NAME = "jndi-";
     

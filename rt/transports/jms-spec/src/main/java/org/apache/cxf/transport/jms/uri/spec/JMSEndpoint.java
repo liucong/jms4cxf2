@@ -27,29 +27,46 @@ import java.util.Map;
 public class JMSEndpoint {
     private String endpointUri;
     private JMSConfiguration jmsConfiguration;
-    
+    private Map parameters;
+
     public JMSEndpoint(String endpointUri) {
         this.endpointUri = endpointUri;
-    }
-    
-    public void get() {
-        
     }
 
     /**
      * @param parameters
      */
-    public void configureProperties(Map parameters) {
-        // TODO Auto-generated method stub
-        
+    public void configureProperties(Map jmsParameters) {
+        this.parameters = jmsParameters;
     }
 
     /**
      * @return
      */
-    public Object getConfiguration() {
+    public JMSConfiguration getConfiguration() {
         // TODO Auto-generated method stub
         return jmsConfiguration;
     }
-    
+
+    /**
+     * @return
+     */
+    public Map getParameters() {
+        return parameters;
+    }
+
+    public String getEnpointUri() {
+        return this.endpointUri;
+    }
+
+    /**
+     * @param string
+     * @return
+     */
+    public String getParameter(String key) {
+        if (this.parameters == null) {
+            return null;
+        }
+        return (String)this.parameters.get(key);
+    }
 }

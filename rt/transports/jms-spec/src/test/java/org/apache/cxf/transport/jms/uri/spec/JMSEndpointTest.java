@@ -22,13 +22,62 @@ package org.apache.cxf.transport.jms.uri.spec;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 public class JMSEndpointTest extends Assert {
-    
+
     @Test
     public void testBasicQueue() throws Exception {
-        JMSEndpoint endpoint = (JMSEndpoint) resolveEndpoint("jms:queue:Foo.Bar");
+        JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
+    }
+
+    @Test
+    public void testQueueParameters() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar?foo=bar&foo2=bar2");
+        assertTrue(endpoint instanceof JMSQueueEndpoint);
+        assertEquals(endpoint.getParameters().size(), 2);
+        assertEquals(endpoint.getParameter("foo"), "bar");
+        assertEquals(endpoint.getParameter("foo2"), "bar2");
+    }
+
+    @Test
+    public void testBasicTopic() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:topic:Foo.Bar");
+        assertTrue(endpoint instanceof JMSTopicEndpoint);
+    }
+
+    @Test
+    public void testTopicParameters() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:topic:Foo.Bar?foo=bar&foo2=bar2");
+        assertTrue(endpoint instanceof JMSTopicEndpoint);
+        assertEquals(endpoint.getParameters().size(), 2);
+        assertEquals(endpoint.getParameter("foo"), "bar");
+        assertEquals(endpoint.getParameter("foo2"), "bar2");
+    }
+
+    @Test
+    public void testBasicJNDI() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar");
+        assertTrue(endpoint instanceof JMSJNDIEndpoint);
+    }
+
+    @Test
+    public void testJNDIParameters() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar?"
+                                               + "jndiInitialContextFactory"
+                                               + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                                               + "&jndiConnectionFactoryName=ConnectionFactory"
+                                               + "&jndiURL=tcp://localhost:61616");
+        assertTrue(endpoint instanceof JMSJNDIEndpoint);
+        assertEquals(endpoint.getParameters().size(), 3);
+        assertEquals(endpoint
+            .getParameter(JMSConfiguration.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME),
+                     "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
+        assertEquals(endpoint
+            .getParameter(JMSConfiguration.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME),
+                     "ConnectionFactory");
+        assertEquals(endpoint.getParameter(JMSConfiguration.JNDIURL_PARAMETER_NAME),
+                     "tcp://localhost:61616");
+
     }
 
     private JMSEndpoint resolveEndpoint(String uri) {
