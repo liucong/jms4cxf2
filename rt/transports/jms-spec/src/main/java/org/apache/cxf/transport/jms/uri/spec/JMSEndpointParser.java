@@ -106,15 +106,21 @@ public final class JMSEndpointParser {
      */
     protected static JMSEndpoint createEndpoint(String uri, String remaining, Map parameters)
         throws Exception {
+        boolean isQueue = false;
+        boolean isTopic = false;
+        boolean isJndi = false;
         if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
             remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.QUEUE_PREFIX
                 .length()), '/');
+            isQueue = true;
         } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
             remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TOPIC_PREFIX
                 .length()), '/');
+            isTopic = true;
         } else if (remaining.startsWith(JMSConfiguration.JNDI_PREFIX)) {
             remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.JNDI_PREFIX
                 .length()), '/');
+            isJndi = true;
         }
 
         final String subject = convertPathToActualDestination(remaining, parameters);
@@ -123,11 +129,11 @@ public final class JMSEndpointParser {
         // customize its own version
         // JMSConfiguration newConfiguration = getConfiguration().copy();
         JMSEndpoint endpoint = null;
-        if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
+        if (isQueue) {
             endpoint = new JMSQueueEndpoint(uri, subject);
-        } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
+        } else if (isTopic) {
             endpoint = new JMSTopicEndpoint(uri, subject);
-        } else if (remaining.startsWith(JMSConfiguration.JNDI_PREFIX)) {
+        } else if (isJndi) {
             endpoint = new JMSJNDIEndpoint(uri, subject);
         }
         return endpoint;
