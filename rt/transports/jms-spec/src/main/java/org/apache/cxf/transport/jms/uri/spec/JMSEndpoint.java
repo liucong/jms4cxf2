@@ -60,7 +60,7 @@ public class JMSEndpoint {
     }
 
     /**
-     * @param string
+     * @param key
      * @return
      */
     public String getParameter(String key) {
