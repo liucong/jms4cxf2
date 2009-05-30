@@ -18,8 +18,6 @@
  */
 package org.apache.cxf.transport.jms.uri.spec;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * An endpoint for a JMS Queue which is also browsable
@@ -27,9 +25,6 @@ import org.apache.commons.logging.LogFactory;
  * @version $Revision: 749939 $
  */
 public class JMSQueueEndpoint extends JMSEndpoint {
-    
-    private static final transient Log LOG = LogFactory.getLog(JMSQueueEndpoint.class);
-
     
     /**
      * @param endpointUri

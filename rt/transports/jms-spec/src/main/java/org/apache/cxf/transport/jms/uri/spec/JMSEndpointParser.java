@@ -140,16 +140,6 @@ public final class JMSEndpointParser {
     }
 
     /**
-     * @param parameters
-     * @param string
-     * @return
-     */
-    private static String getAndRemoveParameter(Map parameters, String key) {
-        Object value = parameters.remove(key);
-        return (String)value;
-    }
-
-    /**
      * A strategy method allowing the URI destination to be translated into the actual JMS destination name
      * (say by looking up in JNDI or something)
      */

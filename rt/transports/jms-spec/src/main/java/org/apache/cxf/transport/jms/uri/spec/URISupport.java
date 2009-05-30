@@ -179,7 +179,6 @@ public final class URISupport {
     }
 
     private static void parseComposite(URI uri, CompositeData rc, String ssp) throws URISyntaxException {
-        String componentString;
         String params;
 
         if (!checkParenthesis(ssp)) {
@@ -196,17 +195,10 @@ public final class URISupport {
                 rc.host = rc.host.substring(0, p);
             }
             p = ssp.lastIndexOf(")");
-            componentString = ssp.substring(intialParen + 1, p);
             params = ssp.substring(p + 1).trim();
         } else {
-            componentString = ssp;
             params = "";
         }
-
-        /*
-         * String components[] = splitComponents(componentString); rc.components = new URI[components.length];
-         * for (int i = 0; i < components.length; i++) { rc.components[i] = new URI(components[i].trim()); }
-         */
 
         p = params.indexOf("?");
         if (p >= 0) {
@@ -221,42 +213,6 @@ public final class URISupport {
             rc.parameters = Collections.EMPTY_MAP;
         }
     }
-
-/*    @SuppressWarnings("unchecked")
-    private static String[] splitComponents(String str) {
-        ArrayList l = new ArrayList();
-
-        int last = 0;
-        int depth = 0;
-        char chars[] = str.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            switch (chars[i]) {
-            case '(':
-                depth++;
-                break;
-            case ')':
-                depth--;
-                break;
-            case ',':
-                if (depth == 0) {
-                    String s = str.substring(last, i);
-                    l.add(s);
-                    last = i + 1;
-                }
-                break;
-            default:
-            }
-        }
-
-        String s = str.substring(last);
-        if (s.length() != 0) {
-            l.add(s);
-        }
-
-        String rc[] = new String[l.size()];
-        l.toArray(rc);
-        return rc;
-    }*/
 
     public static String stripPrefix(String value, String prefix) {
         if (value.startsWith(prefix)) {
