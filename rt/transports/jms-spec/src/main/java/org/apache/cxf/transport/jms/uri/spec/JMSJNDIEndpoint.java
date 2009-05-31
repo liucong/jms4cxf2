@@ -37,7 +37,7 @@ public class JMSJNDIEndpoint extends JMSEndpoint {
      * @param subject
      */
     public JMSJNDIEndpoint(String uri, String subject) {
-        super(uri);
+        super(uri, subject);
     }
 
 }

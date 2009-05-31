@@ -109,16 +109,16 @@ public final class JMSEndpointParser {
         boolean isQueue = false;
         boolean isTopic = false;
         boolean isJndi = false;
-        if (remaining.startsWith(JMSConfiguration.QUEUE_PREFIX)) {
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.QUEUE_PREFIX
+        if (remaining.startsWith(JMSSpecConstants.QUEUE_PREFIX)) {
+            remaining = removeStartingCharacters(remaining.substring(JMSSpecConstants.QUEUE_PREFIX
                 .length()), '/');
             isQueue = true;
-        } else if (remaining.startsWith(JMSConfiguration.TOPIC_PREFIX)) {
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.TOPIC_PREFIX
+        } else if (remaining.startsWith(JMSSpecConstants.TOPIC_PREFIX)) {
+            remaining = removeStartingCharacters(remaining.substring(JMSSpecConstants.TOPIC_PREFIX
                 .length()), '/');
             isTopic = true;
-        } else if (remaining.startsWith(JMSConfiguration.JNDI_PREFIX)) {
-            remaining = removeStartingCharacters(remaining.substring(JMSConfiguration.JNDI_PREFIX
+        } else if (remaining.startsWith(JMSSpecConstants.JNDI_PREFIX)) {
+            remaining = removeStartingCharacters(remaining.substring(JMSSpecConstants.JNDI_PREFIX
                 .length()), '/');
             isJndi = true;
         }
@@ -147,7 +147,7 @@ public final class JMSEndpointParser {
         return path;
     }
 
-    public static JMSConfiguration getConfiguration() {
+    public static JMSSpecConstants getConfiguration() {
         return null;
     }
 

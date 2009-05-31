@@ -26,11 +26,20 @@ import java.util.Map;
  */
 public class JMSEndpoint {
     private String endpointUri;
-    private JMSConfiguration jmsConfiguration;
     private Map parameters;
-
+    private String destinationName;
+    
     public JMSEndpoint(String endpointUri) {
         this.endpointUri = endpointUri;
+    }
+
+    /**
+     * @param uri
+     * @param subject
+     */
+    public JMSEndpoint(String endpointUri, String destinationName) {
+        this.endpointUri = endpointUri;
+        this.destinationName = destinationName;
     }
 
     /**
@@ -38,14 +47,6 @@ public class JMSEndpoint {
      */
     public void configureProperties(Map jmsParameters) {
         this.parameters = jmsParameters;
-    }
-
-    /**
-     * @return
-     */
-    public JMSConfiguration getConfiguration() {
-        // TODO Auto-generated method stub
-        return jmsConfiguration;
     }
 
     /**
@@ -71,30 +72,45 @@ public class JMSEndpoint {
     }
 
     public String getDeliveryMode() {
-        String deliveryMode = getParameter(JMSConfiguration.DELIVERYMODE_PARAMETER_NAME);
+        String deliveryMode = getParameter(JMSSpecConstants.DELIVERYMODE_PARAMETER_NAME);
         if (deliveryMode == null) {
-            deliveryMode = JMSConfiguration.DELIVERYMODE_DEFAULT;
+            deliveryMode = JMSSpecConstants.DELIVERYMODE_DEFAULT;
         }
         return deliveryMode;
     }
 
     public int getTimeToLive() {
-        String timeToLive = getParameter(JMSConfiguration.TIMETOLIVE_PARAMETER_NAME);
+        String timeToLive = getParameter(JMSSpecConstants.TIMETOLIVE_PARAMETER_NAME);
         if (timeToLive == null) {
-            return JMSConfiguration.TIMETOLIVE_DEFAULT;
+            return JMSSpecConstants.TIMETOLIVE_DEFAULT;
         }
         return Integer.parseInt(timeToLive);
     }
 
     public int getPriority() {
-        String priority = getParameter(JMSConfiguration.PRIORITY_PARAMETER_NAME);
+        String priority = getParameter(JMSSpecConstants.PRIORITY_PARAMETER_NAME);
         if (priority == null) {
-            return JMSConfiguration.PRIORITY_DEFAULT;
+            return JMSSpecConstants.PRIORITY_DEFAULT;
         }
         return Integer.parseInt(priority);
     }
 
     public String getReplyToName() {
-        return getParameter(JMSConfiguration.REPLYTONAME_PARAMETER_NAME);
+        return getParameter(JMSSpecConstants.REPLYTONAME_PARAMETER_NAME);
+    }
+
+    /**
+     * @return
+     */
+    public String getDestinationName() {
+        // TODO Auto-generated method stub
+        return this.destinationName;
+    }
+
+    /**
+     * @param destinationName The destinationName to set.
+     */
+    public void setDestinationName(String destinationName) {
+        this.destinationName = destinationName;
     }
 }
