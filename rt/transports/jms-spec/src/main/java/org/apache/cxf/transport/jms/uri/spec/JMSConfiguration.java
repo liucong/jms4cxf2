@@ -37,13 +37,19 @@ public class JMSConfiguration {
     public static final String PRIORITY_PARAMETER_NAME = "priority";
     public static final String REPLYTONAME_PARAMETER_NAME = "replyToName";
     
-    //jndi parameters
+    //default parameters
+    public static final String DELIVERYMODE_DEFAULT = DELIVERYMODE_NON_PERSISTENT;
+    public static final int TIMETOLIVE_DEFAULT = -1;
+    public static final int PRIORITY_DEFAULT = 5;
+    
+    //jndi parameters ? need to be sure.
     public static final String JNDICONNECTIONFACTORYNAME_PARAMETER_NAME = "jndiConnectionFactoryName";
     public static final String JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME = "jndiInitialContextFactory";
     public static final String JNDIURL_PARAMETER_NAME = "jndiURL";
     public static final String JNDI_PREFIX_PARAMETER_NAME = "jndi-";
     
     //queue and topic parameters
+    public static final String TOPICREPLYTONAME_PARAMETER_NAME = "topicReplyToName";
     
     public JMSConfiguration() {
     }
