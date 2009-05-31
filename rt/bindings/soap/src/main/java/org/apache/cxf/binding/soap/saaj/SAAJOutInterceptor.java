@@ -88,6 +88,25 @@ public class SAAJOutInterceptor extends AbstractSoapInterceptor {
     }
     public void handleMessage(SoapMessage message) throws Fault {
         SOAPMessage saaj = message.getContent(SOAPMessage.class);
+
+        try { 
+            if (message.hasHeaders()
+                && saaj != null 
+                && saaj.getSOAPPart().getEnvelope().getHeader() == null) {
+
+                // creating an empty SOAPHeader at this point in the
+                // pre-existing SOAPMessage avoids the <soap:body> and 
+                // <soap:header> appearing in reverse order when the envolope
+                // is written to the wire
+                //
+                saaj.getSOAPPart().getEnvelope().addHeader();
+            }
+        } catch (SOAPException e) {
+            throw new SoapFault(new Message("SOAPEXCEPTION", BUNDLE), 
+                                e,
+                                message.getVersion().getSender());
+        }    
+
         if (saaj == null) {
             SoapVersion version = message.getVersion();
             try {
@@ -110,21 +129,16 @@ public class SAAJOutInterceptor extends AbstractSoapInterceptor {
         } else if (!message.containsKey(ORIGINAL_XML_WRITER)) {
             //as the SOAPMessage already has everything in place, we do not need XMLStreamWriter to write
             //anything for us, so we just set XMLStreamWriter's output to a dummy output stream.         
-            try {
-                XMLStreamWriter origWriter = message.getContent(XMLStreamWriter.class);
-                message.put(ORIGINAL_XML_WRITER, origWriter);
-                
-                XMLStreamWriter dummyWriter = StaxUtils.getXMLOutputFactory()
-                    .createXMLStreamWriter(new OutputStream() {
-                        public void write(int b) throws IOException {
-                        }
-                        public void write(byte b[], int off, int len) throws IOException {
-                        }                        
-                    });
-                message.setContent(XMLStreamWriter.class, dummyWriter);
-            } catch (XMLStreamException e) {
-                // do nothing
-            }   
+            XMLStreamWriter origWriter = message.getContent(XMLStreamWriter.class);
+            message.put(ORIGINAL_XML_WRITER, origWriter);
+            
+            XMLStreamWriter dummyWriter = StaxUtils.createXMLStreamWriter(new OutputStream() {
+                    public void write(int b) throws IOException {
+                    }
+                    public void write(byte b[], int off, int len) throws IOException {
+                    }                        
+                });
+            message.setContent(XMLStreamWriter.class, dummyWriter);
         }
         
         // Add a final interceptor to write the message

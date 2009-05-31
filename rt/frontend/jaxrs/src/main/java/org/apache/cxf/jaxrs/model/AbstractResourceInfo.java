@@ -59,6 +59,10 @@ public abstract class AbstractResourceInfo {
         }
     }
     
+    public void setResourceClass(Class<?> rClass) {
+        resourceClass = rClass;
+    }
+    
     public Class<?> getServiceClass() {
         return serviceClass;
     }
@@ -67,9 +71,14 @@ public abstract class AbstractResourceInfo {
         if (resourceClass == null || !root) {
             return;
         }
-        
-        
-        for (Field f : getServiceClass().getDeclaredFields()) {
+        findContextFields(serviceClass);
+    }
+    
+    private void findContextFields(Class<?> cls) {
+        if (cls == Object.class || cls == null) {
+            return;
+        }
+        for (Field f : cls.getDeclaredFields()) {
             for (Annotation a : f.getAnnotations()) {
                 if (a.annotationType() == Context.class) {
                     if (contextFields == null) {
@@ -93,6 +102,7 @@ public abstract class AbstractResourceInfo {
                 }
             }
         }
+        findContextFields(cls.getSuperclass());
     }
     
     private void initContextSetterMethods() {

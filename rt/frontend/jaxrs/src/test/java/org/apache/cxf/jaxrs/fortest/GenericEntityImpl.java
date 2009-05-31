@@ -16,18 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.cxf.jaxrs.fortest;
 
-package org.apache.cxf.jaxrs.utils;
+import javax.ws.rs.Path;
 
-public enum ParameterType {
-    PATH,
-    QUERY,
-    MATRIX,
-    HEADER,
-    COOKIE,
-    FORM,
+import org.apache.cxf.jaxrs.resources.Book;
+
+@Path("/books")
+public class GenericEntityImpl implements GenericEntity<Book> {
+
+    private Book book;
     
-    REQUEST_BODY,
-    CONTEXT,
-    UNKNOWN
+    public void postEntity(Book object) {
+        book = object;
+    }
+    
+    public Book getEntity() {
+        return book;
+    }
 }

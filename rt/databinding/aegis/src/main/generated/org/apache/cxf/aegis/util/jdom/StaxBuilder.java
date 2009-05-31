@@ -60,7 +60,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -78,7 +77,7 @@ import org.jdom.UncheckedJDOMFactory;
  * Builds a JDOM {@link org.jdom.Document org.jdom.Document} using a
  * {@link javax.xml.stream.XMLStreamReader}.
  * 
- * @version $Revision: 642271 $, $Date: 2006-02-15 15:21:25 -0500 (Wed, 15 Feb
+ * @version $Revision: 777189 $, $Date: 2006-02-15 15:21:25 -0500 (Wed, 15 Feb
  *          2006) $
  * @author Tatu Saloranta
  * @author Bradley S. Huffman
@@ -124,7 +123,6 @@ public class StaxBuilder {
     /** The factory for creating new JDOM objects */
     private JDOMFactory factory;
 
-    private XMLInputFactory xifactory;
 
     private Map additionalNamespaces;
     // This is set to 'true' when we are reading the middle of a stream,
@@ -135,17 +133,12 @@ public class StaxBuilder {
      * Default constructor.
      */
     public StaxBuilder() {
-        xifactory = StaxUtils.getXMLInputFactory();
     }
 
     public StaxBuilder(Map namespaces) {
-        xifactory = StaxUtils.getXMLInputFactory();
         this.additionalNamespaces = namespaces;
     }
 
-    public StaxBuilder(XMLInputFactory xifactory) {
-        this.xifactory = xifactory;
-    }
 
     public Map getAdditionalNamespaces() {
         return additionalNamespaces;
@@ -193,12 +186,12 @@ public class StaxBuilder {
 
     public Document build(InputStream is) throws XMLStreamException {
         isReadingMidStream = false;
-        return buildInternal(xifactory.createXMLStreamReader(is));
+        return buildInternal(StaxUtils.createXMLStreamReader(is));
     }
 
     public Document build(Reader reader) throws XMLStreamException {
         isReadingMidStream = false;
-        return buildInternal(xifactory.createXMLStreamReader(reader));
+        return buildInternal(StaxUtils.createXMLStreamReader(reader));
     }
     
     private Document buildInternal(XMLStreamReader r) throws XMLStreamException {

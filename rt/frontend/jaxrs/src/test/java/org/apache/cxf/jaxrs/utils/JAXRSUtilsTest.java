@@ -1025,10 +1025,9 @@ public class JAXRSUtilsTest extends Assert {
             Customer.class.getMethod("setUriInfoContext", 
                                      new Class[]{UriInfo.class});
         OperationResourceInfo ori = 
-            new OperationResourceInfo(methodToInvoke, cri);
+            new OperationResourceInfo(methodToInvoke,
+                                      AnnotationUtils.getAnnotatedMethod(methodToInvoke), cri);
         ori.setHttpMethod("GET");
-        ori.setAnnotatedMethod(AnnotationUtils.getAnnotatedMethod(methodToInvoke));
-        
         
         Message m = new MessageImpl();
         
@@ -1137,7 +1136,8 @@ public class JAXRSUtilsTest extends Assert {
                    ((ThreadLocalProxy)c.getThreadLocalServletContext()).get());
         assertSame(servletContextMock, 
                    ((ThreadLocalProxy)c.getServletContext()).get());
-        
+        assertSame(servletContextMock, 
+                   ((ThreadLocalProxy)c.getSuperServletContext()).get());
         assertSame(httpRequest, 
                    ((ThreadLocalProxy)c.getServletRequest()).get());
         HttpServletResponseFilter filter = (

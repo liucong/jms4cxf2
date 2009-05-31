@@ -26,7 +26,7 @@ public class ThreadLocalContextResolver extends AbstractThreadLocalProxy<Context
 
     @SuppressWarnings("unchecked")
     public Object getContext(Class type) {
-        return get().getContext(type);
+        return get() != null ? get().getContext(type) : null;
     }
 
 }

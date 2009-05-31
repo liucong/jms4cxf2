@@ -20,8 +20,12 @@
 package org.apache.cxf.systest.dispatch;
 
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.namespace.QName;
@@ -50,9 +54,12 @@ import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.apache.hello_world_soap_http.BadRecordLitFault;
 import org.apache.hello_world_soap_http.GreeterImpl;
 import org.apache.hello_world_soap_http.SOAPService;
 import org.apache.hello_world_soap_http.types.GreetMe;
+import org.apache.hello_world_soap_http.types.GreetMeLater;
 import org.apache.hello_world_soap_http.types.GreetMeResponse;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -94,6 +101,17 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
     public void setUp() {
         BusFactory.getDefaultBus().getOutInterceptors().add(new LoggingOutInterceptor());
         BusFactory.getDefaultBus().getInInterceptors().add(new LoggingInInterceptor());
+    }
+    
+    private void waitForFuture(Future fd) throws Exception {
+        int count = 0;
+        while (!fd.isDone()) {
+            ++count;
+            if (count > 500) {
+                fail("Did not finish in 10 seconds");
+            }
+            Thread.sleep(20);
+        }
     }
 
     @Test
@@ -144,9 +162,8 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestSOAPMessageHandler tsmh = new TestSOAPMessageHandler();
         Future f = disp.invokeAsync(soapReqMsg3, tsmh);
         assertNotNull(f);
-        while (!f.isDone()) {
-            // wait
-        }
+        waitForFuture(f);
+        
         String expected3 = "Hello TestSOAPInputMessage3";
         assertEquals("Response should be : Hello TestSOAPInputMessage3", 
                      expected3, tsmh.getReplyBuffer().trim());
@@ -209,9 +226,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestDOMSourceHandler tdsh = new TestDOMSourceHandler();
         Future fd = disp.invokeAsync(domReqMsg3, tdsh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            // wait
-        }
+        waitForFuture(fd);
         String expected3 = "Hello TestSOAPInputMessage3";
         assertEquals("Response should be : Hello TestSOAPInputMessage3", expected3, 
                      tdsh.getReplyBuffer().trim());
@@ -287,9 +302,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestDOMSourceHandler tdsh = new TestDOMSourceHandler();
         Future fd = disp.invokeAsync(domReqMsg3, tdsh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            // wait
-        }
+        waitForFuture(fd);
         String expected3 = "Hello TestSOAPInputMessage3";
         assertEquals("Response should be : Hello TestSOAPInputMessage3", 
                      expected3, tdsh.getReplyBuffer().trim());
@@ -329,11 +342,50 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestJAXBHandler tjbh = new TestJAXBHandler();
         Future fd = disp.invokeAsync(greetMe, tjbh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            // wait
-        }
+        waitForFuture(fd);
+
         String responseValue3 = ((GreetMeResponse)tjbh.getResponse()).getResponseType();
         assertTrue("Expected string, " + expected, expected.equals(responseValue3));
+        
+        org.apache.hello_world_soap_http.types.TestDocLitFault fr = 
+            new  org.apache.hello_world_soap_http.types.TestDocLitFault();
+        fr.setFaultType(BadRecordLitFault.class.getSimpleName());
+            
+        tjbh = new TestJAXBHandler();
+        fd = disp.invokeAsync(fr, tjbh);
+        waitForFuture(fd);
+        try {
+            fd.get();
+            fail("did not get expected exception");
+        } catch (ExecutionException ex) {
+            //expected
+        }
+        
+        GreetMeLater later = new GreetMeLater();
+        later.setRequestType(1000);
+        
+        HTTPClientPolicy pol = new HTTPClientPolicy();
+        pol.setReceiveTimeout(100);
+        disp.getRequestContext().put(HTTPClientPolicy.class.getName(), pol);
+        Response<Object> o = disp.invokeAsync(later);
+        try {
+            o.get(10, TimeUnit.SECONDS);
+            fail("Should have gotten a SocketTimeoutException");
+        } catch (ExecutionException ex) {
+            assertTrue(ex.getCause() instanceof SocketTimeoutException);
+        }
+
+        later.setRequestType(20000);
+        pol.setReceiveTimeout(20000);
+        disp.getRequestContext().put(HTTPClientPolicy.class.getName(), pol);
+        o = disp.invokeAsync(later);
+        try {
+            o.get(100, TimeUnit.MILLISECONDS);
+            fail("Should have gotten a SocketTimeoutException");
+        } catch (TimeoutException ex) {
+            //ignore - expected
+        }
+
     }
 
     @Test
@@ -426,9 +478,8 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestSAXSourceHandler tssh = new TestSAXSourceHandler();
         Future fd = disp.invokeAsync(saxSourceReq3, tssh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            //wait
-        }
+        waitForFuture(fd);
+
         String expected3 = "Hello TestSOAPInputMessage3";
         SAXSource saxSourceResp3 = tssh.getSAXSource();
         assertNotNull(saxSourceResp3);
@@ -495,9 +546,8 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestSAXSourceHandler tssh = new TestSAXSourceHandler();
         Future fd = disp.invokeAsync(saxSourceReq3, tssh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            //wait
-        }
+        waitForFuture(fd);
+
         String expected3 = "Hello TestSOAPInputMessage3";
         SAXSource saxSourceResp3 = tssh.getSAXSource();
         assertNotNull(saxSourceResp3);
@@ -542,9 +592,8 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestStreamSourceHandler tssh = new TestStreamSourceHandler();
         Future fd = disp.invokeAsync(streamSourceReq3, tssh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            //wait
-        }
+        waitForFuture(fd);
+
         String expected3 = "Hello TestSOAPInputMessage3";
         StreamSource streamSourceResp3 = tssh.getStreamSource();
         assertNotNull(streamSourceResp3);
@@ -593,9 +642,8 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         TestStreamSourceHandler tssh = new TestStreamSourceHandler();
         Future fd = disp.invokeAsync(streamSourceReq3, tssh);
         assertNotNull(fd);
-        while (!fd.isDone()) {
-            //wait
-        }
+        waitForFuture(fd);
+        
         String expected3 = "Hello TestSOAPInputMessage3";
         StreamSource streamSourceResp3 = tssh.getStreamSource();
         assertNotNull(streamSourceResp3);

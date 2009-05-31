@@ -695,8 +695,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
             BindingProvider  bp = null;
             
             if (handler instanceof BindingProvider) {
-                bp = (BindingProvider)handler;
-                //System.out.println(bp.toString());
+                bp = (BindingProvider)handler;                
                 Map<String, Object> requestContext = bp.getRequestContext();
                 JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
                 requestHeader.setJMSCorrelationID("JMS_SAMPLE_CORRELATION_ID");
