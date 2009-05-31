@@ -93,6 +93,20 @@ public class JMSEndpointTest extends Assert {
         assertEquals(endpoint.getParameter(JMSConfiguration.PRIORITY_PARAMETER_NAME), "5");
         assertEquals(endpoint.getParameter(JMSConfiguration.REPLYTONAME_PARAMETER_NAME), "foo.bar2");
     }
+    
+    @Test
+    public void testSimpelParameters() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar?" + "deliveryMode=NON_PERSISTENT"
+                                               + "&timeToLive=100" + "&priority=5"
+                                               + "&replyToName=foo.bar2");
+        assertTrue(endpoint instanceof JMSQueueEndpoint);
+        assertEquals(endpoint.getParameters().size(), 4);
+        assertEquals(endpoint.getDeliveryMode(),
+                     JMSConfiguration.DELIVERYMODE_NON_PERSISTENT);
+        assertEquals(endpoint.getTimeToLive(), 100);
+        assertEquals(endpoint.getPriority(), 5);
+        assertEquals(endpoint.getReplyToName(), "foo.bar2");
+    }
 
     private JMSEndpoint resolveEndpoint(String uri) {
         JMSEndpoint endpoint = null;

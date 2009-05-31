@@ -69,4 +69,32 @@ public class JMSEndpoint {
         }
         return (String)this.parameters.get(key);
     }
+
+    public String getDeliveryMode() {
+        String deliveryMode = getParameter(JMSConfiguration.DELIVERYMODE_PARAMETER_NAME);
+        if (deliveryMode == null) {
+            deliveryMode = JMSConfiguration.DELIVERYMODE_DEFAULT;
+        }
+        return deliveryMode;
+    }
+
+    public int getTimeToLive() {
+        String timeToLive = getParameter(JMSConfiguration.TIMETOLIVE_PARAMETER_NAME);
+        if (timeToLive == null) {
+            return JMSConfiguration.TIMETOLIVE_DEFAULT;
+        }
+        return Integer.parseInt(timeToLive);
+    }
+
+    public int getPriority() {
+        String priority = getParameter(JMSConfiguration.PRIORITY_PARAMETER_NAME);
+        if (priority == null) {
+            return JMSConfiguration.PRIORITY_DEFAULT;
+        }
+        return Integer.parseInt(priority);
+    }
+
+    public String getReplyToName() {
+        return getParameter(JMSConfiguration.REPLYTONAME_PARAMETER_NAME);
+    }
 }
