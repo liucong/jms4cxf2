@@ -179,7 +179,6 @@ public final class URISupport {
     }
 
     private static void parseComposite(URI uri, CompositeData rc, String ssp) throws URISyntaxException {
-        String componentString;
         String params;
 
         if (!checkParenthesis(ssp)) {
@@ -196,10 +195,8 @@ public final class URISupport {
                 rc.host = rc.host.substring(0, p);
             }
             p = ssp.lastIndexOf(")");
-            componentString = ssp.substring(intialParen + 1, p);
             params = ssp.substring(p + 1).trim();
         } else {
-            componentString = ssp;
             params = "";
         }
 

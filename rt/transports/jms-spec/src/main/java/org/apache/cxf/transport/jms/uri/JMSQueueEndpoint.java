@@ -21,26 +21,21 @@ package org.apache.cxf.transport.jms.uri;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * An endpoint for a JMS Queue which is also browsable
- *
+ * 
  * @version $Revision: 749939 $
  */
 public class JMSQueueEndpoint extends JMSEndpoint {
-    private static final transient Log LOG = LogFactory.getLog(JMSQueueEndpoint.class);
-
     public JMSQueueEndpoint(Queue destination) throws JMSException {
         this("jms:queue:" + destination.getQueueName(), null);
         setDestination(destination);
     }
 
-/*    public JMSQueueEndpoint(String uri, String destination,
-            JMSConfiguration configuration) {
-        super(uri, destination, false, configuration);
-    }*/
+    /*
+     * public JMSQueueEndpoint(String uri, String destination, JMSConfiguration configuration) { super(uri,
+     * destination, false, configuration); }
+     */
 
     public JMSQueueEndpoint(String endpointUri, String destination) {
         super(endpointUri, destination, false);

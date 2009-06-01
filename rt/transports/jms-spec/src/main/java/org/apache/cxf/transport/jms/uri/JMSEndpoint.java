@@ -58,15 +58,15 @@ public class JMSEndpoint {
         this.destination = destination;
     }
 
-    public JMSEndpoint(String uri, String destinationName,
-                       boolean pubSubDomain, JMSConfiguration configuration) {
+    public JMSEndpoint(String uri, String destinationName, boolean pubSubDomain,
+                       JMSConfiguration configuration) {
         this.configuration = configuration;
         this.destinationName = destinationName;
         this.pubSubDomain = pubSubDomain;
     }
 
-    public JMSEndpoint(String endpointUri, JMSConfiguration configuration,
-                       String destinationName, boolean pubSubDomain) {
+    public JMSEndpoint(String endpointUri, JMSConfiguration configuration, String destinationName,
+                       boolean pubSubDomain) {
         this.endpointUrl = endpointUri;
         this.configuration = configuration;
         this.destinationName = destinationName;
@@ -175,8 +175,7 @@ public class JMSEndpoint {
      */
     protected JMSProviderMetadata getProviderMetadata() {
         JMSConfiguration conf = getConfiguration();
-        JMSProviderMetadata metadata = conf.getProviderMetadata();
-        return metadata;
+        return conf.getProviderMetadata();
     }
 
     /**
@@ -191,12 +190,10 @@ public class JMSEndpoint {
     }
 
     public void checkValidTemplate(JmsTemplate template) {
-        if (template.getDestinationResolver() == null) {
-            if (this instanceof DestinationEndpoint) {
-                final DestinationEndpoint destinationEndpoint = (DestinationEndpoint)this;
-                template.setDestinationResolver(JMSConfiguration
-                    .createDestinationResolver(destinationEndpoint));
-            }
+        if (template.getDestinationResolver() == null && this instanceof DestinationEndpoint) {
+            final DestinationEndpoint destinationEndpoint = (DestinationEndpoint)this;
+            template.setDestinationResolver(JMSConfiguration
+                .createDestinationResolver(destinationEndpoint));
         }
     }
 
@@ -629,6 +626,20 @@ public class JMSEndpoint {
     public void configureProperties(Map parameters) {
         // TODO Auto-generated method stub
 
+    }
+
+    /**
+     * @param endpointUrl The endpointUrl to set.
+     */
+    public void setEndpointUrl(String endpointUrl) {
+        this.endpointUrl = endpointUrl;
+    }
+
+    /**
+     * * @return Returns the endpointUrl.
+     */
+    public String getEndpointUrl() {
+        return endpointUrl;
     }
 
 }
