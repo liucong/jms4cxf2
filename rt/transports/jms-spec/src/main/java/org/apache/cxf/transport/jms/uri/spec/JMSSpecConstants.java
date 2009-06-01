@@ -24,6 +24,10 @@ package org.apache.cxf.transport.jms.uri.spec;
  */
 public class JMSSpecConstants {
     
+    public static final String QUEUE = "queue";
+    public static final String TOPIC = "topic";
+    public static final String JNDI = "jndi";
+    
     public static final String QUEUE_PREFIX = "queue:";
     public static final String TOPIC_PREFIX = "topic:";
     public static final String JNDI_PREFIX = "jndi:";
@@ -46,7 +50,7 @@ public class JMSSpecConstants {
     public static final String JNDICONNECTIONFACTORYNAME_PARAMETER_NAME = "jndiConnectionFactoryName";
     public static final String JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME = "jndiInitialContextFactory";
     public static final String JNDIURL_PARAMETER_NAME = "jndiURL";
-    public static final String JNDI_PREFIX_PARAMETER_NAME = "jndi-";
+    public static final String JNDI_PARAMETER_NAME_PREFIX = "jndi-";
     
     //queue and topic parameters
     public static final String TOPICREPLYTONAME_PARAMETER_NAME = "topicReplyToName";

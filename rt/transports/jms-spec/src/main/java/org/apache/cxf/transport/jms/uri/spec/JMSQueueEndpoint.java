@@ -25,21 +25,11 @@ package org.apache.cxf.transport.jms.uri.spec;
  * @version $Revision: 749939 $
  */
 public class JMSQueueEndpoint extends JMSEndpoint {
-    
-    /**
-     * @param endpointUri
-     */
-    public JMSQueueEndpoint(String endpointUri) {
-        super(endpointUri);
-        // TODO Auto-generated constructor stub
-    }
-
-
     /**
      * @param uri
      * @param subject
      */
-    public JMSQueueEndpoint(String uri, String subject) {
-        super(uri);
+    public JMSQueueEndpoint(String uri, String jmsVariant, String subject) {
+        super(uri, jmsVariant, subject);
     }
 }

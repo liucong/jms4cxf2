@@ -19,6 +19,8 @@
 
 package org.apache.cxf.transport.jms.uri.spec;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -26,19 +28,17 @@ import java.util.Map;
  */
 public class JMSEndpoint {
     private String endpointUri;
-    private Map parameters;
     private String destinationName;
-    
-    public JMSEndpoint(String endpointUri) {
-        this.endpointUri = endpointUri;
-    }
+    private String jmsVariant;
+    private Map parameters;
 
     /**
      * @param uri
      * @param subject
      */
-    public JMSEndpoint(String endpointUri, String destinationName) {
+    public JMSEndpoint(String endpointUri, String jmsVariant, String destinationName) {
         this.endpointUri = endpointUri;
+        this.jmsVariant = jmsVariant;
         this.destinationName = destinationName;
     }
 
@@ -112,5 +112,44 @@ public class JMSEndpoint {
      */
     public void setDestinationName(String destinationName) {
         this.destinationName = destinationName;
+    }
+
+    /**
+     * @param jmsVariant The jmsVariant to set.
+     */
+    public void setJmsVariant(String jmsVariant) {
+        this.jmsVariant = jmsVariant;
+    }
+
+    /**
+     * * @return Returns the jmsVariant.
+     */
+    public String getJmsVariant() {
+        return jmsVariant;
+    }
+
+    public String getJndiConnectionFactoryName() {
+        return getParameter(JMSSpecConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME);
+    }
+
+    public String getJndiInitialContextFactory() {
+        return getParameter(JMSSpecConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME);
+    }
+
+    public String getJndiURL() {
+        return getParameter(JMSSpecConstants.JNDIURL_PARAMETER_NAME);
+    }
+
+    public Map getAdditionalJNDIParameters() {
+        Map addParas = new HashMap();
+        Iterator keyIter = parameters.keySet().iterator();
+        while (keyIter.hasNext()) {
+            String key = (String)keyIter.next();
+            if (key.startsWith(JMSSpecConstants.JNDI_PARAMETER_NAME_PREFIX)) {
+                addParas.put(key.substring(5), this.parameters.get(key));
+            }
+        }
+
+        return addParas;
     }
 }

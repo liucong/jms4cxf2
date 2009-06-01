@@ -23,21 +23,12 @@ package org.apache.cxf.transport.jms.uri.spec;
  * 
  */
 public class JMSTopicEndpoint extends JMSEndpoint {
-
-    /**
-     * @param endpointUri
-     */
-    public JMSTopicEndpoint(String endpointUri) {
-        super(endpointUri);
-        // TODO Auto-generated constructor stub
-    }
-
     /**
      * @param uri
      * @param subject
      */
-    public JMSTopicEndpoint(String uri, String subject) {
-        super(uri);
+    public JMSTopicEndpoint(String uri, String jmsVariant, String subject) {
+        super(uri, jmsVariant, subject);
     }
 
 }

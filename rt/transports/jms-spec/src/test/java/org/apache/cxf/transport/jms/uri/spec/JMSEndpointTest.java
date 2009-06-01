@@ -19,6 +19,8 @@
 
 package org.apache.cxf.transport.jms.uri.spec;
 
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,12 +30,16 @@ public class JMSEndpointTest extends Assert {
     public void testBasicQueue() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
+        assertEquals(endpoint.getDestinationName(), "Foo.Bar");
+        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.QUEUE);
     }
 
     @Test
     public void testQueueParameters() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar?foo=bar&foo2=bar2");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
+        assertEquals(endpoint.getDestinationName(), "Foo.Bar");
+        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.QUEUE);
         assertEquals(endpoint.getParameters().size(), 2);
         assertEquals(endpoint.getParameter("foo"), "bar");
         assertEquals(endpoint.getParameter("foo2"), "bar2");
@@ -43,6 +49,8 @@ public class JMSEndpointTest extends Assert {
     public void testBasicTopic() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:topic:Foo.Bar");
         assertTrue(endpoint instanceof JMSTopicEndpoint);
+        assertEquals(endpoint.getDestinationName(), "Foo.Bar");
+        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.TOPIC);
     }
 
     @Test
@@ -58,6 +66,8 @@ public class JMSEndpointTest extends Assert {
     public void testBasicJNDI() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar");
         assertTrue(endpoint instanceof JMSJNDIEndpoint);
+        assertEquals(endpoint.getDestinationName(), "Foo.Bar");
+        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.JNDI);
     }
 
     @Test
@@ -80,6 +90,27 @@ public class JMSEndpointTest extends Assert {
 
     }
 
+    @Test
+    public void testJNDIWithAdditionalParameters() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar?"
+                                               + "jndiInitialContextFactory"
+                                               + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                                               + "&jndiConnectionFactoryName=ConnectionFactory"
+                                               + "&jndiURL=tcp://localhost:61616"
+                                               + "&jndi-com.sun.jndi.someParameter=someValue");
+        assertTrue(endpoint instanceof JMSJNDIEndpoint);
+        assertEquals(endpoint.getParameters().size(), 4);
+        assertEquals(endpoint.getJndiInitialContextFactory(),
+                     "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
+        assertEquals(endpoint.getJndiConnectionFactoryName(),
+                     "ConnectionFactory");
+        assertEquals(endpoint.getJndiURL(),
+                     "tcp://localhost:61616");
+        Map addParas = endpoint.getAdditionalJNDIParameters();
+        assertEquals(addParas.size(), 1);
+        assertEquals(addParas.get("com.sun.jndi.someParameter"), "someValue");
+    }
+    
     @Test
     public void testSharedParameters() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar?" + "deliveryMode=NON_PERSISTENT"
