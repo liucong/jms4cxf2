@@ -20,7 +20,6 @@ package org.apache.cxf.transport.jms;
 
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -260,39 +259,6 @@ public class JMSOldConfigHolder {
             }
         }
         return jmsConfig;
-    }
-
-    /**
-     * @param jmsuri
-     * @param addr
-     */
-    private void initAddress(String jmsuri, AddressType addr) {
-        JMSEndpoint endpoint = null;
-        try {
-            endpoint = JMSEndpointParser.createEndpoint(jmsuri);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return;
-        }
-        // just for now
-        addr.setDestinationStyle(DestinationStyleType.QUEUE);
-        addr.setJndiConnectionFactoryName(endpoint
-            .getParameter(JMSSpecConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME));
-        addr.setJndiDestinationName(endpoint.getDestinationName());
-
-        List<JMSNamingPropertyType> properties = addr.getJMSNamingProperty();
-
-        JMSNamingPropertyType initFactoryProperty = new JMSNamingPropertyType();
-        initFactoryProperty.setName("java.naming.factory.initial");
-        initFactoryProperty.setValue(endpoint
-            .getParameter(JMSSpecConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME));
-        properties.add(initFactoryProperty);
-
-        JMSNamingPropertyType providerUrlProperty = new JMSNamingPropertyType();
-        providerUrlProperty.setName("java.naming.provider.url");
-        providerUrlProperty
-            .setValue(endpoint.getParameter(JMSSpecConstants.JNDIURL_PARAMETER_NAME));
     }
 
     public ClientConfig getClientConfig() {
