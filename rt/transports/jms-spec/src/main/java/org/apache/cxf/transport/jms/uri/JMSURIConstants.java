@@ -19,6 +19,8 @@
 
 package org.apache.cxf.transport.jms.uri;
 
+import javax.jms.Message;
+
 /**
  * 
  */
@@ -43,9 +45,9 @@ public final class JMSURIConstants {
     public static final String REPLYTONAME_PARAMETER_NAME = "replyToName";
 
     // default parameters
-    public static final String DELIVERYMODE_DEFAULT = DELIVERYMODE_NON_PERSISTENT;
-    public static final int TIMETOLIVE_DEFAULT = -1;
-    public static final int PRIORITY_DEFAULT = 5;
+    public static final String DELIVERYMODE_DEFAULT = DELIVERYMODE_PERSISTENT;
+    public static final long TIMETOLIVE_DEFAULT = Message.DEFAULT_TIME_TO_LIVE;
+    public static final int PRIORITY_DEFAULT = Message.DEFAULT_PRIORITY;
 
     // jndi parameters ? need to be sure.
     public static final String JNDICONNECTIONFACTORYNAME_PARAMETER_NAME = "jndiConnectionFactoryName";

@@ -80,7 +80,7 @@ public class JMSEndpoint {
         return deliveryMode;
     }
 
-    public int getTimeToLive() {
+    public long getTimeToLive() {
         String timeToLive = getParameter(JMSURIConstants.TIMETOLIVE_PARAMETER_NAME);
         if (timeToLive == null) {
             return JMSURIConstants.TIMETOLIVE_DEFAULT;
