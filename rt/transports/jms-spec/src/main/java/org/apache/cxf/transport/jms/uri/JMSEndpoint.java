@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+
 /**
  * 
  */
@@ -72,31 +73,31 @@ public class JMSEndpoint {
     }
 
     public String getDeliveryMode() {
-        String deliveryMode = getParameter(JMSSpecConstants.DELIVERYMODE_PARAMETER_NAME);
+        String deliveryMode = getParameter(JMSURIConstants.DELIVERYMODE_PARAMETER_NAME);
         if (deliveryMode == null) {
-            deliveryMode = JMSSpecConstants.DELIVERYMODE_DEFAULT;
+            deliveryMode = JMSURIConstants.DELIVERYMODE_DEFAULT;
         }
         return deliveryMode;
     }
 
     public int getTimeToLive() {
-        String timeToLive = getParameter(JMSSpecConstants.TIMETOLIVE_PARAMETER_NAME);
+        String timeToLive = getParameter(JMSURIConstants.TIMETOLIVE_PARAMETER_NAME);
         if (timeToLive == null) {
-            return JMSSpecConstants.TIMETOLIVE_DEFAULT;
+            return JMSURIConstants.TIMETOLIVE_DEFAULT;
         }
         return Integer.parseInt(timeToLive);
     }
 
     public int getPriority() {
-        String priority = getParameter(JMSSpecConstants.PRIORITY_PARAMETER_NAME);
+        String priority = getParameter(JMSURIConstants.PRIORITY_PARAMETER_NAME);
         if (priority == null) {
-            return JMSSpecConstants.PRIORITY_DEFAULT;
+            return JMSURIConstants.PRIORITY_DEFAULT;
         }
         return Integer.parseInt(priority);
     }
 
     public String getReplyToName() {
-        return getParameter(JMSSpecConstants.REPLYTONAME_PARAMETER_NAME);
+        return getParameter(JMSURIConstants.REPLYTONAME_PARAMETER_NAME);
     }
 
     /**
@@ -129,15 +130,15 @@ public class JMSEndpoint {
     }
 
     public String getJndiConnectionFactoryName() {
-        return getParameter(JMSSpecConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME);
+        return getParameter(JMSURIConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME);
     }
 
     public String getJndiInitialContextFactory() {
-        return getParameter(JMSSpecConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME);
+        return getParameter(JMSURIConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME);
     }
 
     public String getJndiURL() {
-        return getParameter(JMSSpecConstants.JNDIURL_PARAMETER_NAME);
+        return getParameter(JMSURIConstants.JNDIURL_PARAMETER_NAME);
     }
 
     public Map getJndiContextParameters() {
@@ -145,7 +146,7 @@ public class JMSEndpoint {
         Iterator keyIter = parameters.keySet().iterator();
         while (keyIter.hasNext()) {
             String key = (String)keyIter.next();
-            if (key.startsWith(JMSSpecConstants.JNDI_PARAMETER_NAME_PREFIX)) {
+            if (key.startsWith(JMSURIConstants.JNDI_PARAMETER_NAME_PREFIX)) {
                 addParas.put(key.substring(5), this.parameters.get(key));
             }
         }

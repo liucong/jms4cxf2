@@ -19,6 +19,7 @@
 package org.apache.cxf.transport.jms.uri;
 
 
+
 /**
  * An endpoint for a JMS Queue which is also browsable
  *
@@ -30,6 +31,6 @@ public class JMSQueueEndpoint extends JMSEndpoint {
      * @param subject
      */
     public JMSQueueEndpoint(String uri, String subject) {
-        super(uri, JMSSpecConstants.QUEUE, subject);
+        super(uri, JMSURIConstants.QUEUE, subject);
     }
 }

@@ -21,6 +21,7 @@ package org.apache.cxf.transport.jms.uri;
 
 import java.util.Map;
 
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ public class JMSEndpointTest extends Assert {
         JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
         assertEquals(endpoint.getDestinationName(), "Foo.Bar");
-        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.QUEUE);
+        assertEquals(endpoint.getJmsVariant(), JMSURIConstants.QUEUE);
     }
 
     @Test
@@ -39,7 +40,7 @@ public class JMSEndpointTest extends Assert {
         JMSEndpoint endpoint = resolveEndpoint("jms:queue:Foo.Bar?foo=bar&foo2=bar2");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
         assertEquals(endpoint.getDestinationName(), "Foo.Bar");
-        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.QUEUE);
+        assertEquals(endpoint.getJmsVariant(), JMSURIConstants.QUEUE);
         assertEquals(endpoint.getParameters().size(), 2);
         assertEquals(endpoint.getParameter("foo"), "bar");
         assertEquals(endpoint.getParameter("foo2"), "bar2");
@@ -50,7 +51,7 @@ public class JMSEndpointTest extends Assert {
         JMSEndpoint endpoint = resolveEndpoint("jms:topic:Foo.Bar");
         assertTrue(endpoint instanceof JMSTopicEndpoint);
         assertEquals(endpoint.getDestinationName(), "Foo.Bar");
-        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.TOPIC);
+        assertEquals(endpoint.getJmsVariant(), JMSURIConstants.TOPIC);
     }
 
     @Test
@@ -67,7 +68,7 @@ public class JMSEndpointTest extends Assert {
         JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar");
         assertTrue(endpoint instanceof JMSJNDIEndpoint);
         assertEquals(endpoint.getDestinationName(), "Foo.Bar");
-        assertEquals(endpoint.getJmsVariant(), JMSSpecConstants.JNDI);
+        assertEquals(endpoint.getJmsVariant(), JMSURIConstants.JNDI);
     }
 
     @Test
@@ -78,11 +79,11 @@ public class JMSEndpointTest extends Assert {
                                                + "&jndiURL=tcp://localhost:61616");
         assertTrue(endpoint instanceof JMSJNDIEndpoint);
         assertEquals(endpoint.getParameters().size(), 3);
-        assertEquals(endpoint.getParameter(JMSSpecConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME),
+        assertEquals(endpoint.getParameter(JMSURIConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME),
                      "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
-        assertEquals(endpoint.getParameter(JMSSpecConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME),
+        assertEquals(endpoint.getParameter(JMSURIConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME),
                      "ConnectionFactory");
-        assertEquals(endpoint.getParameter(JMSSpecConstants.JNDIURL_PARAMETER_NAME), "tcp://localhost:61616");
+        assertEquals(endpoint.getParameter(JMSURIConstants.JNDIURL_PARAMETER_NAME), "tcp://localhost:61616");
 
     }
 
@@ -110,11 +111,11 @@ public class JMSEndpointTest extends Assert {
                                                + "&timeToLive=100" + "&priority=5" + "&replyToName=foo.bar2");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
         assertEquals(endpoint.getParameters().size(), 4);
-        assertEquals(endpoint.getParameter(JMSSpecConstants.DELIVERYMODE_PARAMETER_NAME),
-                     JMSSpecConstants.DELIVERYMODE_NON_PERSISTENT);
-        assertEquals(endpoint.getParameter(JMSSpecConstants.TIMETOLIVE_PARAMETER_NAME), "100");
-        assertEquals(endpoint.getParameter(JMSSpecConstants.PRIORITY_PARAMETER_NAME), "5");
-        assertEquals(endpoint.getParameter(JMSSpecConstants.REPLYTONAME_PARAMETER_NAME), "foo.bar2");
+        assertEquals(endpoint.getParameter(JMSURIConstants.DELIVERYMODE_PARAMETER_NAME),
+                     JMSURIConstants.DELIVERYMODE_NON_PERSISTENT);
+        assertEquals(endpoint.getParameter(JMSURIConstants.TIMETOLIVE_PARAMETER_NAME), "100");
+        assertEquals(endpoint.getParameter(JMSURIConstants.PRIORITY_PARAMETER_NAME), "5");
+        assertEquals(endpoint.getParameter(JMSURIConstants.REPLYTONAME_PARAMETER_NAME), "foo.bar2");
     }
 
     @Test
@@ -123,7 +124,7 @@ public class JMSEndpointTest extends Assert {
                                                + "&timeToLive=100" + "&priority=5" + "&replyToName=foo.bar2");
         assertTrue(endpoint instanceof JMSQueueEndpoint);
         assertEquals(endpoint.getParameters().size(), 4);
-        assertEquals(endpoint.getDeliveryMode(), JMSSpecConstants.DELIVERYMODE_NON_PERSISTENT);
+        assertEquals(endpoint.getDeliveryMode(), JMSURIConstants.DELIVERYMODE_NON_PERSISTENT);
         assertEquals(endpoint.getTimeToLive(), 100);
         assertEquals(endpoint.getPriority(), 5);
         assertEquals(endpoint.getReplyToName(), "foo.bar2");

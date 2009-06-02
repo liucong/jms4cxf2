@@ -19,6 +19,7 @@
 
 package org.apache.cxf.transport.jms.uri;
 
+
 /**
  * 
  */
@@ -28,7 +29,7 @@ public class JMSTopicEndpoint extends JMSEndpoint {
      * @param subject
      */
     public JMSTopicEndpoint(String uri, String subject) {
-        super(uri, JMSSpecConstants.TOPIC, subject);
+        super(uri, JMSURIConstants.TOPIC, subject);
     }
 
 }

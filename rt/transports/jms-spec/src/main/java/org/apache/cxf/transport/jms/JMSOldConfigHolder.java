@@ -33,7 +33,7 @@ import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
-import org.apache.cxf.transport.jms.uri.JMSSpecConstants;
+import org.apache.cxf.transport.jms.uri.JMSURIConstants;
 import org.springframework.jms.support.destination.JndiDestinationResolver;
 import org.springframework.jndi.JndiTemplate;
 
@@ -52,7 +52,7 @@ public class JMSOldConfigHolder {
                                                                    EndpointInfo endpointInfo,
                                                                    boolean isConduit) {
         String transportId = endpointInfo.getTransportId();
-        if (transportId.equals(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
+        if (transportId.equals(JMSURIConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
             return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo, isConduit);
         } else {
             return createJMSConfigurationFromEndpointInfoForOldJMS(bus, endpointInfo, isConduit);
@@ -206,7 +206,7 @@ public class JMSOldConfigHolder {
             JndiTemplate jt = new JndiTemplate();
             jt.setEnvironment(JMSOldConfigHolder.getInitialContextEnv(endpoint));
             boolean pubSubDomain = false;
-            pubSubDomain = endpoint.getJmsVariant().equals(JMSSpecConstants.TOPIC);
+            pubSubDomain = endpoint.getJmsVariant().equals(JMSURIConstants.TOPIC);
             JNDIConfiguration jndiConfig = new JNDIConfiguration();
             jndiConfig.setJndiConnectionFactoryName(endpoint.getJndiConnectionFactoryName());
             jmsConfig.setJndiTemplate(jt);
@@ -253,7 +253,7 @@ public class JMSOldConfigHolder {
             if (serverBehavior.isSetTransactional()) {
                 jmsConfig.setSessionTransacted(serverBehavior.isTransactional());
             }
-            boolean useJndi = endpoint.getJmsVariant().equals(JMSSpecConstants.JNDI);
+            boolean useJndi = endpoint.getJmsVariant().equals(JMSURIConstants.JNDI);
             if (useJndi) {
                 // Setup Destination jndi destination resolver
                 final JndiDestinationResolver jndiDestinationResolver = new JndiDestinationResolver();
