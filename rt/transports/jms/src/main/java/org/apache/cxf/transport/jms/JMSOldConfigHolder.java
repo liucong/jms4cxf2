@@ -117,9 +117,9 @@ public class JMSOldConfigHolder {
             }
             jmsConfig.setPubSubDomain(pubSubDomain);
             jmsConfig.setPubSubNoLocal(true);
-            // if (clientConfig.isSetClientReceiveTimeout()) {
-            jmsConfig.setReceiveTimeout(clientConfig.getClientReceiveTimeout());
-            // }
+            if (clientConfig.isSetClientReceiveTimeout()) {
+            		jmsConfig.setReceiveTimeout(clientConfig.getClientReceiveTimeout());
+            }
             if (clientConfig.isSetUseConduitIdSelector()) {
                 jmsConfig.setUseConduitIdSelector(clientConfig.isUseConduitIdSelector());
             }
@@ -229,9 +229,9 @@ public class JMSOldConfigHolder {
             }
             jmsConfig.setPubSubDomain(pubSubDomain);
             jmsConfig.setPubSubNoLocal(true);
-            // if (clientConfig.isSetClientReceiveTimeout()) {
-            jmsConfig.setReceiveTimeout(clientConfig.getClientReceiveTimeout());
-            // }
+            if (clientConfig.isSetClientReceiveTimeout()) {
+            		jmsConfig.setReceiveTimeout(clientConfig.getClientReceiveTimeout());
+            }
             if (clientConfig.isSetUseConduitIdSelector()) {
                 jmsConfig.setUseConduitIdSelector(clientConfig.isUseConduitIdSelector());
             }
