@@ -22,11 +22,8 @@ package org.apache.cxf.transport.jms.uri;
 /**
  * 
  */
-public class JMSURIConstants {
-
-    public static final String SOAP_JMS_SPECIFICIATION_TRANSPORTID = "http://www.w3.org/2008/07/"
-                                                                     + "soap/bindings/JMS/";
-
+public final class JMSURIConstants {
+    
     // common constants
     public static final String QUEUE = "queue";
     public static final String TOPIC = "topic";
@@ -58,11 +55,8 @@ public class JMSURIConstants {
 
     // queue and topic parameters
     public static final String TOPICREPLYTONAME_PARAMETER_NAME = "topicReplyToName";
+    
 
-    public JMSURIConstants() {
-    }
-
-    public void get() {
-
+    private JMSURIConstants() {
     }
 }

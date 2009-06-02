@@ -31,6 +31,7 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.service.model.EndpointInfo;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.apache.cxf.transport.jms.uri.JMSURIConstants;
@@ -52,7 +53,7 @@ public class JMSOldConfigHolder {
                                                                    EndpointInfo endpointInfo,
                                                                    boolean isConduit) {
         String transportId = endpointInfo.getTransportId();
-        if (transportId.equals(JMSURIConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
+        if (transportId.equals(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
             return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo, isConduit);
         } else {
             return createJMSConfigurationFromEndpointInfoForOldJMS(bus, endpointInfo, isConduit);
