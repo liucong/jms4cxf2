@@ -22,7 +22,7 @@
     <artifactId>cxf-rt-transports-jms-spec</artifactId>
     <packaging>jar</packaging>
     <version>2.2.3-SNAPSHOT</version>
-    <name>Apache CXF Runtime JMS Transport for SOAP/JMS specification</name>
+    <name>Apache CXF Runtime JMS Transport for SOAP/JMS Specification</name>
     <url>http://cxf.apache.org</url>
 
     <parent>
@@ -126,8 +126,8 @@
     </build>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/cxf/trunk/rt/transports/jms-spec</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/cxf/trunk/rt/transports/jms-spec</developerConnection>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/cxf/trunk/rt/transports/jms</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/cxf/trunk/rt/transports/jms</developerConnection>
     </scm>
 
 </project>
