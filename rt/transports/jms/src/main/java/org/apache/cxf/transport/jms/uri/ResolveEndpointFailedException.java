@@ -17,19 +17,27 @@
  * under the License.
  */
 
-package org.apache.cxf.transport.jms.uri.spec;
+package org.apache.cxf.transport.jms.uri;
 
 /**
+ * A runtime exception thrown if an {@link Endpoint} cannot be resolved via URI
  * 
  */
-public class JMSJNDIEndpoint extends JMSEndpoint {
+public class ResolveEndpointFailedException extends RuntimeException {
+    private final String uri;
 
-    /**
-     * @param uri
-     * @param subject
-     */
-    public JMSJNDIEndpoint(String uri, String jmsVariant, String subject) {
-        super(uri, jmsVariant, subject);
+    public ResolveEndpointFailedException(String uri, Throwable cause) {
+        super("Failed to resolve endpoint: " + uri + " due to: " + cause, cause);
+        this.uri = uri;
     }
 
+    public ResolveEndpointFailedException(String uri, String message) {
+        super("Failed to resolve endpoint: " + uri + " due to: " + message);
+        this.uri = uri;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+    
 }

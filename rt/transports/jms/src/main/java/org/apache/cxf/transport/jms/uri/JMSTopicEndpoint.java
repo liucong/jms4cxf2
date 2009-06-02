@@ -16,20 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.transport.jms.uri.spec;
 
+package org.apache.cxf.transport.jms.uri;
 
 /**
- * An endpoint for a JMS Queue which is also browsable
- *
- * @version $Revision: 749939 $
+ * 
  */
-public class JMSQueueEndpoint extends JMSEndpoint {
+public class JMSTopicEndpoint extends JMSEndpoint {
     /**
      * @param uri
      * @param subject
      */
-    public JMSQueueEndpoint(String uri, String jmsVariant, String subject) {
+    public JMSTopicEndpoint(String uri, String jmsVariant, String subject) {
         super(uri, jmsVariant, subject);
     }
+
 }

@@ -51,11 +51,20 @@ public class JMSOldConfigHolder {
     public JMSConfiguration createJMSConfigurationFromEndpointInfo(Bus bus,
                                                                    EndpointInfo endpointInfo,
                                                                    boolean isConduit) {
-        // for jms specification uri
-        if (endpointInfo.getAddress() != null || endpointInfo.getAddress().equals("")) {
-            return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo,
-                                                                          isConduit);
+        String transportId = endpointInfo.getTransportId();
+        if (transportId.equals(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
+            return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo, isConduit);
+        } else {
+            return createJMSConfigurationFromEndpointInfoForOldJMS(bus, endpointInfo, isConduit);
         }
+
+    }
+
+    private JMSConfiguration createJMSConfigurationFromEndpointInfoForOldJMS(
+                                                                             Bus bus,
+                                                                             EndpointInfo endpointInfo,
+                                                                             boolean isConduit) {
+
         // Retrieve configuration information that was extracted from the WSDL
         address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class);
         clientConfig = endpointInfo.getTraversedExtensor(new ClientConfig(), ClientConfig.class);

@@ -17,17 +17,18 @@
  * under the License.
  */
 
-package org.apache.cxf.transport.jms.uri.spec;
+package org.apache.cxf.transport.jms.uri;
 
 /**
  * 
  */
-public class JMSTopicEndpoint extends JMSEndpoint {
+public class JMSJNDIEndpoint extends JMSEndpoint {
+
     /**
      * @param uri
      * @param subject
      */
-    public JMSTopicEndpoint(String uri, String jmsVariant, String subject) {
+    public JMSJNDIEndpoint(String uri, String jmsVariant, String subject) {
         super(uri, jmsVariant, subject);
     }
 

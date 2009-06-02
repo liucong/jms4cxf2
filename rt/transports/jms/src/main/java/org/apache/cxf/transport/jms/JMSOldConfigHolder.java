@@ -31,9 +31,9 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.service.model.EndpointInfo;
-import org.apache.cxf.transport.jms.uri.spec.JMSEndpoint;
-import org.apache.cxf.transport.jms.uri.spec.JMSEndpointParser;
-import org.apache.cxf.transport.jms.uri.spec.JMSSpecConstants;
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
+import org.apache.cxf.transport.jms.uri.JMSSpecConstants;
 import org.springframework.jms.support.destination.JndiDestinationResolver;
 import org.springframework.jndi.JndiTemplate;
 

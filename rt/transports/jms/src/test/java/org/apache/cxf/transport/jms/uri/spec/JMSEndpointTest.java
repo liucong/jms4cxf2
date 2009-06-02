@@ -21,6 +21,13 @@ package org.apache.cxf.transport.jms.uri.spec;
 
 import java.util.Map;
 
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
+import org.apache.cxf.transport.jms.uri.JMSJNDIEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSQueueEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSSpecConstants;
+import org.apache.cxf.transport.jms.uri.JMSTopicEndpoint;
+
 import org.junit.Assert;
 import org.junit.Test;
 
