@@ -28,8 +28,8 @@ public class JMSJNDIEndpoint extends JMSEndpoint {
      * @param uri
      * @param subject
      */
-    public JMSJNDIEndpoint(String uri, String jmsVariant, String subject) {
-        super(uri, jmsVariant, subject);
+    public JMSJNDIEndpoint(String uri, String subject) {
+        super(uri, JMSSpecConstants.JNDI, subject);
     }
 
 }

@@ -350,7 +350,7 @@ public class JMSOldConfigHolder {
         Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
         env.put(Context.PROVIDER_URL, endpoint.getJndiURL());
-        Map addParas = endpoint.getAdditionalJNDIParameters();
+        Map addParas = endpoint.getJndiContextParameters();
         Iterator keyIter = addParas.keySet().iterator();
         while (keyIter.hasNext()) {
             String key = (String)keyIter.next();

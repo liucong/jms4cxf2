@@ -140,7 +140,7 @@ public class JMSEndpoint {
         return getParameter(JMSSpecConstants.JNDIURL_PARAMETER_NAME);
     }
 
-    public Map getAdditionalJNDIParameters() {
+    public Map getJndiContextParameters() {
         Map addParas = new HashMap();
         Iterator keyIter = parameters.keySet().iterator();
         while (keyIter.hasNext()) {

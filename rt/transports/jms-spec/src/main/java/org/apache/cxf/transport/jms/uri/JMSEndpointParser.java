@@ -130,11 +130,11 @@ public final class JMSEndpointParser {
         // JMSConfiguration newConfiguration = getConfiguration().copy();
         JMSEndpoint endpoint = null;
         if (isQueue) {
-            endpoint = new JMSQueueEndpoint(uri, JMSSpecConstants.QUEUE, subject);
+            endpoint = new JMSQueueEndpoint(uri, subject);
         } else if (isTopic) {
-            endpoint = new JMSTopicEndpoint(uri, JMSSpecConstants.TOPIC, subject);
+            endpoint = new JMSTopicEndpoint(uri, subject);
         } else if (isJndi) {
-            endpoint = new JMSJNDIEndpoint(uri, JMSSpecConstants.JNDI, subject);
+            endpoint = new JMSJNDIEndpoint(uri, subject);
         }
         return endpoint;
     }

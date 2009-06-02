@@ -29,7 +29,7 @@ public class JMSQueueEndpoint extends JMSEndpoint {
      * @param uri
      * @param subject
      */
-    public JMSQueueEndpoint(String uri, String jmsVariant, String subject) {
-        super(uri, jmsVariant, subject);
+    public JMSQueueEndpoint(String uri, String subject) {
+        super(uri, JMSSpecConstants.QUEUE, subject);
     }
 }

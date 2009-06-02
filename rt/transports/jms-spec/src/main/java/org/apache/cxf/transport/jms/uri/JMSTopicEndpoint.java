@@ -27,8 +27,8 @@ public class JMSTopicEndpoint extends JMSEndpoint {
      * @param uri
      * @param subject
      */
-    public JMSTopicEndpoint(String uri, String jmsVariant, String subject) {
-        super(uri, jmsVariant, subject);
+    public JMSTopicEndpoint(String uri, String subject) {
+        super(uri, JMSSpecConstants.TOPIC, subject);
     }
 
 }
