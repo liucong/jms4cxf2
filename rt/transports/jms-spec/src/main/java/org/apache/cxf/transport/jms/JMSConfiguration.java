@@ -81,6 +81,10 @@ public class JMSConfiguration implements InitializingBean {
     private int cacheLevel = DEFAULT_VALUE;
     private String cacheLevelName;
     
+    //For jms spec.
+    private String targetService;
+    private String requestURI;
+    
     private ConnectionFactory wrappedConnectionFactory;
     
     private JNDIConfiguration jndiConfig;
@@ -435,6 +439,22 @@ public class JMSConfiguration implements InitializingBean {
 
     public void setDurableSubscriptionClientId(String durableSubscriptionClientId) {
         this.durableSubscriptionClientId = durableSubscriptionClientId;
+    }
+
+    public void setTargetService(String targetService) {
+        this.targetService = targetService;
+    }
+
+    public String getTargetService() {
+        return targetService;
+    }
+
+    public void setRequestURI(String requestURI) {
+        this.requestURI = requestURI;
+    }
+
+    public String getRequestURI() {
+        return requestURI;
     }
 
 }

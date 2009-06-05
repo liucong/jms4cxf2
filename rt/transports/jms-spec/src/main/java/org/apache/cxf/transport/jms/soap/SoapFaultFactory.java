@@ -97,7 +97,7 @@ public class SoapFaultFactory implements BindingFaultFactory {
     
     public String toString(Fault f) {
         SoapFault sf = (SoapFault)f;
-        Message msg = new Message("SEQ_FAULT_MSG", LOG, 
+        Message msg = new Message("JMS_FAULT_MSG", LOG, 
             new Object[] {sf.getReason(), sf.getFaultCode(), sf.getSubCode()});
         return msg.toString();
     }

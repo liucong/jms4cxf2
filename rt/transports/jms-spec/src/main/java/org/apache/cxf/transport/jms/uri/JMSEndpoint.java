@@ -153,4 +153,8 @@ public class JMSEndpoint {
 
         return addParas;
     }
+
+    public String getRequestURI() {
+        return "jms:" + jmsVariant + ":" + destinationName;
+    }
 }

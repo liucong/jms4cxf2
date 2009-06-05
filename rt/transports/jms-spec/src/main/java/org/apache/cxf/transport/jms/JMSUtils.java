@@ -41,6 +41,7 @@ import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.security.SecurityContext;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.SimpleMessageConverter102;
@@ -132,7 +133,8 @@ public final class JMSUtils {
     }
 
     public static void populateIncomingContext(javax.jms.Message message,
-                                               org.apache.cxf.message.Message inMessage, String headerType)
+                                               org.apache.cxf.message.Message inMessage,
+                                               String headerType)
         throws UnsupportedEncodingException {
         try {
             JMSMessageHeadersType headers = null;
@@ -180,15 +182,15 @@ public final class JMSUtils {
     }
 
     /**
-     * Extract the property JMSXUserID from the jms message and create a SecurityContext from it. 
-     * For more info see Jira Issue CXF-2055
-     * {@link https://issues.apache.org/jira/browse/CXF-2055}
+     * Extract the property JMSXUserID from the jms message and create a SecurityContext from it. For more
+     * info see Jira Issue CXF-2055 {@link https://issues.apache.org/jira/browse/CXF-2055}
      * 
      * @param message jms message to retrieve user information from
      * @return SecurityContext that contains the user of the producer of the message as the Principal
      * @throws JMSException if something goes wrong
      */
-    private static SecurityContext buildSecurityContext(javax.jms.Message message) throws JMSException {
+    private static SecurityContext buildSecurityContext(javax.jms.Message message)
+        throws JMSException {
         final String jmsUserName = message.getStringProperty("JMSXUserID");
         if (jmsUserName == null) {
             return null;
@@ -229,9 +231,10 @@ public final class JMSUtils {
 
         String normalizedEncoding = HttpHeaderHelper.mapCharset(enc);
         if (normalizedEncoding == null) {
-            String m = new org.apache.cxf.common.i18n.Message("INVALID_ENCODING_MSG", LOG, new Object[] {
-                enc
-            }).toString();
+            String m = new org.apache.cxf.common.i18n.Message("INVALID_ENCODING_MSG", LOG,
+                                                              new Object[] {
+                                                                  enc
+                                                              }).toString();
             LOG.log(Level.WARNING, m);
             throw new UnsupportedEncodingException(m);
         }
@@ -300,10 +303,11 @@ public final class JMSUtils {
         ct.add(contentType);
     }
 
-    public static Message buildJMSMessageFromCXFMessage(org.apache.cxf.message.Message outMessage,
-                                                        Object payload, String messageType, Session session,
-                                                        Destination replyTo, String correlationId)
-        throws JMSException {
+    public static Message buildJMSMessageFromCXFMessage(JMSConfiguration jmsConfig,
+                                                        org.apache.cxf.message.Message outMessage,
+                                                        Object payload, String messageType,
+                                                        Session session, Destination replyTo,
+                                                        String correlationId) throws JMSException {
         Message jmsMessage = JMSUtils.createAndSetPayload(payload, session, messageType);
 
         if (replyTo != null) {
@@ -323,8 +327,33 @@ public final class JMSUtils {
         Map<String, List<String>> protHeaders = CastUtils.cast((Map<?, ?>)outMessage
             .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
         JMSUtils.addProtocolHeaders(jmsMessage, protHeaders);
+        JMSUtils.addSOAPJMSHeaders(jmsMessage, jmsConfig);
         jmsMessage.setJMSCorrelationID(correlationId);
         return jmsMessage;
+    }
+
+    /**
+     * @param jmsMessage
+     * @param jmsConfig
+     */
+    private static void addSOAPJMSHeaders(Message jmsMessage, JMSConfiguration jmsConfig)
+        throws JMSException {
+        if (jmsConfig.getRequestURI() != null) {
+            jmsMessage.setStringProperty(JMSSpecConstants.REQUESTURI_FIELD, jmsConfig
+                .getRequestURI());
+        }
+        
+        
+        jmsMessage.setStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD, "1.0");
+        
+        //SOAP Action
+        
+        if (jmsConfig.getTargetService() != null) {
+            jmsMessage.setStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD, jmsConfig
+                .getTargetService());
+        }
+
+        // JMS content type has been set by JMSUtils.addProtocolHeaders(
     }
 
     public static String createCorrelationId(final String prefix, long i) {

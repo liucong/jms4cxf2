@@ -91,8 +91,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     public void prepare(Message message) throws IOException {
         String name = endpointInfo.getName().toString() + ".jms-conduit";
         org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(
-                                        "INSUFFICIENT_CONFIGURATION_CONDUIT",
-                                         LOG, name);
+                                                "INSUFFICIENT_CONFIGURATION_CONDUIT",
+                                                 LOG, name);
         jmsConfig.ensureProperlyConfigured(msg);
         boolean isTextPayload = JMSConstants.TEXT_MESSAGE_TYPE.equals(jmsConfig.getMessageType());
         JMSOutputStream out = new JMSOutputStream(this, message.getExchange(), isTextPayload);
@@ -120,8 +120,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                 .getContextualProperty(org.apache.cxf.message.Message.MTOM_ENABLED))
             && outMessage.getAttachments() != null && outMessage.getAttachments().size() > 0) {
             org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(
-                                                                  "INVALID_MESSAGE_TYPE",
-                                                                       LOG);
+                                        "INVALID_MESSAGE_TYPE",
+                                        LOG);
             throw new ConfigurationException(msg);
         }
 
@@ -160,8 +160,9 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             public javax.jms.Message createMessage(Session session) throws JMSException {
                 String messageType = jmsConfig.getMessageType();
                 final javax.jms.Message jmsMessage;
-                jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(outMessage, request, messageType,
-                                                                    session, replyTo, correlationId);
+                jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(jmsConfig, outMessage, request,
+                                                                    messageType, session, replyTo,
+                                                                    correlationId);
                 LOG.log(Level.FINE, "client sending request: ", jmsMessage);
                 return jmsMessage;
             }

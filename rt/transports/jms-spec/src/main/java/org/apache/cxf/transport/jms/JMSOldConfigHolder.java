@@ -282,6 +282,12 @@ public class JMSOldConfigHolder {
         
         String replyToName = endpoint.getReplyToName();
         jmsConfig.setReplyDestination(replyToName);
+        
+        String requestURI = endpoint.getRequestURI();
+        jmsConfig.setRequestURI(requestURI);
+        
+        String targetService = endpoint.getParameter(JMSSpecConstants.TARGETSERVICE_PARAMETER_NAME);
+        jmsConfig.setTargetService(targetService);
     }
 
     public ClientConfig getClientConfig() {
