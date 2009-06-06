@@ -37,6 +37,7 @@ import javax.jms.Message;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
+import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
@@ -329,6 +330,8 @@ public final class JMSUtils {
         JMSUtils.addProtocolHeaders(jmsMessage, protHeaders);
         JMSUtils.addSOAPJMSHeaders(jmsMessage, jmsConfig);
         jmsMessage.setJMSCorrelationID(correlationId);
+        
+        String soapAction = (String)outMessage.get(SoapBindingConstants.SOAP_ACTION);
         return jmsMessage;
     }
 
