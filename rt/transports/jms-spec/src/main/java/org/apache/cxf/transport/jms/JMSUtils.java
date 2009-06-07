@@ -446,7 +446,17 @@ public final class JMSUtils {
         }
         messageProperties.setSOAPJMSBindingVersion("1.0");
         messageProperties.setSOAPJMSContentType(getContentType(outMessage));
-        String soapAction = (String)outMessage.get(SoapBindingConstants.SOAP_ACTION);
+        //String soapAction = (String)outMessage.get(SoapBindingConstants.SOAP_ACTION);
+        String soapAction = null;
+        // Retrieve or create protocol headers
+        Map<String, List<String>> headers = CastUtils.cast((Map<?, ?>)outMessage
+            .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
+        if (headers != null) {
+            List<String> action = headers.get(SoapBindingConstants.SOAP_ACTION);
+            if (action != null && action.size() > 0) {
+                soapAction = action.get(0);
+            }
+        }
         if (soapAction != null) {
             messageProperties.setSOAPJMSSOAPAction(soapAction);
         }
