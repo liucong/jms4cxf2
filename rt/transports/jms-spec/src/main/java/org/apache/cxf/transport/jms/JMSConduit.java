@@ -47,6 +47,7 @@ import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.AbstractConduit;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
@@ -74,7 +75,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     private AtomicLong messageCount;
     private JMSBusLifeCycleListener listener;
 
-    public JMSConduit(EndpointInfo endpointInfo, EndpointReferenceType target, JMSConfiguration jmsConfig) {
+    public JMSConduit(EndpointInfo endpointInfo, EndpointReferenceType target,
+                      JMSConfiguration jmsConfig) {
         super(target);
         this.jmsConfig = jmsConfig;
         this.endpointInfo = endpointInfo;
@@ -91,8 +93,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     public void prepare(Message message) throws IOException {
         String name = endpointInfo.getName().toString() + ".jms-conduit";
         org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(
-                                                "INSUFFICIENT_CONFIGURATION_CONDUIT",
-                                                 LOG, name);
+                                               "INSUFFICIENT_CONFIGURATION_CONDUIT",
+                                                LOG, name);
         jmsConfig.ensureProperlyConfigured(msg);
         boolean isTextPayload = JMSConstants.TEXT_MESSAGE_TYPE.equals(jmsConfig.getMessageType());
         JMSOutputStream out = new JMSOutputStream(this, message.getExchange(), isTextPayload);
@@ -120,8 +122,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                 .getContextualProperty(org.apache.cxf.message.Message.MTOM_ENABLED))
             && outMessage.getAttachments() != null && outMessage.getAttachments().size() > 0) {
             org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(
-                                        "INVALID_MESSAGE_TYPE",
-                                        LOG);
+                                                        "INVALID_MESSAGE_TYPE",
+                                                        LOG);
             throw new ConfigurationException(msg);
         }
 
@@ -152,9 +154,9 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         final javax.jms.Destination replyTo = exchange.isOneWay() ? null : jmsList.getDestination();
 
         final String correlationId = (headers != null && headers.isSetJMSCorrelationID()) ? headers
-            .getJMSCorrelationID() : JMSUtils
-            .createCorrelationId(jmsConfig.getConduitSelectorPrefix() + conduitId, messageCount
-                .incrementAndGet());
+            .getJMSCorrelationID() : JMSUtils.createCorrelationId(jmsConfig.getConduitSelectorPrefix()
+                                                                  + conduitId,
+                                                                  messageCount.incrementAndGet());
 
         MessageCreator messageCreator = new MessageCreator() {
             public javax.jms.Message createMessage(Session session) throws JMSException {
@@ -254,16 +256,24 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
 
         Exchange exchange = correlationMap.remove(correlationId);
         if (exchange == null) {
-            LOG.log(Level.WARNING, "Could not correlate message with correlationId " + correlationId);
+            LOG.log(Level.WARNING, "Could not correlate message with correlationId "
+                                   + correlationId);
             return;
         }
         Message inMessage = new MessageImpl();
         exchange.setInMessage(inMessage);
         LOG.log(Level.FINE, "client received reply: ", jmsMessage);
         try {
-            JMSUtils.populateIncomingContext(jmsMessage, inMessage, JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+            JMSUtils.populateIncomingContext(jmsMessage, inMessage,
+                                             JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+            JMSUtils
+                .populateIncomingMessageProperties(
+                                                   jmsMessage,
+                                                   inMessage,
+                                                   JMSSpecConstants.JMS_CLIENT_RESPONSE_MESSAGE_PROPERTIES);
 
-            byte[] response = JMSUtils.retrievePayload(jmsMessage, (String)inMessage.get(Message.ENCODING));
+            byte[] response = JMSUtils.retrievePayload(jmsMessage, (String)inMessage
+                .get(Message.ENCODING));
             LOG.log(Level.FINE, "The Response Message payload is : [" + response + "]");
             inMessage.setContent(InputStream.class, new ByteArrayInputStream(response));
 

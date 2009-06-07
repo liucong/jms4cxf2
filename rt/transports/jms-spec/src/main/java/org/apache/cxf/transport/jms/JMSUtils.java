@@ -183,6 +183,58 @@ public final class JMSUtils {
     }
 
     /**
+     * @param jmsMessage
+     * @param inMessage
+     * @param messagePropertiesType
+     */
+    public static void populateIncomingMessageProperties(Message jmsMessage,
+                                                         org.apache.cxf.message.Message inMessage,
+                                                         String messagePropertiesType)
+        throws UnsupportedEncodingException {
+        try {
+            SOAPOverJMSMessageType messageProperties = null;
+            messageProperties = (SOAPOverJMSMessageType)inMessage.get(messagePropertiesType);
+            if (messageProperties == null) {
+                messageProperties = new SOAPOverJMSMessageType();
+                inMessage.put(messagePropertiesType, messageProperties);
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.TARGETSERVICE_FIELD)) {
+                messageProperties.setSOAPJMSTargetService(jmsMessage
+                    .getStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD));
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.BINDINGVERSION_FIELD)) {
+                messageProperties.setSOAPJMSBindingVersion(jmsMessage
+                    .getStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD));
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.CONTENTTYPE_FIELD)) {
+                messageProperties.setSOAPJMSContentType(jmsMessage
+                    .getStringProperty(JMSSpecConstants.CONTENTTYPE_FIELD));
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.SOAPACTION_FIELD)) {
+                messageProperties.setSOAPJMSSOAPAction(jmsMessage
+                    .getStringProperty(JMSSpecConstants.SOAPACTION_FIELD));
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.ISFAULT_FIELD)) {
+                messageProperties.setSOAPJMSIsFault(jmsMessage
+                    .getBooleanProperty(JMSSpecConstants.ISFAULT_FIELD));
+            }
+            if (jmsMessage.propertyExists(JMSSpecConstants.REQUESTURI_FIELD)) {
+                messageProperties.setSOAPJMSRequestURI(jmsMessage
+                    .getStringProperty(JMSSpecConstants.REQUESTURI_FIELD));
+            }
+
+            if (messageProperties.isSetSOAPJMSContentType()) {
+                String contentType = messageProperties.getSOAPJMSContentType();
+                inMessage.put(org.apache.cxf.message.Message.CONTENT_TYPE, contentType);
+                // set the message encoding
+                inMessage.put(org.apache.cxf.message.Message.ENCODING, getEncoding(contentType));
+            }
+        } catch (JMSException ex) {
+            throw JmsUtils.convertJmsAccessException(ex);
+        }
+    }
+
+    /**
      * Extract the property JMSXUserID from the jms message and create a SecurityContext from it. For more
      * info see Jira Issue CXF-2055 {@link https://issues.apache.org/jira/browse/CXF-2055}
      * 
