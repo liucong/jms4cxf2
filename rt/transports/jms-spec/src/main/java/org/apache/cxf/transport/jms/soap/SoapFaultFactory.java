@@ -32,7 +32,6 @@ import org.apache.cxf.binding.soap.Soap11;
 import org.apache.cxf.binding.soap.SoapBinding;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapVersion;
-import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.transport.jms.JMSFault;
@@ -97,9 +96,7 @@ public class SoapFaultFactory implements BindingFaultFactory {
     
     public String toString(Fault f) {
         SoapFault sf = (SoapFault)f;
-        Message msg = new Message("JMS_FAULT_MSG", LOG, 
-            new Object[] {sf.getReason(), sf.getFaultCode(), sf.getSubCode()});
-        return msg.toString();
+        return sf.toString();
     }
         
 

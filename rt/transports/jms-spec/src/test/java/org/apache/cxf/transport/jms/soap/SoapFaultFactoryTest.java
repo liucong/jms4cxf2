@@ -19,11 +19,7 @@
 
 package org.apache.cxf.transport.jms.soap;
 
-import java.math.BigInteger;
-
 import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
 
 import org.apache.cxf.binding.soap.Soap11;
 import org.apache.cxf.binding.soap.Soap12;
@@ -31,6 +27,7 @@ import org.apache.cxf.binding.soap.SoapBinding;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.transport.jms.JMSFault;
 import org.apache.cxf.transport.jms.JMSFaultType;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.easymock.classextension.EasyMock;
 import org.easymock.classextension.IMocksControl;
 
@@ -51,7 +48,7 @@ public class SoapFaultFactoryTest extends Assert {
         control = EasyMock.createNiceControl(); 
     }
     
-    JMSFault setupSequenceFault(boolean isSender, QName code, Object detail) {
+    JMSFault setupJMSFault(boolean isSender, QName code, Object detail) {
         jmsFault = control.createMock(JMSFault.class);
         EasyMock.expect(jmsFault.getReason()).andReturn("reason");
         EasyMock.expect(jmsFault.isSender()).andReturn(isSender);
@@ -59,7 +56,7 @@ public class SoapFaultFactoryTest extends Assert {
         if (null != detail) {
             EasyMock.expect(jmsFault.getDetail()).andReturn(detail);
             JMSFaultType sft = new JMSFaultType();
-            sft.setFaultCode(RMConstants.getUnknownSequenceFaultCode());
+            sft.setFaultCode(JMSSpecConstants.getContentTypeMismatchQName());
         }
         return jmsFault;
     }
@@ -68,13 +65,13 @@ public class SoapFaultFactoryTest extends Assert {
     public void createSoap11Fault() {
         SoapBinding sb = control.createMock(SoapBinding.class);
         EasyMock.expect(sb.getSoapVersion()).andReturn(Soap11.getInstance());        
-        setupSequenceFault(false, RMConstants.getSequenceTerminatedFaultCode(), null);
+        setupJMSFault(true, JMSSpecConstants.getContentTypeMismatchQName(), null);
         control.replay();
         SoapFaultFactory factory = new SoapFaultFactory(sb);
         SoapFault fault = (SoapFault)factory.createFault(jmsFault);
         assertEquals("reason", fault.getReason());
-        assertEquals(Soap11.getInstance().getReceiver(), fault.getFaultCode());
-        assertEquals(RMConstants.getSequenceTerminatedFaultCode(), fault.getSubCode());
+        assertEquals(Soap11.getInstance().getSender(), fault.getFaultCode());
+        assertEquals(JMSSpecConstants.getContentTypeMismatchQName(), fault.getSubCode());
         assertNull(fault.getDetail());
         assertSame(jmsFault, fault.getCause());
         control.verify();        
@@ -84,96 +81,15 @@ public class SoapFaultFactoryTest extends Assert {
     public void createSoap12Fault() {
         SoapBinding sb = control.createMock(SoapBinding.class);
         EasyMock.expect(sb.getSoapVersion()).andReturn(Soap12.getInstance());        
-        Identifier id = new Identifier();
-        id.setValue("sid");
-        setupSequenceFault(true, RMConstants.getUnknownSequenceFaultCode(), id);        
+        setupJMSFault(true, JMSSpecConstants.getMismatchedSoapActionQName(), null);        
         control.replay();
         SoapFaultFactory factory = new SoapFaultFactory(sb);
         SoapFault fault = (SoapFault)factory.createFault(jmsFault);
         assertEquals("reason", fault.getReason());
         assertEquals(Soap12.getInstance().getSender(), fault.getFaultCode());
-        assertEquals(RMConstants.getUnknownSequenceFaultCode(), fault.getSubCode());
-        Element elem = fault.getDetail();
-        assertEquals(RMConstants.getNamespace(), elem.getNamespaceURI());
-        assertEquals("Identifier", elem.getLocalName());
+        assertEquals(JMSSpecConstants.getMismatchedSoapActionQName(), fault.getSubCode());
+        assertNull(fault.getDetail());
         assertNull(fault.getCause());
         control.verify();        
-    }
-    
-    @Test 
-    public void createSoap12FaultWithIdentifierDetail() {
-        SoapBinding sb = control.createMock(SoapBinding.class);
-        EasyMock.expect(sb.getSoapVersion()).andReturn(Soap12.getInstance());        
-        Identifier id = new Identifier();
-        id.setValue("sid");
-        setupSequenceFault(true, RMConstants.getUnknownSequenceFaultCode(), id);        
-        control.replay();
-        SoapFaultFactory factory = new SoapFaultFactory(sb);
-        SoapFault fault = (SoapFault)factory.createFault(jmsFault);
-        assertEquals("reason", fault.getReason());
-        assertEquals(Soap12.getInstance().getSender(), fault.getFaultCode());
-        assertEquals(RMConstants.getUnknownSequenceFaultCode(), fault.getSubCode());
-        Element elem = fault.getDetail();
-        assertEquals(RMConstants.getNamespace(), elem.getNamespaceURI());
-        assertEquals("Identifier", elem.getLocalName());
-        control.verify();        
-    }
-    
-    @Test 
-    public void createSoap12FaultWithAcknowledgementDetail() {
-        SoapBinding sb = control.createMock(SoapBinding.class);
-        EasyMock.expect(sb.getSoapVersion()).andReturn(Soap12.getInstance());        
-        SequenceAcknowledgement ack = new SequenceAcknowledgement();
-        Identifier id = new Identifier();
-        id.setValue("sid");
-        ack.setIdentifier(id);
-        SequenceAcknowledgement.AcknowledgementRange range = 
-            new SequenceAcknowledgement.AcknowledgementRange();
-        range.setLower(BigInteger.ONE);
-        range.setUpper(BigInteger.TEN);
-        ack.getAcknowledgementRange().add(range);   
-        setupSequenceFault(true, RMConstants.getInvalidAcknowledgmentFaultCode(), ack);        
-        control.replay();
-        SoapFaultFactory factory = new SoapFaultFactory(sb);
-        SoapFault fault = (SoapFault)factory.createFault(jmsFault);
-        assertEquals("reason", fault.getReason());
-        assertEquals(Soap12.getInstance().getSender(), fault.getFaultCode());
-        assertEquals(RMConstants.getInvalidAcknowledgmentFaultCode(), fault.getSubCode());
-        Element elem = fault.getDetail();
-        assertEquals(RMConstants.getNamespace(), elem.getNamespaceURI());
-        assertEquals("SequenceAcknowledgement", elem.getLocalName());
-        control.verify();        
-    }
-    
-    @Test 
-    public void createSoap12FaultWithoutDetail() {
-        SoapBinding sb = control.createMock(SoapBinding.class);
-        EasyMock.expect(sb.getSoapVersion()).andReturn(Soap12.getInstance());
-        setupSequenceFault(true, RMConstants.getCreateSequenceRefusedFaultCode(), null);        
-        control.replay();
-        SoapFaultFactory factory = new SoapFaultFactory(sb);
-        SoapFault fault = (SoapFault)factory.createFault(jmsFault);
-        assertEquals("reason", fault.getReason());
-        assertEquals(Soap12.getInstance().getSender(), fault.getFaultCode());
-        assertEquals(RMConstants.getCreateSequenceRefusedFaultCode(), fault.getSubCode());
-        assertNull(fault.getDetail());
-
-        control.verify();        
-    }
-    
-    @Test
-    public void testToString() {
-        SoapBinding sb = control.createMock(SoapBinding.class);
-        EasyMock.expect(sb.getSoapVersion()).andReturn(Soap11.getInstance());
-        SoapFault fault = control.createMock(SoapFault.class);
-        EasyMock.expect(fault.getReason()).andReturn("r");
-        EasyMock.expect(fault.getFaultCode()).andReturn(new QName("ns", "code"));
-        EasyMock.expect(fault.getSubCode()).andReturn(new QName("ns", "subcode"));
-        control.replay();
-        SoapFaultFactory factory = new SoapFaultFactory(sb);
-        assertEquals("Reason: r, code: {ns}code, subCode: {ns}subcode",
-                     factory.toString(fault));
-        control.verify();
-        
     }
 }
