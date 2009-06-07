@@ -295,4 +295,11 @@
         </xs:complexContent>
     </xs:complexType>
     
+    <xs:complexType name="JMSFaultType">
+    	<xs:sequence>
+      		<xs:element name="FaultCode" type="xs:QName"/>
+      		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+    	</xs:sequence>
+    	<xs:anyAttribute namespace="##any" processContents="lax"/>
+  	</xs:complexType>
 </xs:schema>

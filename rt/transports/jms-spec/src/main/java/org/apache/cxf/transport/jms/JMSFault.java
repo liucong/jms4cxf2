@@ -21,43 +21,70 @@ package org.apache.cxf.transport.jms;
 
 import javax.xml.namespace.QName;
 
-import org.apache.cxf.common.i18n.Message;
-
 /**
  * 
  */
 public class JMSFault extends Exception {
 
-    /**
-     * @return
-     */
-    public Message getReason() {
-        // TODO Auto-generated method stub
-        return null;
+    private JMSFaultType jmsFaultType;
+    private boolean sender;
+    private Object detail;
+
+    public JMSFault(String message) {
+        super(message);
+    }
+
+    public JMSFault(String message, Throwable cause) {
+        super(message, cause);
     }
 
     /**
-     * @return
+     * * @return Returns the jmsFaultType.
+     */
+    public JMSFaultType getJmsFaultType() {
+        return jmsFaultType;
+    }
+
+    /**
+     * @param jmsFaultType The jmsFaultType to set.
+     */
+    public void setJmsFaultType(JMSFaultType jmsFaultType) {
+        this.jmsFaultType = jmsFaultType;
+    }
+
+    /**
+     * * @return Returns the sender.
      */
     public boolean isSender() {
-        // TODO Auto-generated method stub
-        return false;
+        return sender;
     }
 
     /**
-     * @return
+     * @param sender The sender to set.
      */
-    public QName getSubCode() {
-        // TODO Auto-generated method stub
-        return null;
+    public void setSender(boolean sender) {
+        this.sender = sender;
     }
 
     /**
-     * @return
+     * * @return Returns the detail.
      */
     public Object getDetail() {
-        // TODO Auto-generated method stub
-        return null;
+        return detail;
     }
 
+    /**
+     * @param detail The detail to set.
+     */
+    public void setDetail(Object detail) {
+        this.detail = detail;
+    }
+
+    public QName getSubCode() {
+        return jmsFaultType.faultCode;
+    }
+
+    public String getReason() {
+        return getMessage();
+    }
 }
