@@ -304,6 +304,30 @@ public final class JMSUtils {
         ct.add(contentType);
     }
 
+    public static String getContentType(org.apache.cxf.message.Message message) {
+        String contentType = (String)message.get(org.apache.cxf.message.Message.CONTENT_TYPE);
+        String enc = (String)message.get(org.apache.cxf.message.Message.ENCODING);
+        // add the encoding information
+        if (null != contentType) {
+            if (enc != null && contentType.indexOf("charset=") == -1) {
+                contentType = contentType + "; charset=" + enc;
+            }
+        } else if (enc != null) {
+            contentType = "text/xml; charset=" + enc;
+        } else {
+            contentType = "text/xml";
+        }
+
+        // Retrieve or create protocol headers
+        Map<String, List<String>> headers = CastUtils.cast((Map<?, ?>)message
+            .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
+        if (null == headers) {
+            headers = new HashMap<String, List<String>>();
+            message.put(org.apache.cxf.message.Message.PROTOCOL_HEADERS, headers);
+        }
+        return contentType;
+    }
+
     public static Message buildJMSMessageFromCXFMessage(JMSConfiguration jmsConfig,
                                                         org.apache.cxf.message.Message outMessage,
                                                         Object payload, String messageType,
@@ -317,43 +341,105 @@ public final class JMSUtils {
 
         JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
             .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
-
         if (headers == null) {
             headers = new JMSMessageHeadersType();
         }
+        JMSUtils.prepareJMSHeaderProperteis(headers, outMessage, jmsConfig);
+        JMSUtils.setMessageHeaderProperties(headers, jmsMessage);
 
-        JMSUtils.setMessageProperties(headers, jmsMessage);
-        // ensure that the contentType is set to the out jms message header
-        JMSUtils.addContentTypeToProtocolHeader(outMessage);
-        Map<String, List<String>> protHeaders = CastUtils.cast((Map<?, ?>)outMessage
-            .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
-        JMSUtils.addProtocolHeaders(jmsMessage, protHeaders);
-        JMSUtils.addSOAPJMSHeaders(jmsMessage, jmsConfig);
+        SOAPOverJMSMessageType messageProperties = (SOAPOverJMSMessageType)outMessage
+            .get(JMSSpecConstants.JMS_CLIENT_REQUEST_MESSAGE_PROPERTIES);
+        if (messageProperties == null) {
+            messageProperties = new SOAPOverJMSMessageType();
+        }
+        JMSUtils.prepareJMSMessageProperties(messageProperties, outMessage, jmsConfig);
+        JMSUtils.setSOAPJMSProperties(jmsMessage, messageProperties);
+
         jmsMessage.setJMSCorrelationID(correlationId);
-        
-        String soapAction = (String)outMessage.get(SoapBindingConstants.SOAP_ACTION);
         return jmsMessage;
     }
 
     /**
+     * @param headers
      * @param jmsMessage
+     */
+    private static void setMessageHeaderProperties(JMSMessageHeadersType headers, Message jmsMessage) {
+        // todo
+    }
+
+    /**
+     * @param headers
+     * @param outMessage
      * @param jmsConfig
      */
-    private static void addSOAPJMSHeaders(Message jmsMessage, JMSConfiguration jmsConfig)
-        throws JMSException {
-        if (jmsConfig.getRequestURI() != null) {
-            jmsMessage.setStringProperty(JMSSpecConstants.REQUESTURI_FIELD, jmsConfig
-                .getRequestURI());
-        }
-        
-        
-        jmsMessage.setStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD, "1.0");
-        
-        //SOAP Action
-        
+    private static void prepareJMSHeaderProperteis(JMSMessageHeadersType headers,
+                                                   org.apache.cxf.message.Message outMessage,
+                                                   JMSConfiguration jmsConfig) {
+        headers.setJMSDeliveryMode(jmsConfig.getDeliveryMode());
+        headers.setTimeToLive(jmsConfig.getTimeToLive());
+        headers.setJMSPriority(jmsConfig.getPriority());
+
+    }
+
+    /**
+     * @param messageProperties
+     * @param outMessage
+     * @param jmsConfig
+     */
+    private static void prepareJMSMessageProperties(SOAPOverJMSMessageType messageProperties,
+                                                    org.apache.cxf.message.Message outMessage,
+                                                    JMSConfiguration jmsConfig) {
         if (jmsConfig.getTargetService() != null) {
-            jmsMessage.setStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD, jmsConfig
-                .getTargetService());
+            messageProperties.setSOAPJMSTargetService(jmsConfig.getTargetService());
+        }
+        messageProperties.setSOAPJMSBindingVersion("1.0");
+        messageProperties.setSOAPJMSContentType(getContentType(outMessage));
+        String soapAction = (String)outMessage.get(SoapBindingConstants.SOAP_ACTION);
+        if (soapAction != null) {
+            messageProperties.setSOAPJMSSOAPAction(soapAction);
+        }
+        // todo
+        messageProperties.setSOAPJMSIsFault(false);
+        if (jmsConfig.getRequestURI() != null) {
+            messageProperties.setSOAPJMSRequestURI(jmsConfig.getRequestURI());
+        }
+        outMessage.put(JMSSpecConstants.JMS_CLIENT_REQUEST_MESSAGE_PROPERTIES, messageProperties);
+    }
+
+    /**
+     * @param jmsMessage
+     * @param soapOverJMSProperties
+     */
+    private static void setSOAPJMSProperties(Message jmsMessage,
+                                             SOAPOverJMSMessageType soapOverJMSProperties)
+        throws JMSException {
+
+        if (soapOverJMSProperties.isSetSOAPJMSTargetService()) {
+            jmsMessage.setStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD,
+                                         soapOverJMSProperties.getSOAPJMSTargetService());
+        }
+
+        jmsMessage.setStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD, soapOverJMSProperties
+            .getSOAPJMSBindingVersion());
+
+        if (soapOverJMSProperties.isSetSOAPJMSContentType()) {
+            jmsMessage.setStringProperty(JMSSpecConstants.CONTENTTYPE_FIELD, soapOverJMSProperties
+                .getSOAPJMSContentType());
+        }
+
+        if (soapOverJMSProperties.isSetSOAPJMSSOAPAction()) {
+            jmsMessage.setStringProperty(JMSSpecConstants.SOAPACTION_FIELD, soapOverJMSProperties
+                .getSOAPJMSSOAPAction());
+        }
+
+        if (soapOverJMSProperties.isSetSOAPJMSIsFault()) {
+            jmsMessage.setBooleanProperty(JMSSpecConstants.ISFAULT_FIELD, soapOverJMSProperties
+                .isSOAPJMSIsFault());
+        }
+
+        if (soapOverJMSProperties.isSetSOAPJMSRequestURI()) {
+            jmsMessage.setStringProperty(JMSSpecConstants.REQUESTURI_FIELD, soapOverJMSProperties
+                .getSOAPJMSRequestURI());
         }
 
         // JMS content type has been set by JMSUtils.addProtocolHeaders(
