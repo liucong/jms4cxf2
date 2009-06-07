@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!--
+		Licensed to the Apache Software Foundation (ASF) under one or more
+		contributor license agreements. See the NOTICE file distributed with
+		this work for additional information regarding copyright ownership.
+		The ASF licenses this file to you under the Apache License, Version
+		2.0 (the "License"); you may not use this file except in compliance
+		with the License. You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+		applicable law or agreed to in writing, software distributed under the
+		License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+		CONDITIONS OF ANY KIND, either express or implied. See the License for
+		the specific language governing permissions and limitations under the
+		License.
+	-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:jms="http://cxf.apache.org/transports/jms/uri" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" targetNamespace="http://cxf.apache.org/transports/jms/uri"
+	elementFormDefault="qualified" jaxb:version="2.0">
+
+	<xs:complexType name="JMSUriPropertyType">
+		<xs:sequence>
+			<xs:element name="name" type="xs:string" />
+			<xs:element name="value" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="JMSEndpointType">
+		<xs:annotation>
+			<xs:documentation>JMS header properties.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="property" type="jms:JMSUriPropertyType"
+				minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="enpointUri" type="xs:string" />
+		<xs:attribute name="JMSDeliveryMode" type="xs:int" />
+		<xs:attribute name="JMSExpiration" type="xs:long" />
+		<xs:attribute name="JMSMessageID" type="xs:string" />
+		<xs:attribute name="JMSPriority" type="xs:int" />
+		<xs:attribute name="JMSRedelivered" type="xs:boolean" />
+		<xs:attribute name="JMSTimeStamp" type="xs:long" />
+		<xs:attribute name="JMSType" type="xs:string" />
+		<xs:attribute name="TimeToLive" type="xs:long" />
+	</xs:complexType>
+</xs:schema>

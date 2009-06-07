@@ -114,6 +114,11 @@
                                         <deleteDir>${basedir}/target/generated/src/main/java/org/apache/cxf/wsdl</deleteDir>
                                     </deleteDirs>
                                 </xsdOption>
+                                <xsdOption>
+                                    <xsd>${basedir}/src/main/resources/schemas/wsdl/jms-uri.xsd</xsd>
+                                    <bindingFile>${basedir}/src/main/resources/schemas/wsdl/jms-uri.xjb</bindingFile>
+                                    <catalog>${basedir}/src/main/build-resources/catalog.cat</catalog>
+                                </xsdOption>
                             </xsdOptions>
                         </configuration>
                         <goals>
