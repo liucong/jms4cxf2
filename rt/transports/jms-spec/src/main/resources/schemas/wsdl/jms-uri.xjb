@@ -26,5 +26,6 @@
         <jaxb:schemaBindings>
             <jaxb:package name="org.apache.cxf.transport.jms.uri"/>
         </jaxb:schemaBindings>
+        <jaxb:globalBindings generateIsSetMethod="true"/>
     </jaxb:bindings>
 </jaxb:bindings>
