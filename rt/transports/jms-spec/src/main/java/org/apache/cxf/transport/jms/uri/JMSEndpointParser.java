@@ -20,6 +20,7 @@
 package org.apache.cxf.transport.jms.uri;
 
 import java.net.URI;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,16 +55,85 @@ public final class JMSEndpointParser {
 
         LOG.log(Level.FINE, "Creating endpoint uri=[" + uri + "], path=[" + path
                             + "], parameters=[" + parameters + "]");
-        JMSEndpoint endpoint = createEndpoint(uri, path, parameters);
+        JMSEndpoint endpoint = createEndpoint(uri, path);
         if (endpoint == null) {
             return null;
         }
 
         if (parameters != null) {
-            endpoint.configureProperties(parameters);
+            configureProperties(endpoint, parameters);
         }
 
         return endpoint;
+    }
+
+    /**
+     * @param endpoint
+     * @param parameters
+     */
+    private static void configureProperties(JMSEndpoint endpoint, Map parameters) {
+        String deliveryMode = getAndRemoveParameter(parameters,
+                                                    JMSURIConstants.DELIVERYMODE_PARAMETER_NAME);
+        String timeToLive = getAndRemoveParameter(parameters,
+                                                  JMSURIConstants.TIMETOLIVE_PARAMETER_NAME);
+        String priority = getAndRemoveParameter(parameters, JMSURIConstants.PRIORITY_PARAMETER_NAME);
+        String replyToName = getAndRemoveParameter(parameters,
+                                                   JMSURIConstants.REPLYTONAME_PARAMETER_NAME);
+        String jndiConnectionFactoryName = getAndRemoveParameter(
+                                                                 parameters,
+                                                JMSURIConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME);
+        String jndiInitialContextFactory = getAndRemoveParameter(
+                                                                 parameters,
+                                                JMSURIConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME);
+        String jndiUrl = getAndRemoveParameter(parameters, JMSURIConstants.JNDIURL_PARAMETER_NAME);
+
+        if (deliveryMode != null) {
+            endpoint.setDeliveryMode(DeliveryModeType.valueOf(deliveryMode));
+        }
+        if (timeToLive != null) {
+            endpoint.setTimeToLive(Long.valueOf(timeToLive));
+        }
+        if (priority != null) {
+            endpoint.setPriority(Integer.valueOf(priority));
+        }
+        if (replyToName != null) {
+            endpoint.setReplyToName(replyToName);
+        }
+        if (jndiConnectionFactoryName != null) {
+            endpoint.setJndiConnectionFactoryName(jndiConnectionFactoryName);
+        }
+        if (jndiInitialContextFactory != null) {
+            endpoint.setJndiInitialContextFactory(jndiInitialContextFactory);
+        }
+        if (jndiUrl != null) {
+            endpoint.setJndiURL(jndiUrl);
+        }
+
+        Iterator iter = parameters.keySet().iterator();
+        while (iter.hasNext()) {
+            String key = (String)iter.next();
+            String value = (String)parameters.get(key);
+            if (value == null || value.equals("")) {
+                continue;
+            }
+            if (key.startsWith(JMSURIConstants.JNDI_PARAMETER_NAME_PREFIX)) {
+                key = key.substring(5);
+                endpoint.putJndiParameter(key, value);
+            } else {
+                endpoint.putParameter(key, value);
+            }
+        }
+    }
+
+    /**
+     * @param parameters
+     * @param deliverymodeParameterName
+     * @return
+     */
+    private static String getAndRemoveParameter(Map parameters, String parameterName) {
+        String value = (String)parameters.get(parameterName);
+        parameters.remove(parameterName);
+        return value;
     }
 
     /**
@@ -104,8 +174,7 @@ public final class JMSEndpointParser {
      * @param parameters the optional parameters passed in
      * @return a newly created endpoint or null if the endpoint cannot be created based on the inputs
      */
-    protected static JMSEndpoint createEndpoint(String uri, String remaining, Map parameters)
-        throws Exception {
+    protected static JMSEndpoint createEndpoint(String uri, String remaining) throws Exception {
         boolean isQueue = false;
         boolean isTopic = false;
         boolean isJndi = false;
@@ -123,7 +192,7 @@ public final class JMSEndpointParser {
             isJndi = true;
         }
 
-        final String subject = convertPathToActualDestination(remaining, parameters);
+        final String subject = convertPathToActualDestination(remaining);
 
         // lets make sure we copy the configuration as each endpoint can
         // customize its own version
@@ -143,7 +212,7 @@ public final class JMSEndpointParser {
      * A strategy method allowing the URI destination to be translated into the actual JMS destination name
      * (say by looking up in JNDI or something)
      */
-    protected static String convertPathToActualDestination(String path, Map parameters) {
+    protected static String convertPathToActualDestination(String path) {
         return path;
     }
 

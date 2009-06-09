@@ -50,18 +50,21 @@ public class JMSOldConfigHolder {
     private ServerConfig serverConfig;
     private ServerBehaviorPolicyType serverBehavior;
 
-    public JMSConfiguration createJMSConfigurationFromEndpointInfo(Bus bus, EndpointInfo endpointInfo,
+    public JMSConfiguration createJMSConfigurationFromEndpointInfo(Bus bus,
+                                                                   EndpointInfo endpointInfo,
                                                                    boolean isConduit) {
         String transportId = endpointInfo.getTransportId();
         if (transportId.equals(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
-            return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo, isConduit);
+            return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo,
+                                                                          isConduit);
         } else {
             return createJMSConfigurationFromEndpointInfoForOldJMS(bus, endpointInfo, isConduit);
         }
 
     }
 
-    private JMSConfiguration createJMSConfigurationFromEndpointInfoForOldJMS(Bus bus,
+    private JMSConfiguration createJMSConfigurationFromEndpointInfoForOldJMS(
+                                                                             Bus bus,
                                                                              EndpointInfo endpointInfo,
                                                                              boolean isConduit) {
 
@@ -71,10 +74,12 @@ public class JMSOldConfigHolder {
         runtimePolicy = endpointInfo.getTraversedExtensor(new ClientBehaviorPolicyType(),
                                                           ClientBehaviorPolicyType.class);
         serverConfig = endpointInfo.getTraversedExtensor(new ServerConfig(), ServerConfig.class);
-        sessionPool = endpointInfo.getTraversedExtensor(new SessionPoolType(), SessionPoolType.class);
+        sessionPool = endpointInfo.getTraversedExtensor(new SessionPoolType(),
+                                                        SessionPoolType.class);
         serverBehavior = endpointInfo.getTraversedExtensor(new ServerBehaviorPolicyType(),
                                                            ServerBehaviorPolicyType.class);
-        String name = endpointInfo.getName().toString() + (isConduit ? ".jms-conduit" : ".jms-destination");
+        String name = endpointInfo.getName().toString()
+                      + (isConduit ? ".jms-conduit" : ".jms-destination");
 
         // Try to retrieve configuration information from the spring
         // config. Search for a conduit or destination with name=endpoint name + ".jms-conduit"
@@ -180,10 +185,12 @@ public class JMSOldConfigHolder {
         runtimePolicy = endpointInfo.getTraversedExtensor(new ClientBehaviorPolicyType(),
                                                           ClientBehaviorPolicyType.class);
         serverConfig = endpointInfo.getTraversedExtensor(new ServerConfig(), ServerConfig.class);
-        sessionPool = endpointInfo.getTraversedExtensor(new SessionPoolType(), SessionPoolType.class);
+        sessionPool = endpointInfo.getTraversedExtensor(new SessionPoolType(),
+                                                        SessionPoolType.class);
         serverBehavior = endpointInfo.getTraversedExtensor(new ServerBehaviorPolicyType(),
                                                            ServerBehaviorPolicyType.class);
-        String name = endpointInfo.getName().toString() + (isConduit ? ".jms-conduit" : ".jms-destination");
+        String name = endpointInfo.getName().toString()
+                      + (isConduit ? ".jms-conduit" : ".jms-destination");
 
         // Try to retrieve configuration information from the spring
         // config. Search for a conduit or destination with name=endpoint name + ".jms-conduit"
@@ -243,9 +250,10 @@ public class JMSOldConfigHolder {
             if (sessionPool.isSetHighWaterMark()) {
                 jmsConfig.setMaxConcurrentTasks(sessionPool.getHighWaterMark());
             }
-            /*long timeToLive = isConduit ? clientConfig.getMessageTimeToLive() : serverConfig
-                .getMessageTimeToLive();
-            jmsConfig.setTimeToLive(timeToLive);*/
+            /*
+             * long timeToLive = isConduit ? clientConfig.getMessageTimeToLive() : serverConfig
+             * .getMessageTimeToLive(); jmsConfig.setTimeToLive(timeToLive);
+             */
             /*
              * if (address.isSetUseJms11()) { jmsConfig.setUseJms11(address.isUseJms11()); }
              */
@@ -270,22 +278,31 @@ public class JMSOldConfigHolder {
     }
 
     private void initMessageHeaderProperties(JMSEndpoint endpoint) {
-        int deliveryMode = endpoint.getDeliveryMode().equals(JMSURIConstants.DELIVERYMODE_PERSISTENT)
-            ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
-        jmsConfig.setDeliveryMode(deliveryMode);
-        
-        long timeToLive = endpoint.getTimeToLive();
-        jmsConfig.setTimeToLive(timeToLive);
-        
-        int priority = endpoint.getPriority();
-        jmsConfig.setPriority(priority);
-        
-        String replyToName = endpoint.getReplyToName();
-        jmsConfig.setReplyDestination(replyToName);
-        
+        if (endpoint.isSetDeliveryMode()) {
+            int deliveryMode = endpoint.getDeliveryMode()
+                .equals(JMSURIConstants.DELIVERYMODE_PERSISTENT)
+                ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
+            jmsConfig.setDeliveryMode(deliveryMode);
+        }
+
+        if (endpoint.isSetTimeToLive()) {
+            long timeToLive = endpoint.getTimeToLive();
+            jmsConfig.setTimeToLive(timeToLive);
+        }
+
+        if (endpoint.isSetPriority()) {
+            int priority = endpoint.getPriority();
+            jmsConfig.setPriority(priority);
+        }
+
+        if (endpoint.isSetReplyToName()) {
+            String replyToName = endpoint.getReplyToName();
+            jmsConfig.setReplyDestination(replyToName);
+        }
+
         String requestURI = endpoint.getRequestURI();
         jmsConfig.setRequestURI(requestURI);
-        
+
         String targetService = endpoint.getParameter(JMSSpecConstants.TARGETSERVICE_PARAMETER_NAME);
         jmsConfig.setTargetService(targetService);
     }
@@ -370,7 +387,7 @@ public class JMSOldConfigHolder {
         Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
         env.put(Context.PROVIDER_URL, endpoint.getJndiURL());
-        Map addParas = endpoint.getJndiContextParameters();
+        Map addParas = endpoint.getJndiParameters();
         Iterator keyIter = addParas.keySet().iterator();
         while (keyIter.hasNext()) {
             String key = (String)keyIter.next();

@@ -35,8 +35,8 @@ public final class JMSURIConstants {
     public static final String TOPIC_PREFIX = "topic:";
     public static final String JNDI_PREFIX = "jndi:";
 
-    public static final String DELIVERYMODE_PERSISTENT = "PERSISTENT";
-    public static final String DELIVERYMODE_NON_PERSISTENT = "NON_PERSISTENT";
+    public static final DeliveryModeType DELIVERYMODE_PERSISTENT = DeliveryModeType.PERSISTENT;
+    public static final DeliveryModeType DELIVERYMODE_NON_PERSISTENT = DeliveryModeType.NON_PERSISTENT;
 
     // shared parameters
     public static final String DELIVERYMODE_PARAMETER_NAME = "deliveryMode";
@@ -45,7 +45,7 @@ public final class JMSURIConstants {
     public static final String REPLYTONAME_PARAMETER_NAME = "replyToName";
 
     // default parameters
-    public static final String DELIVERYMODE_DEFAULT = DELIVERYMODE_PERSISTENT;
+    public static final DeliveryModeType DELIVERYMODE_DEFAULT = DELIVERYMODE_PERSISTENT;
     public static final long TIMETOLIVE_DEFAULT = Message.DEFAULT_TIME_TO_LIVE;
     public static final int PRIORITY_DEFAULT = Message.DEFAULT_PRIORITY;
 

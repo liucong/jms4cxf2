@@ -20,18 +20,14 @@
 package org.apache.cxf.transport.jms.uri;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-
 
 /**
  * 
  */
-public class JMSEndpoint {
-    private String endpointUri;
-    private String destinationName;
-    private String jmsVariant;
-    private Map parameters;
+public class JMSEndpoint extends JMSEndpointType {
+    Map jndiParameters = new HashMap();
+    Map parameters = new HashMap();
 
     /**
      * @param uri
@@ -43,11 +39,32 @@ public class JMSEndpoint {
         this.destinationName = destinationName;
     }
 
+    public String getRequestURI() {
+        return "jms:" + jmsVariant + ":" + destinationName;
+    }
+
     /**
-     * @param parameters
+     * @param key
+     * @param value
      */
-    public void configureProperties(Map jmsParameters) {
-        this.parameters = jmsParameters;
+    public void putJndiParameter(String key, String value) {
+        jndiParameters.put(key, value);
+    }
+
+    public void putParameter(String key, String value) {
+        parameters.put(key, value);
+    }
+
+    /**
+     * @param targetserviceParameterName
+     * @return
+     */
+    public String getParameter(String key) {
+        return (String)parameters.get(key);
+    }
+    
+    public Map getJndiParameters() {
+        return jndiParameters;
     }
 
     /**
@@ -55,106 +72,5 @@ public class JMSEndpoint {
      */
     public Map getParameters() {
         return parameters;
-    }
-
-    public String getEnpointUri() {
-        return this.endpointUri;
-    }
-
-    /**
-     * @param key
-     * @return
-     */
-    public String getParameter(String key) {
-        if (this.parameters == null) {
-            return null;
-        }
-        return (String)this.parameters.get(key);
-    }
-
-    public String getDeliveryMode() {
-        String deliveryMode = getParameter(JMSURIConstants.DELIVERYMODE_PARAMETER_NAME);
-        if (deliveryMode == null) {
-            deliveryMode = JMSURIConstants.DELIVERYMODE_DEFAULT;
-        }
-        return deliveryMode;
-    }
-
-    public long getTimeToLive() {
-        String timeToLive = getParameter(JMSURIConstants.TIMETOLIVE_PARAMETER_NAME);
-        if (timeToLive == null) {
-            return JMSURIConstants.TIMETOLIVE_DEFAULT;
-        }
-        return Integer.parseInt(timeToLive);
-    }
-
-    public int getPriority() {
-        String priority = getParameter(JMSURIConstants.PRIORITY_PARAMETER_NAME);
-        if (priority == null) {
-            return JMSURIConstants.PRIORITY_DEFAULT;
-        }
-        return Integer.parseInt(priority);
-    }
-
-    public String getReplyToName() {
-        return getParameter(JMSURIConstants.REPLYTONAME_PARAMETER_NAME);
-    }
-
-    /**
-     * @return
-     */
-    public String getDestinationName() {
-        // TODO Auto-generated method stub
-        return this.destinationName;
-    }
-
-    /**
-     * @param destinationName The destinationName to set.
-     */
-    public void setDestinationName(String destinationName) {
-        this.destinationName = destinationName;
-    }
-
-    /**
-     * @param jmsVariant The jmsVariant to set.
-     */
-    public void setJmsVariant(String jmsVariant) {
-        this.jmsVariant = jmsVariant;
-    }
-
-    /**
-     * * @return Returns the jmsVariant.
-     */
-    public String getJmsVariant() {
-        return jmsVariant;
-    }
-
-    public String getJndiConnectionFactoryName() {
-        return getParameter(JMSURIConstants.JNDICONNECTIONFACTORYNAME_PARAMETER_NAME);
-    }
-
-    public String getJndiInitialContextFactory() {
-        return getParameter(JMSURIConstants.JNDIINITIALCONTEXTFACTORY_PARAMETER_NAME);
-    }
-
-    public String getJndiURL() {
-        return getParameter(JMSURIConstants.JNDIURL_PARAMETER_NAME);
-    }
-
-    public Map getJndiContextParameters() {
-        Map addParas = new HashMap();
-        Iterator keyIter = parameters.keySet().iterator();
-        while (keyIter.hasNext()) {
-            String key = (String)keyIter.next();
-            if (key.startsWith(JMSURIConstants.JNDI_PARAMETER_NAME_PREFIX)) {
-                addParas.put(key.substring(5), this.parameters.get(key));
-            }
-        }
-
-        return addParas;
-    }
-
-    public String getRequestURI() {
-        return "jms:" + jmsVariant + ":" + destinationName;
     }
 }

@@ -49,14 +49,17 @@
 		<xs:annotation>
 			<xs:documentation>JMS header properties.</xs:documentation>
 		</xs:annotation>
+		<!-- 
 		<xs:sequence>
 			<xs:element name="parameters" type="jms:ParameterType"
 				minOccurs="0" maxOccurs="unbounded" />
 			<xs:element name="jndiParameters" type="jms:ParameterType"
 				minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
-		<xs:attribute name="enpointUri" type="xs:string" />
+		-->
+		<xs:attribute name="endpointUri" type="xs:string" />
 		<xs:attribute name="jmsVariant" type="xs:string" />
+		<xs:attribute name="destinationName" type="xs:string" />
 		<xs:attribute name="deliveryMode" type="jms:deliveryModeType" />
 		<xs:attribute name="timeToLive" type="xs:long" />
 		<xs:attribute name="priority" type="jms:priorityType" />
