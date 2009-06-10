@@ -37,8 +37,8 @@ import javax.jms.Message;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
-import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.SOAPConstants;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.security.SecurityContext;
@@ -516,7 +516,7 @@ public final class JMSUtils {
         Map<String, List<String>> headers = CastUtils.cast((Map<?, ?>)outMessage
             .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
         if (headers != null) {
-            List<String> action = headers.get(SoapBindingConstants.SOAP_ACTION);
+            List<String> action = headers.get(SOAPConstants.SOAP_ACTION);
             if (action != null && action.size() > 0) {
                 soapAction = action.get(0);
             }
