@@ -154,7 +154,7 @@ public class JMSConduitTest extends AbstractJMSTester {
         assertEquals("The response data should be equal", "HelloWorld", response);
 
         JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
 
         assertTrue("The inMessage JMS Header should not be null", inHeader != null);
 

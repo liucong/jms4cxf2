@@ -174,13 +174,13 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
             // Build CXF message from JMS message
             MessageImpl inMessage = new MessageImpl();
             JMSUtils.populateIncomingContext(message, inMessage,
-                                             JMSConstants.JMS_SERVER_REQUEST_HEADERS);
+                                             JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
 
             byte[] request = JMSUtils.retrievePayload(message, (String)inMessage
                 .get(Message.ENCODING));
             getLogger().log(Level.FINE, "The Request Message is [ " + request + "]");
             inMessage.setContent(InputStream.class, new ByteArrayInputStream(request));
-            inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, new JMSMessageType());
+            inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES, new JMSMessageType());
             inMessage.put(JMSConstants.JMS_REQUEST_MESSAGE, message);
             inMessage.setDestination(this);
             if (jmsConfig.getMaxSuspendedContinuations() != 0) {
@@ -220,9 +220,9 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
         }
         try {
             final JMSMessageType headers = (JMSMessageType)outMessage
-                .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
+                .get(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES);
             JMSMessageType inHeaders = (JMSMessageType)inMessage
-                .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
+                .get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
             
             JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, inHeaders);
 
@@ -323,10 +323,10 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 .get(JMSConstants.JMS_REQUEST_MESSAGE);
             message.put(JMSConstants.JMS_REQUEST_MESSAGE, jmsMessage);
 
-            if (!message.containsKey(JMSConstants.JMS_SERVER_RESPONSE_HEADERS)
-                && inMessage.containsKey(JMSConstants.JMS_SERVER_RESPONSE_HEADERS)) {
-                message.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, inMessage
-                    .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS));
+            if (!message.containsKey(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES)
+                && inMessage.containsKey(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES)) {
+                message.put(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES, inMessage
+                    .get(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES));
             }
 
             Exchange exchange = inMessage.getExchange();

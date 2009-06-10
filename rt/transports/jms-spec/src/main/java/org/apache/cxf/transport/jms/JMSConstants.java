@@ -30,12 +30,12 @@ public final class JMSConstants {
     public static final String BYTE_MESSAGE_TYPE = "byte";
 
     public static final String JMS_POOLEDSESSION = "jms.pooled.session";   
-    public static final String JMS_SERVER_REQUEST_HEADERS = "org.apache.cxf.jms.server.request.headers";
-    public static final String JMS_SERVER_RESPONSE_HEADERS = "org.apache.cxf.jms.server.response.headers";
+    public static final String JMS_SERVER_REQUEST_PROPERTIES = "org.apache.cxf.jms.server.request.headers";
+    public static final String JMS_SERVER_RESPONSE_PROPERTIES = "org.apache.cxf.jms.server.response.headers";
     public static final String JMS_REQUEST_MESSAGE = "org.apache.cxf.jms.request.message";
     public static final String JMS_RESPONSE_MESSAGE = "org.apache.cxf.jms.reponse.message";
-    public static final String JMS_CLIENT_REQUEST_HEADERS = "org.apache.cxf.jms.client.request.headers";
-    public static final String JMS_CLIENT_RESPONSE_HEADERS = 
+    public static final String JMS_CLIENT_REQUEST_PROPERTIES = "org.apache.cxf.jms.client.request.headers";
+    public static final String JMS_CLIENT_RESPONSE_PROPERTIES = 
         "org.apache.cxf.jms.client.response.headers";
     
     public static final String JMS_CLIENT_RECEIVE_TIMEOUT = "org.apache.cxf.jms.client.timeout";

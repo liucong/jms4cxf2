@@ -415,7 +415,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                 BindingProvider  bp = (BindingProvider)handler;
                 Map<String, Object> requestContext = bp.getRequestContext();
                 JMSMessageType requestHeader = new JMSMessageType();
-                requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
+                requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES, requestHeader);
      
                 for (int idx = 0; idx < 5; idx++) {
                     String request = "World" + ((prefix != null) ? ":" + prefix : "");
@@ -432,7 +432,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                         Map<String, Object> responseContext = bp.getResponseContext();
                         JMSMessageType responseHeader = 
                             (JMSMessageType)responseContext.get(
-                                    JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+                                    JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
                         assertEquals("Request and Response CorrelationID didn't match", 
                                       correlationID, responseHeader.getJMSCorrelationID());
                     }
@@ -707,7 +707,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                 propType = new JMSPropertyType();
                 propType.setName(testIgnoredPropertyName);
                 propType.setValue("mustNotReturn");
-                requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
+                requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES, requestHeader);
             } 
  
             String greeting = greeter.greetMe("Milestone-");
@@ -718,7 +718,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
             if (bp != null) {
                 Map<String, Object> responseContext = bp.getResponseContext();
                 JMSMessageType responseHdr = 
-                     (JMSMessageType)responseContext.get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+                     (JMSMessageType)responseContext.get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
                 if (responseHdr == null) {
                     fail("response Header should not be null");
                 }

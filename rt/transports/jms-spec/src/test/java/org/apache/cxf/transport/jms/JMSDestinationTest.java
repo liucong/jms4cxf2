@@ -218,7 +218,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         header.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
         header.setJMSPriority(1);
         header.setTimeToLive(1000);
-        outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, header);
+        outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES, header);
         outMessage.put(Message.ENCODING, "US-ASCII");
     }
     
@@ -241,14 +241,14 @@ public class JMSDestinationTest extends AbstractJMSTester {
 
     private void verifyRequestResponseHeaders(Message inMessage, Message outMessage) {
         JMSMessageType outHeader = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
         String inEncoding = (String) inMessage.get(Message.ENCODING);
         String outEncoding = (String) outMessage.get(Message.ENCODING);
         
         assertEquals("The message encoding should be equal", inEncoding, outEncoding);
 
         JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
 
         verifyJmsHeaderEquality(outHeader, inHeader);
 
@@ -256,10 +256,10 @@ public class JMSDestinationTest extends AbstractJMSTester {
 
     private void verifyHeaders(Message inMessage, Message outMessage) {
         JMSMessageType outHeader = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
 
         JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
+            .get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
 
         verifyJmsHeaderEquality(outHeader, inHeader);
 
@@ -353,7 +353,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         excludeProp.setValue(customPropertyName);
 
         JMSMessageType headers = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
         headers.getProperty().add(excludeProp);
 
         final JMSDestination destination = setupJMSDestination(true);
@@ -392,7 +392,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         verifyRequestResponseHeaders(inMessage, outMessage);
 
         JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
 
         assertTrue("property has been excluded, only CONTENT_TYPE should be here", inHeader.getProperty()
             .size() == 1);

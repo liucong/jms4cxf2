@@ -40,7 +40,7 @@ public class TwoWayJMSImplBase implements HelloWorldPortType {
     public String greetMe(String me) {
         MessageContext mc = wsContext.getMessageContext();
         JMSMessageType headers =
-            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
+            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
         System.out.println("get the message headers JMSCorrelationID: " + headers.getJMSCorrelationID());
         System.out.println("Reached here :" + me);
         
@@ -53,7 +53,7 @@ public class TwoWayJMSImplBase implements HelloWorldPortType {
                            + headers.getProperty().indexOf(testProperty));
         
         JMSMessageType responseHeaders =
-            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
+            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES);
         responseHeaders.getProperty().add(testProperty);
         
         return "Hello " + me;
