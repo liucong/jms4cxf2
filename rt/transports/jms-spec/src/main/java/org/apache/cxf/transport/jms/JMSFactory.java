@@ -43,13 +43,13 @@ import org.springframework.jms.support.destination.DestinationResolver;
 public final class JMSFactory {
 
     private static final Logger LOG = LogUtils.getL7dLogger(JMSFactory.class);
-    
+
     private JMSFactory() {
     }
 
     /**
-     * Retreive connection factory from jndi, wrap it in a UserCredentialsConnectionFactoryAdapter,
-     * set username and password and return the ConnectionFactory
+     * Retreive connection factory from jndi, wrap it in a UserCredentialsConnectionFactoryAdapter, set
+     * username and password and return the ConnectionFactory
      * 
      * @param jmsConfig
      * @param jndiConfig
@@ -67,13 +67,13 @@ public final class JMSFactory {
         String userName = jndiConfig.getConnectionUserName();
         String password = jndiConfig.getConnectionPassword();
         try {
-            ConnectionFactory cf = (ConnectionFactory)jmsConfig.getJndiTemplate().
-                lookup(connectionFactoryName);
+            ConnectionFactory cf = (ConnectionFactory)jmsConfig.getJndiTemplate()
+                .lookup(connectionFactoryName);
             UserCredentialsConnectionFactoryAdapter uccf = new UserCredentialsConnectionFactoryAdapter();
             uccf.setUsername(userName);
             uccf.setPassword(password);
             uccf.setTargetConnectionFactory(cf);
-            
+
             return uccf;
         } catch (NamingException e) {
             throw new RuntimeException(e);
@@ -85,10 +85,11 @@ public final class JMSFactory {
      * settings in headers override the settings from jmsConfig
      * 
      * @param jmsConfig configuration information
-     * @param headers context headers
+     * @param messageProperties context headers
      * @return
      */
-    public static JmsTemplate createJmsTemplate(JMSConfiguration jmsConfig, JMSMessageType headers) {
+    public static JmsTemplate createJmsTemplate(JMSConfiguration jmsConfig,
+                                                JMSMessageType messageProperties) {
         JmsTemplate jmsTemplate = jmsConfig.isUseJms11() ? new JmsTemplate() : new JmsTemplate102();
         jmsTemplate.setConnectionFactory(jmsConfig.getOrCreateWrappedConnectionFactory());
         jmsTemplate.setPubSubDomain(jmsConfig.isPubSubDomain());
@@ -96,11 +97,11 @@ public final class JMSFactory {
             jmsTemplate.setReceiveTimeout(jmsConfig.getReceiveTimeout());
         }
         jmsTemplate.setTimeToLive(jmsConfig.getTimeToLive());
-        int priority = (headers != null && headers.isSetJMSPriority())
-            ? headers.getJMSPriority() : jmsConfig.getPriority();
+        int priority = (messageProperties != null && messageProperties.isSetJMSPriority())
+            ? messageProperties.getJMSPriority() : jmsConfig.getPriority();
         jmsTemplate.setPriority(priority);
-        int deliveryMode = (headers != null && headers.isSetJMSDeliveryMode()) ? headers
-            .getJMSDeliveryMode() : jmsConfig.getDeliveryMode();
+        int deliveryMode = (messageProperties != null && messageProperties.isSetJMSDeliveryMode())
+            ? messageProperties.getJMSDeliveryMode() : jmsConfig.getDeliveryMode();
         jmsTemplate.setDeliveryMode(deliveryMode);
         jmsTemplate.setExplicitQosEnabled(jmsConfig.isExplicitQosEnabled());
         jmsTemplate.setSessionTransacted(jmsConfig.isSessionTransacted());
@@ -120,9 +121,10 @@ public final class JMSFactory {
      * @param messageSelectorPrefix prefix for the messageselector
      * @return
      */
-    public static DefaultMessageListenerContainer createJmsListener(JMSConfiguration jmsConfig,
+    public static DefaultMessageListenerContainer createJmsListener(
+                                                                    JMSConfiguration jmsConfig,
                                                                     MessageListener listenerHandler,
-                                                                    String destinationName, 
+                                                                    String destinationName,
                                                                     String messageSelectorPrefix,
                                                                     boolean userCID) {
         DefaultMessageListenerContainer jmsListener = jmsConfig.isUseJms11()
@@ -134,7 +136,7 @@ public final class JMSFactory {
         jmsListener.setAutoStartup(true);
         jmsListener.setConnectionFactory(jmsConfig.getOrCreateWrappedConnectionFactory());
         jmsListener.setMessageSelector(jmsConfig.getMessageSelector());
-        //jmsListener.setSubscriptionDurable(jmsConfig.isSubscriptionDurable());
+        // jmsListener.setSubscriptionDurable(jmsConfig.isSubscriptionDurable());
         jmsListener.setDurableSubscriptionName(jmsConfig.getDurableSubscriptionName());
         jmsListener.setSessionTransacted(jmsConfig.isSessionTransacted());
         jmsListener.setTransactionManager(jmsConfig.getTransactionManager());
@@ -145,39 +147,39 @@ public final class JMSFactory {
         if (jmsConfig.getRecoveryInterval() != JMSConfiguration.DEFAULT_VALUE) {
             jmsListener.setRecoveryInterval(jmsConfig.getRecoveryInterval());
         }
-        if (jmsConfig.getCacheLevelName() != null && (jmsConfig.getCacheLevelName().trim().length() > 0)) {
+        if (jmsConfig.getCacheLevelName() != null
+            && (jmsConfig.getCacheLevelName().trim().length() > 0)) {
             jmsListener.setCacheLevelName(jmsConfig.getCacheLevelName());
         } else if (jmsConfig.getCacheLevel() != JMSConfiguration.DEFAULT_VALUE) {
             jmsListener.setCacheLevel(jmsConfig.getCacheLevel());
         }
         if (jmsListener.getCacheLevel() >= DefaultMessageListenerContainer.CACHE_CONSUMER
             && jmsConfig.getMaxSuspendedContinuations() > 0) {
-            LOG.info("maxSuspendedContinuations value will be ignored - "
-                     + ", please set cacheLevel to the value less than "
-                     + " org.springframework.jms.listener.DefaultMessageListenerContainer.CACHE_CONSUMER");
+            LOG
+                .info("maxSuspendedContinuations value will be ignored - "
+                      + ", please set cacheLevel to the value less than "
+                      + " org.springframework.jms.listener.DefaultMessageListenerContainer.CACHE_CONSUMER");
         }
         String staticSelectorPrefix = jmsConfig.getConduitSelectorPrefix();
         if (!userCID && messageSelectorPrefix != null && jmsConfig.isUseConduitIdSelector()) {
-            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" 
-                                        + staticSelectorPrefix 
-                                        + messageSelectorPrefix + "%'");
+            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" + staticSelectorPrefix
+                                           + messageSelectorPrefix + "%'");
         } else if (staticSelectorPrefix.length() > 0) {
-            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" 
-                                        + staticSelectorPrefix +  "%'");
+            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" + staticSelectorPrefix + "%'");
         }
         if (jmsConfig.getDestinationResolver() != null) {
             jmsListener.setDestinationResolver(jmsConfig.getDestinationResolver());
         }
         if (jmsConfig.getTaskExecutor() != null) {
             jmsListener.setTaskExecutor(jmsConfig.getTaskExecutor());
-        } 
-        
+        }
+
         if (jmsConfig.isAutoResolveDestination()) {
             jmsListener.setDestinationName(destinationName);
         } else {
             JmsTemplate jmsTemplate = createJmsTemplate(jmsConfig, null);
-            Destination dest = JMSFactory.resolveOrCreateDestination(jmsTemplate, destinationName, jmsConfig
-                .isPubSubDomain());
+            Destination dest = JMSFactory.resolveOrCreateDestination(jmsTemplate, destinationName,
+                                                                     jmsConfig.isPubSubDomain());
             jmsListener.setDestination(dest);
         }
         jmsListener.initialize();

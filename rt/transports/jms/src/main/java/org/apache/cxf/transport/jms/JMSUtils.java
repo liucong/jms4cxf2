@@ -261,7 +261,6 @@ public final class JMSUtils {
             } else {
                 message.setStringProperty(entry.getKey(), value.toString());
             }
-
         }
     }
 

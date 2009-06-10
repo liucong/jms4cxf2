@@ -135,26 +135,26 @@ public final class JMSUtils {
 
     public static void populateIncomingContext(javax.jms.Message message,
                                                org.apache.cxf.message.Message inMessage,
-                                               String headerType)
+                                               String messageType)
         throws UnsupportedEncodingException {
         try {
-            JMSMessageType headers = null;
-            headers = (JMSMessageType)inMessage.get(headerType);
-            if (headers == null) {
-                headers = new JMSMessageType();
-                inMessage.put(headerType, headers);
+            JMSMessageType messageProperties = null;
+            messageProperties = (JMSMessageType)inMessage.get(messageType);
+            if (messageProperties == null) {
+                messageProperties = new JMSMessageType();
+                inMessage.put(messageType, messageProperties);
             }
-            headers.setJMSCorrelationID(message.getJMSCorrelationID());
-            headers.setJMSDeliveryMode(new Integer(message.getJMSDeliveryMode()));
-            headers.setJMSExpiration(new Long(message.getJMSExpiration()));
-            headers.setJMSMessageID(message.getJMSMessageID());
-            headers.setJMSPriority(new Integer(message.getJMSPriority()));
-            headers.setJMSRedelivered(Boolean.valueOf(message.getJMSRedelivered()));
-            headers.setJMSTimeStamp(new Long(message.getJMSTimestamp()));
-            headers.setJMSType(message.getJMSType());
+            messageProperties.setJMSCorrelationID(message.getJMSCorrelationID());
+            messageProperties.setJMSDeliveryMode(new Integer(message.getJMSDeliveryMode()));
+            messageProperties.setJMSExpiration(new Long(message.getJMSExpiration()));
+            messageProperties.setJMSMessageID(message.getJMSMessageID());
+            messageProperties.setJMSPriority(new Integer(message.getJMSPriority()));
+            messageProperties.setJMSRedelivered(Boolean.valueOf(message.getJMSRedelivered()));
+            messageProperties.setJMSTimeStamp(new Long(message.getJMSTimestamp()));
+            messageProperties.setJMSType(message.getJMSType());
 
             Map<String, List<String>> protHeaders = new HashMap<String, List<String>>();
-            List<JMSPropertyType> props = headers.getProperty();
+            List<JMSPropertyType> props = messageProperties.getProperty();
             Enumeration enm = message.getPropertyNames();
             while (enm.hasMoreElements()) {
                 String name = (String)enm.nextElement();
@@ -178,7 +178,7 @@ public final class JMSUtils {
             SecurityContext securityContext = buildSecurityContext(message);
             inMessage.put(SecurityContext.class, securityContext);
             
-            populateIncomingMessageProperties(message, inMessage, headers);
+            populateIncomingMessageProperties(message, inMessage, messageProperties);
         } catch (JMSException ex) {
             throw JmsUtils.convertJmsAccessException(ex);
         }
@@ -403,7 +403,7 @@ public final class JMSUtils {
      * @param messageProperties
      * @param jmsMessage
      */
-    private static void setJMSProperties(Message jmsMessage, JMSMessageType messageProperties) 
+    static void setJMSProperties(Message jmsMessage, JMSMessageType messageProperties) 
         throws JMSException {
         
         setJMSMessageHeaderProperties(jmsMessage, messageProperties);
@@ -468,7 +468,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    private static void prepareJMSProperties(JMSMessageType messageProperteis,
+    static void prepareJMSProperties(JMSMessageType messageProperteis,
                                                    org.apache.cxf.message.Message outMessage,
                                                    JMSConfiguration jmsConfig) {
         prepareJMSMessageHeaderProperties(messageProperteis, outMessage, jmsConfig);
@@ -531,5 +531,22 @@ public final class JMSUtils {
         id.append(CORRELATTION_ID_PADDING, 0, 16 - index.length());
         id.append(index);
         return id.toString();
+    }
+
+    /**
+     * @param messageProperties
+     * @param inMessageProperties
+     */
+    public static void initResponseMessageProperties(JMSMessageType messageProperties,
+                                                     JMSMessageType inMessageProperties) {
+        messageProperties.setJMSDeliveryMode(inMessageProperties.getJMSDeliveryMode());
+        //messageProperties.setJMSExpiration(inMessageProperties.getJMSExpiration());
+        messageProperties.setJMSPriority(inMessageProperties.getJMSPriority());
+        messageProperties.setJMSMessageID(inMessageProperties.getJMSMessageID());
+        //JMSDestination
+        
+        messageProperties.setSOAPJMSRequestURI(inMessageProperties.getSOAPJMSRequestURI());
+        messageProperties.setSOAPJMSBindingVersion(inMessageProperties.getSOAPJMSBindingVersion());
+        //contenttype.
     }
 }

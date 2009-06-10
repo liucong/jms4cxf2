@@ -27,8 +27,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -47,7 +45,6 @@ import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.continuations.ContinuationProvider;
 import org.apache.cxf.continuations.SuspendedInvocationException;
-import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.OneWayProcessorInterceptor;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
@@ -219,12 +216,14 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
             return;
         }
         try {
-            final JMSMessageType headers = (JMSMessageType)outMessage
+            final JMSMessageType messageProperties = (JMSMessageType)outMessage
                 .get(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES);
-            JMSMessageType inHeaders = (JMSMessageType)inMessage
+            JMSMessageType inMessageProperties = (JMSMessageType)inMessage
                 .get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
             
-            JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, inHeaders);
+            JMSUtils.initResponseMessageProperties(messageProperties, inMessageProperties);
+            
+            JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, messageProperties);
 
             // setup the reply message
             final javax.jms.Message request = (javax.jms.Message)inMessage
@@ -256,15 +255,10 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 public javax.jms.Message createMessage(Session session) throws JMSException {
                     javax.jms.Message reply = JMSUtils.createAndSetPayload(replyObj, session,
                                                                            msgType);
-
                     reply.setJMSCorrelationID(determineCorrelationID(request));
 
-                    JMSUtils.setMessageProperties(headers, reply);
-                    // ensure that the contentType is set to the out jms message header
-                    JMSUtils.addContentTypeToProtocolHeader(outMessage);
-                    Map<String, List<String>> protHeaders = CastUtils.cast((Map<?, ?>)outMessage
-                        .get(Message.PROTOCOL_HEADERS));
-                    JMSUtils.addProtocolHeaders(reply, protHeaders);
+                    JMSUtils.prepareJMSProperties(messageProperties, outMessage, jmsConfig);
+                    JMSUtils.setJMSProperties(reply, messageProperties);
 
                     LOG.log(Level.FINE, "server sending reply: ", reply);
                     return reply;
