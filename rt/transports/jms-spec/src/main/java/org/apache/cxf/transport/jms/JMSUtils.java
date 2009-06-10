@@ -415,8 +415,14 @@ public final class JMSUtils {
      * @param headers
      * @param jmsMessage
      */
-    private static void setMessageHeaderProperties(JMSMessageHeadersType headers, Message jmsMessage) {
-        // todo
+    private static void setMessageHeaderProperties(JMSMessageHeadersType headers, Message jmsMessage) 
+        throws JMSException {
+        if (headers != null && headers.isSetProperty()) {
+            List<JMSPropertyType> props = headers.getProperty();
+            for (int x = 0; x < props.size(); x++) {
+                jmsMessage.setStringProperty(props.get(x).getName(), props.get(x).getValue());
+            }
+        }
     }
 
     /**
