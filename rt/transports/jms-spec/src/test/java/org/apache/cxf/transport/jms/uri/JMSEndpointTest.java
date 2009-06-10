@@ -84,9 +84,8 @@ public class JMSEndpointTest extends Assert {
         assertEquals(endpoint.getJndiConnectionFactoryName(),
                      "ConnectionFactory");
         assertEquals(endpoint.getJndiURL(), "tcp://localhost:61616");
-
     }
-
+    
     @Test
     public void testJNDIWithAdditionalParameters() throws Exception {
         JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar?" + "jndiInitialContextFactory"
@@ -118,6 +117,18 @@ public class JMSEndpointTest extends Assert {
         assertEquals(endpoint.getReplyToName(), "foo.bar2");
     }
 
+    @Test
+    public void testRequestUri() throws Exception {
+        JMSEndpoint endpoint = resolveEndpoint("jms:jndi:Foo.Bar?" + "jndiInitialContextFactory"
+                                               + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                                               + "&foo=bar"
+                                               + "&foo2=bar2");
+        assertTrue(endpoint instanceof JMSJNDIEndpoint);
+        assertEquals(endpoint.getParameters().size(), 2);
+        String requestUri = endpoint.getRequestURI();
+        assertEquals(requestUri, "jms:jndi:Foo.Bar?foo=bar&foo2=bar2");
+    }
+    
     private JMSEndpoint resolveEndpoint(String uri) {
         JMSEndpoint endpoint = null;
         try {

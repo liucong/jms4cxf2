@@ -20,6 +20,7 @@
 package org.apache.cxf.transport.jms.uri;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -40,7 +41,20 @@ public class JMSEndpoint extends JMSEndpointType {
     }
 
     public String getRequestURI() {
-        return "jms:" + jmsVariant + ":" + destinationName;
+        String requestUri = "jms:" + jmsVariant + ":" + destinationName;
+        boolean first = true;
+        Iterator iter = parameters.keySet().iterator();
+        while (iter.hasNext()) {
+            String key = (String)iter.next();
+            String value = (String)parameters.get(key);
+            if (first) {
+                requestUri += "?" + key + "=" + value;
+                first = false;
+            } else {
+                requestUri += "&" + key + "=" + value;
+            }
+        }
+        return requestUri;
     }
 
     /**
@@ -62,7 +76,7 @@ public class JMSEndpoint extends JMSEndpointType {
     public String getParameter(String key) {
         return (String)parameters.get(key);
     }
-    
+
     public Map getJndiParameters() {
         return jndiParameters;
     }
