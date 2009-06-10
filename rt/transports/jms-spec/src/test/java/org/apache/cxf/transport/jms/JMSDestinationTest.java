@@ -73,8 +73,8 @@ public class JMSDestinationTest extends AbstractJMSTester {
             }
             waitTime++;
         }
-        assertTrue("Can't receive the Destination message in " + MAX_RECEIVE_TIME 
-                   + " seconds", destMessage != null);
+        assertTrue("Can't receive the Destination message in " + MAX_RECEIVE_TIME + " seconds",
+                   destMessage != null);
     }
 
     public JMSDestination setupJMSDestination(boolean send) {
@@ -96,48 +96,52 @@ public class JMSDestinationTest extends AbstractJMSTester {
         }
         return jmsDestination;
     }
-    
-    
+
     @Test
     public void testGetConfigurationFromSpring() throws Exception {
         SpringBusFactory bf = new SpringBusFactory();
         BusFactory.setDefaultBus(null);
         bus = bf.createBus("/jms_test_config.xml");
         BusFactory.setDefaultBus(bus);
-        setupServiceInfo("http://cxf.apache.org/jms_conf_test", "/wsdl/others/jms_test_no_addr.wsdl",
-                         "HelloWorldQueueBinMsgService", "HelloWorldQueueBinMsgPort");
-        JMSDestination destination = setupJMSDestination(false);        
-        JMSConfiguration jmsConfig = destination.getJmsConfig();        
-        //JmsTemplate jmsTemplate = destination.getJmsTemplate();
-        //AbstractMessageListenerContainer jmsListener = destination.getJmsListener();
+        setupServiceInfo("http://cxf.apache.org/jms_conf_test",
+                         "/wsdl/others/jms_test_no_addr.wsdl", "HelloWorldQueueBinMsgService",
+                         "HelloWorldQueueBinMsgPort");
+        JMSDestination destination = setupJMSDestination(false);
+        JMSConfiguration jmsConfig = destination.getJmsConfig();
+        // JmsTemplate jmsTemplate = destination.getJmsTemplate();
+        // AbstractMessageListenerContainer jmsListener = destination.getJmsListener();
         assertEquals("Can't get the right ServerConfig's MessageTimeToLive ", 500L, jmsConfig
             .getTimeToLive());
-        assertEquals("Can't get the right Server's MessageSelector", "cxf_message_selector", jmsConfig
-            .getMessageSelector());
+        assertEquals("Can't get the right Server's MessageSelector", "cxf_message_selector",
+                     jmsConfig.getMessageSelector());
         // assertEquals("Can't get the right SessionPoolConfig's LowWaterMark", 10,
         // jmsListener.getLowWaterMark());
         // assertEquals("Can't get the right AddressPolicy's ConnectionPassword", "testPassword",
         // .getConnectionPassword());
         assertEquals("Can't get the right DurableSubscriberName", "cxf_subscriber", jmsConfig
             .getDurableSubscriptionName());
-        
-        /*setupServiceInfo("http://cxf.apache.org/hello_world_jms", "/wsdl/jms_test.wsdl",
-                         "HelloWorldQueueBinMsgService", "HelloWorldQueueBinMsgPort");
-        destination = setupJMSDestination(false);
-        jmsConfig = destination.getJmsConfig();*/
-        assertEquals("The receiveTimeout should be set", jmsConfig.getReceiveTimeout().longValue(), 1500L);
+
+        /*
+         * setupServiceInfo("http://cxf.apache.org/hello_world_jms", "/wsdl/jms_test.wsdl",
+         * "HelloWorldQueueBinMsgService", "HelloWorldQueueBinMsgPort"); destination =
+         * setupJMSDestination(false); jmsConfig = destination.getJmsConfig();
+         */
+        assertEquals("The receiveTimeout should be set", jmsConfig.getReceiveTimeout().longValue(),
+                     1500L);
         assertEquals("The concurrentConsumer should be set", jmsConfig.getConcurrentConsumers(), 3);
-        assertEquals("The maxConcurrentConsumer should be set", jmsConfig.getMaxConcurrentConsumers(), 5);
-        assertEquals("The maxSuspendedContinuations should be set", 
-                     jmsConfig.getMaxSuspendedContinuations(), 2);
+        assertEquals("The maxConcurrentConsumer should be set", jmsConfig
+            .getMaxConcurrentConsumers(), 5);
+        assertEquals("The maxSuspendedContinuations should be set", jmsConfig
+            .getMaxSuspendedContinuations(), 2);
         assertNotNull("The connectionFactory should not be null", jmsConfig.getConnectionFactory());
-        assertTrue("Should get the instance of ActiveMQConnectionFactory", 
-                   jmsConfig.getConnectionFactory() instanceof ActiveMQConnectionFactory);
+        assertTrue("Should get the instance of ActiveMQConnectionFactory", jmsConfig
+            .getConnectionFactory() instanceof ActiveMQConnectionFactory);
         ActiveMQConnectionFactory cf = (ActiveMQConnectionFactory)jmsConfig.getConnectionFactory();
         assertEquals("The borker URL is wrong", cf.getBrokerURL(), "tcp://localhost:61500");
-        assertEquals("Get a wrong TargetDestination", jmsConfig.getTargetDestination(), "queue:test");
+        assertEquals("Get a wrong TargetDestination", jmsConfig.getTargetDestination(),
+                     "queue:test");
         assertEquals("Get the wrong pubSubDomain value", jmsConfig.isPubSubDomain(), false);
-        
+
         BusFactory.setDefaultBus(null);
 
     }
@@ -221,7 +225,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES, header);
         outMessage.put(Message.ENCODING, "US-ASCII");
     }
-    
+
     private void setupMessageHeader(Message outMessage) {
         setupMessageHeader(outMessage, "Destination test");
     }
@@ -236,15 +240,16 @@ public class JMSDestinationTest extends AbstractJMSTester {
             ex.printStackTrace();
         }
         String response = IOUtils.newStringFromBytes(bytes);
-        assertEquals("The response content should be equal", AbstractJMSTester.MESSAGE_CONTENT, response);
+        assertEquals("The response content should be equal", AbstractJMSTester.MESSAGE_CONTENT,
+                     response);
     }
 
     private void verifyRequestResponseHeaders(Message inMessage, Message outMessage) {
         JMSMessageType outHeader = (JMSMessageType)outMessage
             .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
-        String inEncoding = (String) inMessage.get(Message.ENCODING);
-        String outEncoding = (String) outMessage.get(Message.ENCODING);
-        
+        String inEncoding = (String)inMessage.get(Message.ENCODING);
+        String outEncoding = (String)outMessage.get(Message.ENCODING);
+
         assertEquals("The message encoding should be equal", inEncoding, outEncoding);
 
         JMSMessageType inHeader = (JMSMessageType)inMessage
@@ -270,15 +275,16 @@ public class JMSDestinationTest extends AbstractJMSTester {
             // only check if the correlation id was explicitly set as
             // otherwise the in header will contain an automatically
             // generated correlation id
-            assertEquals("The inMessage and outMessage JMS Header's CorrelationID should be equals", outHeader
-                         .getJMSCorrelationID(), inHeader.getJMSCorrelationID());
+            assertEquals(
+                         "The inMessage and outMessage JMS Header's CorrelationID should be equals",
+                         outHeader.getJMSCorrelationID(), inHeader.getJMSCorrelationID());
         }
-        assertEquals("The inMessage and outMessage JMS Header's JMSPriority should be equals", outHeader
-            .getJMSPriority(), inHeader.getJMSPriority());
-        assertEquals("The inMessage and outMessage JMS Header's JMSDeliveryMode should be equals", outHeader
-                     .getJMSDeliveryMode(), inHeader.getJMSDeliveryMode());
-        assertEquals("The inMessage and outMessage JMS Header's JMSType should be equals", outHeader
-            .getJMSType(), inHeader.getJMSType());
+        assertEquals("The inMessage and outMessage JMS Header's JMSPriority should be equals",
+                     outHeader.getJMSPriority(), inHeader.getJMSPriority());
+        assertEquals("The inMessage and outMessage JMS Header's JMSDeliveryMode should be equals",
+                     outHeader.getJMSDeliveryMode(), inHeader.getJMSDeliveryMode());
+        assertEquals("The inMessage and outMessage JMS Header's JMSType should be equals",
+                     outHeader.getJMSType(), inHeader.getJMSType());
     }
 
     @Test
@@ -394,10 +400,12 @@ public class JMSDestinationTest extends AbstractJMSTester {
         JMSMessageType inHeader = (JMSMessageType)inMessage
             .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
 
-        assertTrue("property has been excluded, only CONTENT_TYPE should be here", inHeader.getProperty()
-            .size() == 1);
-        assertTrue("property has been excluded, only " + JMSConstants.JMS_CONTENT_TYPE + "should be here",
-                   inHeader.getProperty().get(0).getName().equals(JMSConstants.JMS_CONTENT_TYPE));
+        /*
+         * no use. assertTrue("property has been excluded, only CONTENT_TYPE should be here",
+         * inHeader.getProperty() .size() == 1); assertTrue("property has been excluded, only " +
+         * JMSConstants.JMS_CONTENT_TYPE + "should be here", inHeader.getProperty().get(0).getName()
+         * .equals(JMSConstants.JMS_CONTENT_TYPE));
+         */
         // wait for a while for the jms session recycling
         Thread.sleep(1000);
         conduit.close();
@@ -413,7 +421,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         assertTrue("is multiplex", destination instanceof MultiplexDestination);
         destination.shutdown();
     }
-    
+
     @Test
     public void testSecurityContext() throws Exception {
         inMessage = null;
@@ -427,9 +435,10 @@ public class JMSDestinationTest extends AbstractJMSTester {
         sendoutMessage(conduit, outMessage, true);
         waitForReceiveDestMessage();
         SecurityContext securityContext = destMessage.get(SecurityContext.class);
-        assertNotNull("SecurityContext should be set in message received by JMSDestination", securityContext);
-        assertEquals("Principal in SecurityContext should be", "testUser", 
-                     securityContext.getUserPrincipal().getName());
+        assertNotNull("SecurityContext should be set in message received by JMSDestination",
+                      securityContext);
+        assertEquals("Principal in SecurityContext should be", "testUser", securityContext
+            .getUserPrincipal().getName());
         conduit.close();
         destination.shutdown();
     }
