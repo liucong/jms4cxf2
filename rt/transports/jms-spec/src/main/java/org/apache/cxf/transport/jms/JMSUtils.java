@@ -59,7 +59,7 @@ public final class JMSUtils {
 
     }
 
-    public static long getTimeToLive(JMSMessageHeadersType headers) {
+    public static long getTimeToLive(JMSMessageType headers) {
         long ttl = -1;
         if (headers != null && headers.isSetTimeToLive()) {
             ttl = headers.getTimeToLive();
@@ -67,7 +67,7 @@ public final class JMSUtils {
         return ttl;
     }
 
-    public static void setMessageProperties(JMSMessageHeadersType headers, Message message)
+    public static void setMessageProperties(JMSMessageType headers, Message message)
         throws JMSException {
         if (headers != null && headers.isSetProperty()) {
             List<JMSPropertyType> props = headers.getProperty();
@@ -138,10 +138,10 @@ public final class JMSUtils {
                                                String headerType)
         throws UnsupportedEncodingException {
         try {
-            JMSMessageHeadersType headers = null;
-            headers = (JMSMessageHeadersType)inMessage.get(headerType);
+            JMSMessageType headers = null;
+            headers = (JMSMessageType)inMessage.get(headerType);
             if (headers == null) {
-                headers = new JMSMessageHeadersType();
+                headers = new JMSMessageType();
                 inMessage.put(headerType, headers);
             }
             headers.setJMSCorrelationID(message.getJMSCorrelationID());
@@ -191,7 +191,7 @@ public final class JMSUtils {
      */
     private static void populateIncomingMessageProperties(Message jmsMessage,
                                                          org.apache.cxf.message.Message inMessage,
-                                                         JMSMessageHeadersType messageProperties)
+                                                         JMSMessageType messageProperties)
         throws UnsupportedEncodingException {
         try {
             if (jmsMessage.propertyExists(JMSSpecConstants.TARGETSERVICE_FIELD)) {
@@ -387,10 +387,10 @@ public final class JMSUtils {
             jmsMessage.setJMSReplyTo(replyTo);
         }
 
-        JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
+        JMSMessageType headers = (JMSMessageType)outMessage
             .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
         if (headers == null) {
-            headers = new JMSMessageHeadersType();
+            headers = new JMSMessageType();
         }
         JMSUtils.prepareJMSHeaderProperteis(headers, outMessage, jmsConfig);
         JMSUtils.setMessageHeaderProperties(headers, jmsMessage);
@@ -406,7 +406,7 @@ public final class JMSUtils {
      * @param headers
      * @param jmsMessage
      */
-    private static void setMessageHeaderProperties(JMSMessageHeadersType headers, Message jmsMessage) 
+    private static void setMessageHeaderProperties(JMSMessageType headers, Message jmsMessage) 
         throws JMSException {
         if (headers != null && headers.isSetProperty()) {
             List<JMSPropertyType> props = headers.getProperty();
@@ -421,7 +421,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    private static void prepareJMSHeaderProperteis(JMSMessageHeadersType headers,
+    private static void prepareJMSHeaderProperteis(JMSMessageType headers,
                                                    org.apache.cxf.message.Message outMessage,
                                                    JMSConfiguration jmsConfig) {
         headers.setJMSDeliveryMode(jmsConfig.getDeliveryMode());
@@ -435,7 +435,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    private static void prepareJMSMessageProperties(JMSMessageHeadersType messageProperties,
+    private static void prepareJMSMessageProperties(JMSMessageType messageProperties,
                                                     org.apache.cxf.message.Message outMessage,
                                                     JMSConfiguration jmsConfig) {
         if (jmsConfig.getTargetService() != null) {
@@ -469,7 +469,7 @@ public final class JMSUtils {
      * @param soapOverJMSProperties
      */
     private static void setSOAPJMSProperties(Message jmsMessage,
-                                             JMSMessageHeadersType soapOverJMSProperties)
+                                             JMSMessageType soapOverJMSProperties)
         throws JMSException {
 
         if (soapOverJMSProperties.isSetSOAPJMSTargetService()) {

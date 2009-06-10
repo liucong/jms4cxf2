@@ -180,7 +180,7 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 .get(Message.ENCODING));
             getLogger().log(Level.FINE, "The Request Message is [ " + request + "]");
             inMessage.setContent(InputStream.class, new ByteArrayInputStream(request));
-            inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, new JMSMessageHeadersType());
+            inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, new JMSMessageType());
             inMessage.put(JMSConstants.JMS_REQUEST_MESSAGE, message);
             inMessage.setDestination(this);
             if (jmsConfig.getMaxSuspendedContinuations() != 0) {
@@ -219,9 +219,9 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
             return;
         }
         try {
-            final JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
+            final JMSMessageType headers = (JMSMessageType)outMessage
                 .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
-            JMSMessageHeadersType inHeaders = (JMSMessageHeadersType)inMessage
+            JMSMessageType inHeaders = (JMSMessageType)inMessage
                 .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
             
             JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, inHeaders);

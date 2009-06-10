@@ -126,7 +126,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             throw new ConfigurationException(msg);
         }
 
-        JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
+        JMSMessageType headers = (JMSMessageType)outMessage
             .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
 
         JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, headers);

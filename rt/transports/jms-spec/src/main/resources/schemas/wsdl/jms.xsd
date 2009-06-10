@@ -76,9 +76,9 @@
         </xs:sequence>
     </xs:complexType>
     
-    <xs:complexType name="JMSMessageHeadersType">
+    <xs:complexType name="JMSMessageType">
         <xs:annotation>
-            <xs:documentation>JMS header properties.</xs:documentation>
+            <xs:documentation>JMS properties.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:element name="property" type="jms:JMSPropertyType" minOccurs="0" maxOccurs="unbounded"/>
