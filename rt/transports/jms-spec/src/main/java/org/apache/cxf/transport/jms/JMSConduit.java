@@ -47,7 +47,6 @@ import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.AbstractConduit;
-import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
@@ -266,11 +265,6 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         try {
             JMSUtils.populateIncomingContext(jmsMessage, inMessage,
                                              JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
-            JMSUtils
-                .populateIncomingMessageProperties(
-                                                   jmsMessage,
-                                                   inMessage,
-                                                   JMSSpecConstants.JMS_CLIENT_RESPONSE_MESSAGE_PROPERTIES);
 
             byte[] response = JMSUtils.retrievePayload(jmsMessage, (String)inMessage
                 .get(Message.ENCODING));

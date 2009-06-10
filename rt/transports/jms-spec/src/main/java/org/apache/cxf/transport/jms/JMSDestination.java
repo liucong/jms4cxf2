@@ -59,7 +59,6 @@ import org.apache.cxf.transport.Conduit;
 import org.apache.cxf.transport.MessageObserver;
 import org.apache.cxf.transport.jms.continuations.JMSContinuation;
 import org.apache.cxf.transport.jms.continuations.JMSContinuationProvider;
-import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.apache.cxf.wsdl.EndpointReferenceUtils;
 import org.springframework.jms.core.JmsTemplate;
@@ -176,19 +175,12 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
             MessageImpl inMessage = new MessageImpl();
             JMSUtils.populateIncomingContext(message, inMessage,
                                              JMSConstants.JMS_SERVER_REQUEST_HEADERS);
-            JMSUtils
-                .populateIncomingMessageProperties(
-                                                   message,
-                                                   inMessage,
-                                                   JMSSpecConstants.JMS_SERVER_REQUEST_MESSAGE_PROPERTIES);
 
             byte[] request = JMSUtils.retrievePayload(message, (String)inMessage
                 .get(Message.ENCODING));
             getLogger().log(Level.FINE, "The Request Message is [ " + request + "]");
             inMessage.setContent(InputStream.class, new ByteArrayInputStream(request));
             inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, new JMSMessageHeadersType());
-            inMessage.put(JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES, 
-                          new SOAPOverJMSMessageType());
             inMessage.put(JMSConstants.JMS_REQUEST_MESSAGE, message);
             inMessage.setDestination(this);
             if (jmsConfig.getMaxSuspendedContinuations() != 0) {
@@ -231,10 +223,6 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
             JMSMessageHeadersType inHeaders = (JMSMessageHeadersType)inMessage
                 .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
-            final SOAPOverJMSMessageType messageProperties = (SOAPOverJMSMessageType)outMessage.get(
-                                                JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES);
-            SOAPOverJMSMessageType inMessageProperties = (SOAPOverJMSMessageType)inMessage.get(
-                                                JMSSpecConstants.JMS_SERVER_REQUEST_MESSAGE_PROPERTIES);
             
             JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, inHeaders);
 
@@ -339,11 +327,6 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 && inMessage.containsKey(JMSConstants.JMS_SERVER_RESPONSE_HEADERS)) {
                 message.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, inMessage
                     .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS));
-            }
-            if (!message.containsKey(JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES)
-                && inMessage.containsKey(JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES)) {
-                message.put(JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES, 
-                            inMessage.get(JMSSpecConstants.JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES));
             }
 
             Exchange exchange = inMessage.getExchange();

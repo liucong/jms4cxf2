@@ -177,6 +177,8 @@ public final class JMSUtils {
 
             SecurityContext securityContext = buildSecurityContext(message);
             inMessage.put(SecurityContext.class, securityContext);
+            
+            populateIncomingMessageProperties(message, inMessage, headers);
         } catch (JMSException ex) {
             throw JmsUtils.convertJmsAccessException(ex);
         }
@@ -187,17 +189,11 @@ public final class JMSUtils {
      * @param inMessage
      * @param messagePropertiesType
      */
-    public static void populateIncomingMessageProperties(Message jmsMessage,
+    private static void populateIncomingMessageProperties(Message jmsMessage,
                                                          org.apache.cxf.message.Message inMessage,
-                                                         String messagePropertiesType)
+                                                         JMSMessageHeadersType messageProperties)
         throws UnsupportedEncodingException {
         try {
-            SOAPOverJMSMessageType messageProperties = null;
-            messageProperties = (SOAPOverJMSMessageType)inMessage.get(messagePropertiesType);
-            if (messageProperties == null) {
-                messageProperties = new SOAPOverJMSMessageType();
-                inMessage.put(messagePropertiesType, messageProperties);
-            }
             if (jmsMessage.propertyExists(JMSSpecConstants.TARGETSERVICE_FIELD)) {
                 messageProperties.setSOAPJMSTargetService(jmsMessage
                     .getStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD));
@@ -399,13 +395,8 @@ public final class JMSUtils {
         JMSUtils.prepareJMSHeaderProperteis(headers, outMessage, jmsConfig);
         JMSUtils.setMessageHeaderProperties(headers, jmsMessage);
 
-        SOAPOverJMSMessageType messageProperties = (SOAPOverJMSMessageType)outMessage
-            .get(JMSSpecConstants.JMS_CLIENT_REQUEST_MESSAGE_PROPERTIES);
-        if (messageProperties == null) {
-            messageProperties = new SOAPOverJMSMessageType();
-        }
-        JMSUtils.prepareJMSMessageProperties(messageProperties, outMessage, jmsConfig);
-        JMSUtils.setSOAPJMSProperties(jmsMessage, messageProperties);
+        JMSUtils.prepareJMSMessageProperties(headers, outMessage, jmsConfig);
+        JMSUtils.setSOAPJMSProperties(jmsMessage, headers);
 
         jmsMessage.setJMSCorrelationID(correlationId);
         return jmsMessage;
@@ -444,7 +435,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    private static void prepareJMSMessageProperties(SOAPOverJMSMessageType messageProperties,
+    private static void prepareJMSMessageProperties(JMSMessageHeadersType messageProperties,
                                                     org.apache.cxf.message.Message outMessage,
                                                     JMSConfiguration jmsConfig) {
         if (jmsConfig.getTargetService() != null) {
@@ -471,7 +462,6 @@ public final class JMSUtils {
         if (jmsConfig.getRequestURI() != null) {
             messageProperties.setSOAPJMSRequestURI(jmsConfig.getRequestURI());
         }
-        outMessage.put(JMSSpecConstants.JMS_CLIENT_REQUEST_MESSAGE_PROPERTIES, messageProperties);
     }
 
     /**
@@ -479,7 +469,7 @@ public final class JMSUtils {
      * @param soapOverJMSProperties
      */
     private static void setSOAPJMSProperties(Message jmsMessage,
-                                             SOAPOverJMSMessageType soapOverJMSProperties)
+                                             JMSMessageHeadersType soapOverJMSProperties)
         throws JMSException {
 
         if (soapOverJMSProperties.isSetSOAPJMSTargetService()) {
