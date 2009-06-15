@@ -32,7 +32,6 @@ import javax.xml.validation.Schema;
 import org.w3c.dom.Node;
 
 import org.apache.cxf.common.i18n.BundleUtils;
-import org.apache.cxf.databinding.DataBindingValidation2;
 import org.apache.cxf.databinding.DataReader;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.message.Exchange;
@@ -89,12 +88,10 @@ public abstract class AbstractInDatabindingInterceptor extends AbstractPhaseInte
         }
         dataReader.setAttachments(message.getAttachments());
         dataReader.setProperty(DataReader.ENDPOINT, message.getExchange().get(Endpoint.class));
-        setSchemaInMessage(service, message, dataReader);
-
-        
+        setSchemaInMessage(service, message, dataReader);   
         return dataReader;
     }
-
+    
     protected DataReader<XMLStreamReader> getDataReader(Message message) {
         return getDataReader(message, XMLStreamReader.class);
     }
@@ -109,15 +106,9 @@ public abstract class AbstractInDatabindingInterceptor extends AbstractPhaseInte
             //all serviceInfos have the same schemas
             Schema schema = EndpointReferenceUtils.getSchema(service.getServiceInfos().get(0));
             reader.setSchema(schema);
-            /* This might be a reader that wants to grab the schema from the
-             * service info. 
-             */
-            if (reader instanceof DataBindingValidation2) {
-                ((DataBindingValidation2)reader).setValidationServiceModel(service.getServiceInfos().get(0));
-            }
         }
     }
-    
+
     protected DepthXMLStreamReader getXMLStreamReader(Message message) {
         XMLStreamReader xr = message.getContent(XMLStreamReader.class);
         if (xr instanceof DepthXMLStreamReader) {
