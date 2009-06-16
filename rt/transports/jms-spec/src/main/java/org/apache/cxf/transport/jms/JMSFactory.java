@@ -96,7 +96,9 @@ public final class JMSFactory {
         if (jmsConfig.getReceiveTimeout() != null) {
             jmsTemplate.setReceiveTimeout(jmsConfig.getReceiveTimeout());
         }
-        jmsTemplate.setTimeToLive(jmsConfig.getTimeToLive());
+        long timeToLive = (messageProperties != null && messageProperties.isSetTimeToLive())
+            ? messageProperties.getTimeToLive() : jmsConfig.getTimeToLive();
+        jmsTemplate.setTimeToLive(timeToLive);
         int priority = (messageProperties != null && messageProperties.isSetJMSPriority())
             ? messageProperties.getJMSPriority() : jmsConfig.getPriority();
         jmsTemplate.setPriority(priority);
