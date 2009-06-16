@@ -46,22 +46,30 @@ public class SoapJMSInInterceptor extends AbstractSoapInterceptor {
         Map<String, List<String>> headers = CastUtils.cast((Map)message
             .get(Message.PROTOCOL_HEADERS));
         if (headers != null) {
-            List<String> bv = headers.get(SoapJMSConstants.BINDVERSION);
-            if (bv != null && bv.size() > 0) {
-                String bindingVersion = bv.get(0);
-                if (!"1.0".equals(bindingVersion)) {
-                    JMSFault jmsFault = JMSFaultFactory
-                        .createUnrecognizedBindingVerionFault(bindingVersion);
-                    Endpoint e = message.getExchange().get(Endpoint.class);
-                    Binding b = null;
-                    if (null != e) {
-                        b = e.getBinding();
-                    }
-                    if (null != b) {
-                        SoapFaultFactory sff = new SoapFaultFactory(b);
-                        Fault f = sff.createFault(jmsFault);
-                        throw f;
-                    }
+            checkBindingVersion(message, headers);
+        }
+    }
+
+    /**
+     * @param message 
+     * @param headers
+     */
+    private void checkBindingVersion(SoapMessage message, Map<String, List<String>> headers) {
+        List<String> bv = headers.get(SoapJMSConstants.BINDINGVERSION);
+        if (bv != null && bv.size() > 0) {
+            String bindingVersion = bv.get(0);
+            if (!"1.0".equals(bindingVersion)) {
+                JMSFault jmsFault = JMSFaultFactory
+                    .createUnrecognizedBindingVerionFault(bindingVersion);
+                Endpoint e = message.getExchange().get(Endpoint.class);
+                Binding b = null;
+                if (null != e) {
+                    b = e.getBinding();
+                }
+                if (null != b) {
+                    SoapFaultFactory sff = new SoapFaultFactory(b);
+                    Fault f = sff.createFault(jmsFault);
+                    throw f;
                 }
             }
         }

@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
  */
 public final class SoapJMSConstants {
 
-    public static final Object BINDVERSION = "SOAPJMS_bindingVersion";
+    public static final Object BINDINGVERSION = "SOAPJMS_bindingVersion";
 
     public static final String SOAP_JMS_SPECIFICIATION_TRANSPORTID = "http://www.w3.org/2008/07/"
                                                                      + "soap/bindings/JMS/";
