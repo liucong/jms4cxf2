@@ -556,7 +556,7 @@ public final class JMSUtils {
         messageProperties.setJMSDeliveryMode(inMessageProperties.getJMSDeliveryMode());
         // messageProperties.setJMSExpiration(inMessageProperties.getJMSExpiration());
         messageProperties.setJMSPriority(inMessageProperties.getJMSPriority());
-        messageProperties.setJMSMessageID(inMessageProperties.getJMSMessageID());
+        //messageProperties.setJMSCorrelationID(inMessageProperties.getJMSMessageID());
         // JMSDestination
 
         messageProperties.setSOAPJMSRequestURI(inMessageProperties.getSOAPJMSRequestURI());
