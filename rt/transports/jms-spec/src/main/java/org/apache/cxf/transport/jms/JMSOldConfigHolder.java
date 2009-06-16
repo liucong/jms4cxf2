@@ -18,6 +18,7 @@
  */
 package org.apache.cxf.transport.jms;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
@@ -52,7 +53,8 @@ public class JMSOldConfigHolder {
 
     public JMSConfiguration createJMSConfigurationFromEndpointInfo(Bus bus,
                                                                    EndpointInfo endpointInfo,
-                                                                   boolean isConduit) {
+                                                                   boolean isConduit) 
+        throws IOException {
         String transportId = endpointInfo.getTransportId();
         if (transportId.equals(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID)) {
             return createJMSConfigurationFromEndpointInfoForSpecification(bus, endpointInfo,
@@ -170,14 +172,13 @@ public class JMSOldConfigHolder {
     private JMSConfiguration createJMSConfigurationFromEndpointInfoForSpecification(
                                                                                     Bus bus,
                                                                                     EndpointInfo endpointInfo,
-                                                                                    boolean isConduit) {
+                                                                                    boolean isConduit) 
+        throws IOException {
         JMSEndpoint endpoint = null;
         try {
             endpoint = JMSEndpointParser.createEndpoint(endpointInfo.getAddress());
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
+            throw new IOException(e.getMessage());
         }
         // Retrieve configuration information that was extracted from the WSDL
         /* address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); */
@@ -205,8 +206,17 @@ public class JMSOldConfigHolder {
             jmsConfig = new JMSConfiguration();
         }
 
-        // Initialize the JMS Message Header properties
-        initMessageHeaderProperties(endpoint);
+        if (endpoint.isSetDeliveryMode()) {
+            int deliveryMode = endpoint.getDeliveryMode()
+                .equals(JMSURIConstants.DELIVERYMODE_PERSISTENT)
+                ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
+            jmsConfig.setDeliveryMode(deliveryMode);
+        }
+        
+        if (endpoint.isSetPriority()) {
+            int priority = endpoint.getPriority();
+            jmsConfig.setPriority(priority);
+        }
 
         if (jmsConfig.isUsingEndpointInfo()) {
             JndiTemplate jt = new JndiTemplate();
@@ -250,10 +260,10 @@ public class JMSOldConfigHolder {
             if (sessionPool.isSetHighWaterMark()) {
                 jmsConfig.setMaxConcurrentTasks(sessionPool.getHighWaterMark());
             }
-            /*
-             * long timeToLive = isConduit ? clientConfig.getMessageTimeToLive() : serverConfig
-             * .getMessageTimeToLive(); jmsConfig.setTimeToLive(timeToLive);
-             */
+            if (endpoint.isSetTimeToLive()) {
+                long timeToLive = endpoint.getTimeToLive();
+                jmsConfig.setTimeToLive(timeToLive);
+            }
             /*
              * if (address.isSetUseJms11()) { jmsConfig.setUseJms11(address.isUseJms11()); }
              */
@@ -274,37 +284,13 @@ public class JMSOldConfigHolder {
                 jmsConfig.setReplyDestination(endpoint.getReplyToName());
             }
         }
-        return jmsConfig;
-    }
-
-    private void initMessageHeaderProperties(JMSEndpoint endpoint) {
-        if (endpoint.isSetDeliveryMode()) {
-            int deliveryMode = endpoint.getDeliveryMode()
-                .equals(JMSURIConstants.DELIVERYMODE_PERSISTENT)
-                ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
-            jmsConfig.setDeliveryMode(deliveryMode);
-        }
-
-        if (endpoint.isSetTimeToLive()) {
-            long timeToLive = endpoint.getTimeToLive();
-            jmsConfig.setTimeToLive(timeToLive);
-        }
-
-        if (endpoint.isSetPriority()) {
-            int priority = endpoint.getPriority();
-            jmsConfig.setPriority(priority);
-        }
-
-        if (endpoint.isSetReplyToName()) {
-            String replyToName = endpoint.getReplyToName();
-            jmsConfig.setReplyDestination(replyToName);
-        }
-
+        
         String requestURI = endpoint.getRequestURI();
         jmsConfig.setRequestURI(requestURI);
 
         String targetService = endpoint.getParameter(JMSSpecConstants.TARGETSERVICE_PARAMETER_NAME);
         jmsConfig.setTargetService(targetService);
+        return jmsConfig;
     }
 
     public ClientConfig getClientConfig() {

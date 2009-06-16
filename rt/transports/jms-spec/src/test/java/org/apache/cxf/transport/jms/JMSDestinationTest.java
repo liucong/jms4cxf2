@@ -77,7 +77,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
                    destMessage != null);
     }
 
-    public JMSDestination setupJMSDestination(boolean send) {
+    public JMSDestination setupJMSDestination(boolean send) throws IOException {
         JMSConfiguration jmsConfig = new JMSOldConfigHolder()
             .createJMSConfigurationFromEndpointInfo(bus, endpointInfo, false);
         JMSDestination jmsDestination = new JMSDestination(bus, endpointInfo, jmsConfig);
