@@ -89,7 +89,7 @@ public final class JMSFactory {
      * @return
      */
     public static JmsTemplate createJmsTemplate(JMSConfiguration jmsConfig,
-                                                JMSMessageType messageProperties) {
+                                                JMSMessageHeadersType messageProperties) {
         JmsTemplate jmsTemplate = jmsConfig.isUseJms11() ? new JmsTemplate() : new JmsTemplate102();
         jmsTemplate.setConnectionFactory(jmsConfig.getOrCreateWrappedConnectionFactory());
         jmsTemplate.setPubSubDomain(jmsConfig.isPubSubDomain());

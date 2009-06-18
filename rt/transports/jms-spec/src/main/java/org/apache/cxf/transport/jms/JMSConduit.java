@@ -126,8 +126,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             throw new ConfigurationException(msg);
         }
 
-        JMSMessageType headers = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
+        JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
+            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
 
         JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, headers);
         String userCID = headers != null ? headers.getJMSCorrelationID() : null;
@@ -264,7 +264,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         LOG.log(Level.FINE, "client received reply: ", jmsMessage);
         try {
             JMSUtils.populateIncomingContext(jmsMessage, inMessage,
-                                             JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
+                                             JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
 
             byte[] response = JMSUtils.retrievePayload(jmsMessage, (String)inMessage
                 .get(Message.ENCODING));

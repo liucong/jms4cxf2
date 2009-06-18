@@ -217,12 +217,12 @@ public class JMSDestinationTest extends AbstractJMSTester {
     }
 
     private void setupMessageHeader(Message outMessage, String correlationId) {
-        JMSMessageType header = new JMSMessageType();
+        JMSMessageHeadersType header = new JMSMessageHeadersType();
         header.setJMSCorrelationID(correlationId);
         header.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
         header.setJMSPriority(1);
         header.setTimeToLive(1000);
-        outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES, header);
+        outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, header);
         outMessage.put(Message.ENCODING, "US-ASCII");
     }
 
@@ -245,32 +245,32 @@ public class JMSDestinationTest extends AbstractJMSTester {
     }
 
     private void verifyRequestResponseHeaders(Message inMessage, Message outMessage) {
-        JMSMessageType outHeader = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
+        JMSMessageHeadersType outHeader = (JMSMessageHeadersType)outMessage
+            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
         String inEncoding = (String)inMessage.get(Message.ENCODING);
         String outEncoding = (String)outMessage.get(Message.ENCODING);
 
         assertEquals("The message encoding should be equal", inEncoding, outEncoding);
 
-        JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
+        JMSMessageHeadersType inHeader = (JMSMessageHeadersType)inMessage
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
 
         verifyJmsHeaderEquality(outHeader, inHeader);
 
     }
 
     private void verifyHeaders(Message inMessage, Message outMessage) {
-        JMSMessageType outHeader = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
+        JMSMessageHeadersType outHeader = (JMSMessageHeadersType)outMessage
+            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
 
-        JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
+        JMSMessageHeadersType inHeader = (JMSMessageHeadersType)inMessage
+            .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
 
         verifyJmsHeaderEquality(outHeader, inHeader);
 
     }
 
-    private void verifyJmsHeaderEquality(JMSMessageType outHeader, JMSMessageType inHeader) {
+    private void verifyJmsHeaderEquality(JMSMessageHeadersType outHeader, JMSMessageHeadersType inHeader) {
         if (outHeader.getJMSCorrelationID() != null) {
             // only check if the correlation id was explicitly set as
             // otherwise the in header will contain an automatically
@@ -358,8 +358,8 @@ public class JMSDestinationTest extends AbstractJMSTester {
         excludeProp.setName(customPropertyName);
         excludeProp.setValue(customPropertyName);
 
-        JMSMessageType headers = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
+        JMSMessageHeadersType headers = (JMSMessageHeadersType)outMessage
+            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
         headers.getProperty().add(excludeProp);
 
         final JMSDestination destination = setupJMSDestination(true);
@@ -397,8 +397,8 @@ public class JMSDestinationTest extends AbstractJMSTester {
 
         verifyRequestResponseHeaders(inMessage, outMessage);
 
-        JMSMessageType inHeader = (JMSMessageType)inMessage
-            .get(JMSConstants.JMS_CLIENT_RESPONSE_PROPERTIES);
+        JMSMessageHeadersType inHeader = (JMSMessageHeadersType)inMessage
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
 
         /*
          * no use. assertTrue("property has been excluded, only CONTENT_TYPE should be here",

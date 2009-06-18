@@ -59,7 +59,7 @@ public final class JMSUtils {
 
     }
 
-    public static long getTimeToLive(JMSMessageType headers) {
+    public static long getTimeToLive(JMSMessageHeadersType headers) {
         long ttl = -1;
         if (headers != null && headers.isSetTimeToLive()) {
             ttl = headers.getTimeToLive();
@@ -67,7 +67,7 @@ public final class JMSUtils {
         return ttl;
     }
 
-    public static void setMessageProperties(JMSMessageType headers, Message message)
+    public static void setMessageProperties(JMSMessageHeadersType headers, Message message)
         throws JMSException {
         if (headers != null && headers.isSetProperty()) {
             List<JMSPropertyType> props = headers.getProperty();
@@ -138,10 +138,10 @@ public final class JMSUtils {
                                                String messageType)
         throws UnsupportedEncodingException {
         try {
-            JMSMessageType messageProperties = null;
-            messageProperties = (JMSMessageType)inMessage.get(messageType);
+            JMSMessageHeadersType messageProperties = null;
+            messageProperties = (JMSMessageHeadersType)inMessage.get(messageType);
             if (messageProperties == null) {
-                messageProperties = new JMSMessageType();
+                messageProperties = new JMSMessageHeadersType();
                 inMessage.put(messageType, messageProperties);
             }
             messageProperties.setJMSCorrelationID(message.getJMSCorrelationID());
@@ -191,7 +191,7 @@ public final class JMSUtils {
      */
     private static void populateIncomingMessageProperties(Message jmsMessage,
                                                           org.apache.cxf.message.Message inMessage,
-                                                          JMSMessageType messageProperties)
+                                                          JMSMessageHeadersType messageProperties)
         throws UnsupportedEncodingException {
         try {
             if (jmsMessage.propertyExists(JMSSpecConstants.TARGETSERVICE_FIELD)) {
@@ -387,10 +387,10 @@ public final class JMSUtils {
             jmsMessage.setJMSReplyTo(replyTo);
         }
 
-        JMSMessageType messageProperties = (JMSMessageType)outMessage
-            .get(JMSConstants.JMS_CLIENT_REQUEST_PROPERTIES);
+        JMSMessageHeadersType messageProperties = (JMSMessageHeadersType)outMessage
+            .get(JMSConstants.JMS_CLIENT_REQUEST_HEADERS);
         if (messageProperties == null) {
-            messageProperties = new JMSMessageType();
+            messageProperties = new JMSMessageHeadersType();
         }
         JMSUtils.prepareJMSProperties(messageProperties, outMessage, jmsConfig);
         JMSUtils.setJMSProperties(jmsMessage, messageProperties);
@@ -403,7 +403,7 @@ public final class JMSUtils {
      * @param messageProperties
      * @param jmsMessage
      */
-    static void setJMSProperties(Message jmsMessage, JMSMessageType messageProperties)
+    static void setJMSProperties(Message jmsMessage, JMSMessageHeadersType messageProperties)
         throws JMSException {
 
         setJMSMessageHeaderProperties(jmsMessage, messageProperties);
@@ -415,7 +415,7 @@ public final class JMSUtils {
      * @param messageProperties
      */
     private static void setJMSMessageHeaderProperties(Message jmsMessage,
-                                                      JMSMessageType messageProperties)
+                                                      JMSMessageHeadersType messageProperties)
         throws JMSException {
         if (messageProperties.isSetJMSDeliveryMode()) {
             jmsMessage.setJMSDeliveryMode(messageProperties.getJMSDeliveryMode());
@@ -432,7 +432,7 @@ public final class JMSUtils {
      * @param jmsMessage
      * @param messageProperties
      */
-    private static void setJMSMessageProperties(Message jmsMessage, JMSMessageType messageProperties)
+    private static void setJMSMessageProperties(Message jmsMessage, JMSMessageHeadersType messageProperties)
         throws JMSException {
 
         if (messageProperties.isSetSOAPJMSTargetService()) {
@@ -476,7 +476,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    static void prepareJMSProperties(JMSMessageType messageProperteis,
+    static void prepareJMSProperties(JMSMessageHeadersType messageProperteis,
                                      org.apache.cxf.message.Message outMessage,
                                      JMSConfiguration jmsConfig) {
         prepareJMSMessageHeaderProperties(messageProperteis, outMessage, jmsConfig);
@@ -491,7 +491,7 @@ public final class JMSUtils {
      * @param jmsConfig
      */
     private static void prepareJMSMessageHeaderProperties(
-                                                          JMSMessageType messageProperteis,
+                                                          JMSMessageHeadersType messageProperteis,
                                                           org.apache.cxf.message.Message outMessage,
                                                           JMSConfiguration jmsConfig) {
         if (!messageProperteis.isSetJMSDeliveryMode()) {
@@ -510,7 +510,7 @@ public final class JMSUtils {
      * @param outMessage
      * @param jmsConfig
      */
-    private static void prepareJMSMessageProperties(JMSMessageType messageProperties,
+    private static void prepareJMSMessageProperties(JMSMessageHeadersType messageProperties,
                                                     org.apache.cxf.message.Message outMessage,
                                                     JMSConfiguration jmsConfig) {
         if (!messageProperties.isSetSOAPJMSTargetService()) {
@@ -551,8 +551,8 @@ public final class JMSUtils {
      * @param messageProperties
      * @param inMessageProperties
      */
-    public static void initResponseMessageProperties(JMSMessageType messageProperties,
-                                                     JMSMessageType inMessageProperties) {
+    public static void initResponseMessageProperties(JMSMessageHeadersType messageProperties,
+                                                     JMSMessageHeadersType inMessageProperties) {
         messageProperties.setJMSDeliveryMode(inMessageProperties.getJMSDeliveryMode());
         // messageProperties.setJMSExpiration(inMessageProperties.getJMSExpiration());
         messageProperties.setJMSPriority(inMessageProperties.getJMSPriority());

@@ -30,7 +30,7 @@ import org.apache.cxf.hello_world_jms.types.ErrorCode;
 import org.apache.cxf.hello_world_jms.types.NoSuchCodeLit;
 import org.apache.cxf.hello_world_jms.types.TestRpcLitFaultResponse;
 import org.apache.cxf.transport.jms.JMSConstants;
-import org.apache.cxf.transport.jms.JMSMessageType;
+import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.JMSPropertyType;
 
 public class TwoWayJMSImplBase implements HelloWorldPortType {
@@ -39,8 +39,8 @@ public class TwoWayJMSImplBase implements HelloWorldPortType {
     protected WebServiceContext wsContext;
     public String greetMe(String me) {
         MessageContext mc = wsContext.getMessageContext();
-        JMSMessageType headers =
-            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_REQUEST_PROPERTIES);
+        JMSMessageHeadersType headers =
+            (JMSMessageHeadersType) mc.get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
         System.out.println("get the message headers JMSCorrelationID: " + headers.getJMSCorrelationID());
         System.out.println("Reached here :" + me);
         
@@ -52,8 +52,8 @@ public class TwoWayJMSImplBase implements HelloWorldPortType {
         System.out.println("found property in request headers at index: " 
                            + headers.getProperty().indexOf(testProperty));
         
-        JMSMessageType responseHeaders =
-            (JMSMessageType) mc.get(JMSConstants.JMS_SERVER_RESPONSE_PROPERTIES);
+        JMSMessageHeadersType responseHeaders =
+            (JMSMessageHeadersType) mc.get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
         responseHeaders.getProperty().add(testProperty);
         
         return "Hello " + me;

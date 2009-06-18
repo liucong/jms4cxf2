@@ -76,7 +76,7 @@
         </xs:sequence>
     </xs:complexType>
     
-    <xs:complexType name="JMSMessageType">
+    <xs:complexType name="JMSMessageHeadersType">
         <xs:annotation>
             <xs:documentation>JMS properties.</xs:documentation>
         </xs:annotation>
