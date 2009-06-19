@@ -49,6 +49,8 @@ import org.apache.cxf.hello_world_jms.HelloWorldServiceAppCorrelationIDStaticPre
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDDynamicPrefix;
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDStaticPrefix;
 import org.apache.cxf.hello_world_jms.NoSuchCodeLitFault;
+import org.apache.cxf.jms_greeter.JMSGreeterPortType;
+import org.apache.cxf.jms_greeter.JMSGreeterService;
 import org.apache.cxf.jms_mtom.JMSMTOMPortType;
 import org.apache.cxf.jms_mtom.JMSMTOMService;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
@@ -765,5 +767,38 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         mtom.testDataHandler(name, handler1);
         int size2 = handler1.value.getInputStream().available();
         assertTrue("The response file is not same with the sent file.", size == size2);
+    }
+    
+    @Test
+    public void testSpecJMS() throws Exception {
+        QName serviceName = getServiceName(new QName("http://cxf.apache.org/jms_greeter",
+                                                     "JMSGreeterService"));
+        QName portName = getPortName(new QName("http://cxf.apache.org/jms_greeter", "GreeterPort"));
+        URL wsdl = getWSDLURL("/wsdl/jms_spec_test.wsdl");
+        assertNotNull(wsdl);
+
+        JMSGreeterService service = new JMSGreeterService(wsdl, serviceName);
+        assertNotNull(service);
+
+        String response1 = new String("Hello Milestone-");
+        String response2 = new String("Bonjour");
+        try {
+            JMSGreeterPortType greeter = service.getPort(portName, JMSGreeterPortType.class);
+            for (int idx = 0; idx < 5; idx++) {
+
+                greeter.greetMeOneWay("test String");
+
+                String greeting = greeter.greetMe("Milestone-" + idx);
+                assertNotNull("no response received from service", greeting);
+                String exResponse = response1 + idx;
+                assertEquals(exResponse, greeting);
+
+                String reply = greeter.sayHi();
+                assertNotNull("no response received from service", reply);
+                assertEquals(response2, reply);
+            }
+        } catch (UndeclaredThrowableException ex) {
+            throw (Exception)ex.getCause();
+        }
     }
 }

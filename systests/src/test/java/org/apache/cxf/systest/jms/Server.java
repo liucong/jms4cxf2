@@ -61,6 +61,15 @@ public class Server extends AbstractBusTestServerBase {
         EndpointImpl ep = (EndpointImpl)Endpoint.publish("http://cxf.apache.org/transports/jms", mtom);
         Binding binding = ep.getBinding();        
         ((SOAPBinding)binding).setMTOMEnabled(true);  
+        
+        
+        Object spec1 = new GreeterSpecImpl();
+        String address1 = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue2"
+                         + "?jndiInitialContextFactory"
+                         + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+        
+        Endpoint.publish(address1, spec1);
     }
 
 
