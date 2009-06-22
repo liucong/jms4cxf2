@@ -103,7 +103,6 @@
     	<xs:attribute name="SOAPJMSIsFault" type="xs:boolean"/>
     	<xs:attribute name="SOAPJMSRequestURI" type="xs:string"/>
     </xs:complexType>
-    
     <!-- 
     <xs:complexType name="SOAPOverJMSMessageType">
     	<xs:annotation>
@@ -120,7 +119,7 @@
     	<xs:attribute name="SOAPJMSRequestURI" type="xs:string"/>
     </xs:complexType>
      -->
-     
+    
     <xs:simpleType name="JMSClientReceiveTimeOut">
         <xs:restriction base="xs:long"/>
     </xs:simpleType>
