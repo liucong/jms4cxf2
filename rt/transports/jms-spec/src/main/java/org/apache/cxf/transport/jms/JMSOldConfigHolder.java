@@ -349,14 +349,15 @@ public class JMSOldConfigHolder {
         this.serverBehavior = serverBehavior;
     }
 
-    public static Properties getInitialContextEnv(AddressType addrType) {
+    private static Properties getInitialContextEnv(JMSEndpoint endpoint) {
         Properties env = new Properties();
-        java.util.ListIterator listIter = addrType.getJMSNamingProperty().listIterator();
-        while (listIter.hasNext()) {
-            JMSNamingPropertyType propertyPair = (JMSNamingPropertyType)listIter.next();
-            if (null != propertyPair.getValue()) {
-                env.setProperty(propertyPair.getName(), propertyPair.getValue());
-            }
+        env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
+        env.put(Context.PROVIDER_URL, endpoint.getJndiURL());
+        Map addParas = endpoint.getJndiParameters();
+        Iterator keyIter = addParas.keySet().iterator();
+        while (keyIter.hasNext()) {
+            String key = (String)keyIter.next();
+            env.put(key, addParas.get(key));
         }
         if (LOG.isLoggable(Level.FINE)) {
             Enumeration props = env.propertyNames();
@@ -368,16 +369,15 @@ public class JMSOldConfigHolder {
         }
         return env;
     }
-
-    private static Properties getInitialContextEnv(JMSEndpoint endpoint) {
+    
+    public static Properties getInitialContextEnv(AddressType addrType) {
         Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
-        env.put(Context.PROVIDER_URL, endpoint.getJndiURL());
-        Map addParas = endpoint.getJndiParameters();
-        Iterator keyIter = addParas.keySet().iterator();
-        while (keyIter.hasNext()) {
-            String key = (String)keyIter.next();
-            env.put(key, addParas.get(key));
+        java.util.ListIterator listIter = addrType.getJMSNamingProperty().listIterator();
+        while (listIter.hasNext()) {
+            JMSNamingPropertyType propertyPair = (JMSNamingPropertyType)listIter.next();
+            if (null != propertyPair.getValue()) {
+                env.setProperty(propertyPair.getName(), propertyPair.getValue());
+            }
         }
         if (LOG.isLoggable(Level.FINE)) {
             Enumeration props = env.propertyNames();
