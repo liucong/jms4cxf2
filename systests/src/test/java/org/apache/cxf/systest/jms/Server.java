@@ -62,7 +62,6 @@ public class Server extends AbstractBusTestServerBase {
         Binding binding = ep.getBinding();        
         ((SOAPBinding)binding).setMTOMEnabled(true);  
         
-        
         Object spec1 = new GreeterSpecImpl();
         String address1 = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue2"
                          + "?jndiInitialContextFactory"
