@@ -19,7 +19,6 @@
 
 package org.apache.cxf.transport.jms.spec;
 
-import javax.xml.namespace.QName;
 
 /**
  * 
@@ -75,50 +74,7 @@ public final class JMSSpecConstants {
         "org.apache.cxf.jms.client.request.message.properteis";
     public static final String JMS_CLIENT_RESPONSE_MESSAGE_PROPERTIES = 
         "org.apache.cxf.jms.client.response.message.properteis";*/
-
-    //fault codes
-    private static final String JMS_CONTENTTYPEMISMATCH_FAULT_CODE = "contentTypeMismatch";
-    private static final String JMS_MALFORMEDREQUESTURI_FAULT_CODE = "malformedRequestURI";
-    private static final String JMS_MISMATCHEDSOAPACTION_FAULT_CODE = "mismatchedSoapAction";
-    private static final String JMS_MISSINGCONTENTTYPE_FAULT_CODE = "missingContentType";
-    private static final String JMS_MISSINGREQUESTURI_FAULT_CODE = "missingRequestURI";
-    private static final String JMS_TARGETSERVICENOTALLOWEDINREQUESTURI_FAULT_CODE = 
-        "targetServiceNotAllowedInRequestURI";
-    private static final String JMS_UNRECOGNIZEDBINDINGVERSION_FAULT_CODE = "unrecognizedBindingVersion";
-    private static final String JMS_UNSUPPORTEDJMSMESSAGEFORMAT_FAULT_CODE = "unsupportedJMSMessageFormat";
     
     private JMSSpecConstants() {
-    }
-    
-    public static QName getContentTypeMismatchQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_CONTENTTYPEMISMATCH_FAULT_CODE);   
-    }
-    
-    public static QName getMalformedRequestURIQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_MALFORMEDREQUESTURI_FAULT_CODE);
-    }
-    
-    public static QName getMismatchedSoapActionQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_MISMATCHEDSOAPACTION_FAULT_CODE);
-    }
-    
-    public static QName getMissingContentTypeQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_MISSINGCONTENTTYPE_FAULT_CODE);
-    }
-    
-    public static QName getMissingRequestURIQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_MISSINGREQUESTURI_FAULT_CODE);
-    }
-    
-    public static QName getTargetServiceNotAllowedInRequestURIQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_TARGETSERVICENOTALLOWEDINREQUESTURI_FAULT_CODE);
-    }
-    
-    public static QName getUnrecognizedBindingVersionQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_UNRECOGNIZEDBINDINGVERSION_FAULT_CODE);
-    }
-    
-    public static QName getUnsupportedJMSMessageFormatQName() {
-        return new QName(SOAP_JMS_NAMESPACE, JMS_UNSUPPORTEDJMSMESSAGEFORMAT_FAULT_CODE);
     }
 }
