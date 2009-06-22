@@ -73,7 +73,8 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
     private JMSConfiguration jmsConfig;
     private Bus bus;
     private DefaultMessageListenerContainer jmsListener;
-    private Collection<JMSContinuation> continuations = new ConcurrentLinkedQueue<JMSContinuation>();
+    private Collection<JMSContinuation> continuations = 
+        new ConcurrentLinkedQueue<JMSContinuation>();
 
     public JMSDestination(Bus b, EndpointInfo info, JMSConfiguration jmsConfig) {
         super(b, getTargetReference(info, b), info);
@@ -97,12 +98,11 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
     public void activate() {
         getLogger().log(Level.INFO, "JMSDestination activate().... ");
         String name = endpointInfo.getName().toString() + ".jms-destination";
-        org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(
-                                                        "INSUFFICIENT_CONFIGURATION_DESTINATION",
-                                                         LOG, name);
+        org.apache.cxf.common.i18n.Message msg = 
+            new org.apache.cxf.common.i18n.Message("INSUFFICIENT_CONFIGURATION_DESTINATION", LOG, name);
         jmsConfig.ensureProperlyConfigured(msg);
-        jmsListener = JMSFactory.createJmsListener(jmsConfig, this, jmsConfig
-            .getTargetDestination(), null, false);
+        jmsListener = JMSFactory.createJmsListener(jmsConfig, this, 
+                                                   jmsConfig.getTargetDestination(), null, false);
     }
 
     public void deactivate() {
@@ -125,10 +125,8 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
         });
     }
 
-    public Destination getReplyToDestination(JmsTemplate jmsTemplate, Message inMessage)
-        throws JMSException {
-        javax.jms.Message message = (javax.jms.Message)inMessage
-            .get(JMSConstants.JMS_REQUEST_MESSAGE);
+    public Destination getReplyToDestination(JmsTemplate jmsTemplate, Message inMessage) throws JMSException {
+        javax.jms.Message message = (javax.jms.Message)inMessage.get(JMSConstants.JMS_REQUEST_MESSAGE);
         // If WS-Addressing had set the replyTo header.
         final String replyToName = (String)inMessage.get(JMSConstants.JMS_REBASED_REPLY_TO);
         if (replyToName != null) {
@@ -136,8 +134,7 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
         } else if (message.getJMSReplyTo() != null) {
             return message.getJMSReplyTo();
         } else {
-            throw new RuntimeException(
-                                       "No replyTo destination set on request message or cxf message");
+            throw new RuntimeException("No replyTo destination set on request message or cxf message");
         }
     }
 
@@ -168,24 +165,26 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
     public void onMessage(javax.jms.Message message) {
         try {
             getLogger().log(Level.FINE, "server received request: ", message);
-            // Build CXF message from JMS message
-            MessageImpl inMessage = new MessageImpl();
-            JMSUtils.populateIncomingContext(message, inMessage,
-                                             JMSConstants.JMS_SERVER_REQUEST_HEADERS);
-
-            byte[] request = JMSUtils.retrievePayload(message, (String)inMessage
-                .get(Message.ENCODING));
+             // Build CXF message from JMS message
+            MessageImpl inMessage = new MessageImpl();            
+            JMSUtils.populateIncomingContext(message, inMessage, JMSConstants.JMS_SERVER_REQUEST_HEADERS);
+            
+            byte[] request = JMSUtils.retrievePayload(message, (String)inMessage.get(Message.ENCODING));
             getLogger().log(Level.FINE, "The Request Message is [ " + request + "]");
             inMessage.setContent(InputStream.class, new ByteArrayInputStream(request));
             inMessage.put(JMSConstants.JMS_SERVER_RESPONSE_HEADERS, new JMSMessageHeadersType());
             inMessage.put(JMSConstants.JMS_REQUEST_MESSAGE, message);
             inMessage.setDestination(this);
             if (jmsConfig.getMaxSuspendedContinuations() != 0) {
-                inMessage.put(ContinuationProvider.class.getName(),
-                              new JMSContinuationProvider(bus, inMessage, incomingObserver,
-                                                          continuations, jmsListener, jmsConfig));
+                inMessage.put(ContinuationProvider.class.getName(), 
+                              new JMSContinuationProvider(bus,
+                                                          inMessage,
+                                                          incomingObserver,
+                                                          continuations,
+                                                          jmsListener,
+                                                          jmsConfig));
             }
-
+            
             BusFactory.setThreadDefaultBus(bus);
 
             // handle the incoming message
@@ -201,7 +200,7 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
 
     public void sendExchange(Exchange exchange, final Object replyObj) {
         if (exchange.isOneWay()) {
-            // Don't need to send anything
+            //Don't need to send anything
             return;
         }
         Message inMessage = exchange.getInMessage();
@@ -220,9 +219,7 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 .get(JMSConstants.JMS_SERVER_RESPONSE_HEADERS);
             JMSMessageHeadersType inMessageProperties = (JMSMessageHeadersType)inMessage
                 .get(JMSConstants.JMS_SERVER_REQUEST_HEADERS);
-            
             JMSUtils.initResponseMessageProperties(messageProperties, inMessageProperties);
-            
             JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, messageProperties);
 
             // setup the reply message
@@ -244,8 +241,8 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
                 Calendar cal = new GregorianCalendar(tz);
                 long timeToLive = request.getJMSExpiration() - cal.getTimeInMillis();
                 if (timeToLive < 0) {
-                    getLogger().log(Level.INFO,
-                                    "Message time to live is already expired skipping response.");
+                    getLogger()
+                        .log(Level.INFO, "Message time to live is already expired skipping response.");
                     return;
                 }
             }
@@ -253,8 +250,8 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
             getLogger().log(Level.FINE, "send out the message!");
             jmsTemplate.send(replyTo, new MessageCreator() {
                 public javax.jms.Message createMessage(Session session) throws JMSException {
-                    javax.jms.Message reply = JMSUtils.createAndSetPayload(replyObj, session,
-                                                                           msgType);
+                    javax.jms.Message reply = JMSUtils.createAndSetPayload(replyObj, session, msgType);
+
                     reply.setJMSCorrelationID(determineCorrelationID(request));
 
                     JMSUtils.prepareJMSProperties(messageProperties, outMessage, jmsConfig);
@@ -325,9 +322,8 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
 
             Exchange exchange = inMessage.getExchange();
             exchange.setOutMessage(message);
-            message.setContent(OutputStream.class,
-                               new JMSOutputStream(sender, exchange,
-                                                   jmsMessage instanceof TextMessage));
+            message.setContent(OutputStream.class, new JMSOutputStream(sender, exchange,
+                                                                       jmsMessage instanceof TextMessage));
         }
 
         protected Logger getLogger() {
