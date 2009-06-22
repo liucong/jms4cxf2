@@ -134,8 +134,7 @@ public final class JMSUtils {
     }
 
     public static void populateIncomingContext(javax.jms.Message message,
-                                               org.apache.cxf.message.Message inMessage,
-                                               String messageType)
+                                               org.apache.cxf.message.Message inMessage, String messageType)
         throws UnsupportedEncodingException {
         try {
             JMSMessageHeadersType messageProperties = null;
@@ -231,15 +230,15 @@ public final class JMSUtils {
     }
 
     /**
-     * Extract the property JMSXUserID from the jms message and create a SecurityContext from it. For more
-     * info see Jira Issue CXF-2055 {@link https://issues.apache.org/jira/browse/CXF-2055}
+     * Extract the property JMSXUserID from the jms message and create a SecurityContext from it. 
+     * For more info see Jira Issue CXF-2055
+     * {@link https://issues.apache.org/jira/browse/CXF-2055}
      * 
      * @param message jms message to retrieve user information from
      * @return SecurityContext that contains the user of the producer of the message as the Principal
      * @throws JMSException if something goes wrong
      */
-    private static SecurityContext buildSecurityContext(javax.jms.Message message)
-        throws JMSException {
+    private static SecurityContext buildSecurityContext(javax.jms.Message message) throws JMSException {
         final String jmsUserName = message.getStringProperty("JMSXUserID");
         if (jmsUserName == null) {
             return null;
@@ -280,10 +279,9 @@ public final class JMSUtils {
 
         String normalizedEncoding = HttpHeaderHelper.mapCharset(enc, "UTF-8");
         if (normalizedEncoding == null) {
-            String m = new org.apache.cxf.common.i18n.Message("INVALID_ENCODING_MSG", LOG,
-                                                              new Object[] {
-                                                                  enc
-                                                              }).toString();
+            String m = new org.apache.cxf.common.i18n.Message("INVALID_ENCODING_MSG", LOG, new Object[] {
+                enc
+            }).toString();
             LOG.log(Level.WARNING, m);
             throw new UnsupportedEncodingException(m);
         }
@@ -351,7 +349,7 @@ public final class JMSUtils {
         }
         ct.add(contentType);
     }
-
+    
     public static String getContentType(org.apache.cxf.message.Message message) {
         String contentType = (String)message.get(org.apache.cxf.message.Message.CONTENT_TYPE);
         String enc = (String)message.get(org.apache.cxf.message.Message.ENCODING);
@@ -539,14 +537,6 @@ public final class JMSUtils {
         }
     }
 
-    public static String createCorrelationId(final String prefix, long i) {
-        String index = Long.toHexString(i);
-        StringBuffer id = new StringBuffer(prefix);
-        id.append(CORRELATTION_ID_PADDING, 0, 16 - index.length());
-        id.append(index);
-        return id.toString();
-    }
-
     /**
      * @param messageProperties
      * @param inMessageProperties
@@ -562,5 +552,13 @@ public final class JMSUtils {
         messageProperties.setSOAPJMSRequestURI(inMessageProperties.getSOAPJMSRequestURI());
         messageProperties.setSOAPJMSBindingVersion(inMessageProperties.getSOAPJMSBindingVersion());
         // contenttype.
+    }
+
+    public static String createCorrelationId(final String prefix, long i) {
+        String index = Long.toHexString(i);
+        StringBuffer id = new StringBuffer(prefix);
+        id.append(CORRELATTION_ID_PADDING, 0, 16 - index.length());
+        id.append(index);
+        return id.toString();
     }
 }
