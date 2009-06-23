@@ -23,6 +23,8 @@
 	<xs:import namespace="http://schemas.xmlsoap.org/wsdl/"
 		schemaLocation="http://schemas.xmlsoap.org/wsdl/2003-02-11.xsd" />
 
+	<xs:element name="deliveryMode" type="soapjms:deliveryModeType" />
+	
 	<!-- JMS specification for wsdl-->
 	<xs:complexType name="jndiConnectionFactoryNameType">
 		<xs:complexContent>
