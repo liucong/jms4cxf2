@@ -49,10 +49,12 @@ import org.apache.cxf.hello_world_jms.HelloWorldServiceAppCorrelationIDStaticPre
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDDynamicPrefix;
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDStaticPrefix;
 import org.apache.cxf.hello_world_jms.NoSuchCodeLitFault;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.jms_greeter.JMSGreeterPortType;
 import org.apache.cxf.jms_greeter.JMSGreeterService;
 import org.apache.cxf.jms_mtom.JMSMTOMPortType;
 import org.apache.cxf.jms_mtom.JMSMTOMService;
+import org.apache.cxf.systest.jaxws.Hello;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.jms.JMSConstants;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
@@ -80,7 +82,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         }
         props.put("java.util.logging.config.file", 
                   System.getProperty("java.util.logging.config.file"));
-        
+      
         assertTrue("server did not launch correctly", 
                    launchServer(EmbeddedJMSBrokerLauncher.class, props, null));
 
@@ -552,7 +554,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
             if (client.getException() != null 
                 && client.getException().getMessage().contains("Timeout")) {
                 // exceptions expected
-                return;
+                return; 
             }
         }
        
@@ -796,6 +798,64 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                 String reply = greeter.sayHi();
                 assertNotNull("no response received from service", reply);
                 assertEquals(response2, reply);
+            }
+        } catch (UndeclaredThrowableException ex) {
+            throw (Exception)ex.getCause();
+        }
+    }
+    
+    @Test 
+    public void testSpecNoWsdlService() throws Exception {
+        String address = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue3"
+            + "?jndiInitialContextFactory"
+            + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+            + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setServiceClass(Hello.class);
+        factory.setAddress(address);
+        Hello client = (Hello)factory.create();
+        String reply = client.sayHi(" HI");
+        assertEquals(reply, "get HI");
+    }
+    
+    @Test
+    public void testBindingVersionError() throws Exception {
+        QName serviceName = getServiceName(new QName("http://cxf.apache.org/jms_greeter",
+                                                     "JMSGreeterService"));
+        QName portName = getPortName(new QName("http://cxf.apache.org/jms_greeter", "GreeterPort"));
+        URL wsdl = getWSDLURL("/wsdl/jms_spec_test.wsdl");
+        assertNotNull(wsdl);
+
+        JMSGreeterService service = new JMSGreeterService(wsdl, serviceName);
+        assertNotNull(service);
+
+        try {
+            JMSGreeterPortType greeter = service.getPort(portName, JMSGreeterPortType.class);
+            InvocationHandler handler  = Proxy.getInvocationHandler(greeter);
+            BindingProvider  bp = null;
+            
+            if (handler instanceof BindingProvider) {
+                bp = (BindingProvider)handler;                
+                Map<String, Object> requestContext = bp.getRequestContext();
+                JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+                requestHeader.setSOAPJMSBindingVersion("0.3");
+                requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
+            } 
+ 
+            String greeting = greeter.greetMe("Milestone-");
+            assertNotNull("no response received from service", greeting);
+
+            assertEquals("Hello Milestone-", greeting);
+
+            if (bp != null) {
+                Map<String, Object> responseContext = bp.getResponseContext();
+                JMSMessageHeadersType responseHdr = 
+                     (JMSMessageHeadersType)responseContext.get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+                if (responseHdr == null) {
+                    fail("response Header should not be null");
+                }
+                assertTrue(responseHdr.isSOAPJMSIsFault());
             }
         } catch (UndeclaredThrowableException ex) {
             throw (Exception)ex.getCause();

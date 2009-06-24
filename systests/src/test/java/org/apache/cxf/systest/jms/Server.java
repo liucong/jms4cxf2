@@ -23,6 +23,9 @@ import javax.xml.ws.Endpoint;
 import javax.xml.ws.soap.SOAPBinding;
 
 import org.apache.cxf.jaxws.EndpointImpl;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.cxf.systest.jaxws.Hello;
+import org.apache.cxf.systest.jaxws.HelloImpl;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 
 public class Server extends AbstractBusTestServerBase {
@@ -67,8 +70,30 @@ public class Server extends AbstractBusTestServerBase {
                          + "?jndiInitialContextFactory"
                          + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
                          + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
-        
         Endpoint.publish(address1, spec1);
+        
+        initNoWsdlServer();
+    }
+
+
+    /**
+     * 
+     */
+    private void initNoWsdlServer() {
+        String address = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue3"
+            + "?jndiInitialContextFactory"
+            + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+            + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+        Hello implementor = new HelloImpl();
+        JaxWsServerFactoryBean svrFactory = new JaxWsServerFactoryBean();
+        svrFactory.setServiceClass(Hello.class);
+        svrFactory.setAddress(address);
+        svrFactory.setServiceBean(implementor);
+        // We need to create the server first but not start the server
+        svrFactory.setStart(false);
+        org.apache.cxf.endpoint.Server server = svrFactory.create();
+        // Start the server after the configuration
+        server.start();
     }
 
 
