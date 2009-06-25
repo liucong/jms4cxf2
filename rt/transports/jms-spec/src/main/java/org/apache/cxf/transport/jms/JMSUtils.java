@@ -514,7 +514,9 @@ public final class JMSUtils {
         if (!messageProperties.isSetSOAPJMSTargetService()) {
             messageProperties.setSOAPJMSTargetService(jmsConfig.getTargetService());
         }
-        messageProperties.setSOAPJMSBindingVersion("1.0");
+        if (!messageProperties.isSetSOAPJMSBindingVersion()) {
+            messageProperties.setSOAPJMSBindingVersion("1.0");
+        }
         messageProperties.setSOAPJMSContentType(getContentType(outMessage));
         String soapAction = null;
         // Retrieve or create protocol headers
@@ -529,8 +531,12 @@ public final class JMSUtils {
         if (soapAction != null) {
             messageProperties.setSOAPJMSSOAPAction(soapAction);
         }
-        if (messageProperties.isSetSOAPJMSIsFault()) {
-            messageProperties.setSOAPJMSIsFault(messageProperties.isSOAPJMSIsFault());
+        if (!messageProperties.isSetSOAPJMSIsFault()) {
+            if (outMessage.getContent(Exception.class) != null) {
+                messageProperties.setSOAPJMSIsFault(true);
+            } else {
+                messageProperties.setSOAPJMSIsFault(false);
+            }
         }
         if (!messageProperties.isSetSOAPJMSRequestURI()) {
             messageProperties.setSOAPJMSRequestURI(jmsConfig.getRequestURI());

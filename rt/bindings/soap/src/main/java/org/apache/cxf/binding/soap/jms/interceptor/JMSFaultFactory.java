@@ -19,18 +19,29 @@
 
 package org.apache.cxf.binding.soap.jms.interceptor;
 
+import java.util.logging.Logger;
+
+import org.apache.cxf.common.logging.LogUtils;
+
 /**
  * 
  */
 public final class JMSFaultFactory {
-    
+
+    static final Logger LOG = LogUtils.getL7dLogger(JMSFaultFactory.class);
+
     private JMSFaultFactory() {
     }
 
     public static JMSFault createUnrecognizedBindingVerionFault(String bindingVersion) {
         JMSFaultType jmsFaultType = new JMSFaultType();
         jmsFaultType.setFaultCode(SoapJMSConstants.getUnrecognizedBindingVersionQName());
-        JMSFault jmsFault = new JMSFault("Unrecognized BindVersion: " + bindingVersion);
+
+        String m = new org.apache.cxf.common.i18n.Message("UNRECOGNIZED_BINDINGVERSION", LOG,
+                                                          new Object[] {
+                                                              bindingVersion
+                                                          }).toString();
+        JMSFault jmsFault = new JMSFault(m);
         jmsFault.setJmsFaultType(jmsFaultType);
         jmsFault.setSender(true);
         return jmsFault;
