@@ -82,7 +82,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         }
         props.put("java.util.logging.config.file", 
                   System.getProperty("java.util.logging.config.file"));
-      
+        
         assertTrue("server did not launch correctly", 
                    launchServer(EmbeddedJMSBrokerLauncher.class, props, null));
 
@@ -554,7 +554,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
             if (client.getException() != null 
                 && client.getException().getMessage().contains("Timeout")) {
                 // exceptions expected
-                return; 
+                return;
             }
         }
        
