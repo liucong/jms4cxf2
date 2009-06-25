@@ -103,6 +103,7 @@
     	<xs:attribute name="SOAPJMSIsFault" type="xs:boolean"/>
     	<xs:attribute name="SOAPJMSRequestURI" type="xs:string"/>
     </xs:complexType>
+    
     <!-- 
     <xs:complexType name="SOAPOverJMSMessageType">
     	<xs:annotation>
@@ -313,4 +314,5 @@
     	</xs:sequence>
     	<xs:anyAttribute namespace="##any" processContents="lax"/>
   	</xs:complexType>
+    
 </xs:schema>
