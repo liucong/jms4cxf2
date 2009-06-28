@@ -16,29 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.systest.ws.wssec10.server;
+package org.apache.cxf.transport.jms.uri;
 
-import javax.annotation.Resource;
-import javax.xml.ws.WebServiceContext;
 
-import wssec.wssec10.IPingService;
 
-public abstract class PingServiceBase implements IPingService {
-    
-    @Resource
-    protected WebServiceContext ctx;
-
-    protected PingServiceBase() {
+/**
+ * An endpoint for a JMS Queue which is also browsable
+ *
+ * @version $Revision: 749939 $
+ */
+public class JMSQueueEndpoint extends JMSEndpoint {
+    /**
+     * @param uri
+     * @param subject
+     */
+    public JMSQueueEndpoint(String uri, String subject) {
+        super(uri, JMSURIConstants.QUEUE, subject);
     }
- 
-
-    public java.lang.String 
-    echo(
-        java.lang.String request
-    ) {
-        //System.out.println("echo(" + request + ")");
-        return request;
-    }
-
-    
 }

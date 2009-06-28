@@ -16,29 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.systest.ws.wssec10.server;
 
-import javax.annotation.Resource;
-import javax.xml.ws.WebServiceContext;
+package org.apache.cxf.transport.jms.uri;
 
-import wssec.wssec10.IPingService;
+/**
+ * A runtime exception thrown if an {@link Endpoint} cannot be resolved via URI
+ * 
+ */
+public class ResolveEndpointFailedException extends RuntimeException {
+    private final String uri;
 
-public abstract class PingServiceBase implements IPingService {
-    
-    @Resource
-    protected WebServiceContext ctx;
-
-    protected PingServiceBase() {
-    }
- 
-
-    public java.lang.String 
-    echo(
-        java.lang.String request
-    ) {
-        //System.out.println("echo(" + request + ")");
-        return request;
+    public ResolveEndpointFailedException(String uri, Throwable cause) {
+        super("Failed to resolve endpoint: " + uri + " due to: " + cause, cause);
+        this.uri = uri;
     }
 
+    public ResolveEndpointFailedException(String uri, String message) {
+        super("Failed to resolve endpoint: " + uri + " due to: " + message);
+        this.uri = uri;
+    }
+
+    public String getUri() {
+        return uri;
+    }
     
 }
