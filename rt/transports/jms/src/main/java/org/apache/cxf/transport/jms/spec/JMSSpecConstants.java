@@ -65,15 +65,6 @@ public final class JMSSpecConstants {
     public static final String TARGETSERVICE_FIELD = SOAP_JMS_PREFIX + TARGETSERVICE_PARAMETER_NAME;
     public static final String CONTENTTYPE_FIELD = SOAP_JMS_PREFIX + CONTENTTYPE_PARAMETER_NAME;
     public static final String ISFAULT_FIELD = SOAP_JMS_PREFIX + ISFAULT_PARAMETER_NAME;
-
-/*    public static final String JMS_SERVER_REQUEST_MESSAGE_PROPERTIES = 
-        "org.apache.cxf.jms.server.request.message.properteis";
-    public static final String JMS_SERVER_RESPONSE_MESSAGE_PROPERTIES = 
-        "org.apache.cxf.jms.server.response.message.properteis";
-    public static final String JMS_CLIENT_REQUEST_MESSAGE_PROPERTIES = 
-        "org.apache.cxf.jms.client.request.message.properteis";
-    public static final String JMS_CLIENT_RESPONSE_MESSAGE_PROPERTIES = 
-        "org.apache.cxf.jms.client.response.message.properteis";*/
     
     private JMSSpecConstants() {
     }
