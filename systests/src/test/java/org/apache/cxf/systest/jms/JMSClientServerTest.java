@@ -59,6 +59,7 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.jms.JMSConstants;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.JMSPropertyType;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.hello_world_doc_lit.Greeter;
 import org.apache.hello_world_doc_lit.PingMeFault;
 import org.apache.hello_world_doc_lit.SOAPService2;
@@ -812,6 +813,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
             + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
 
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setTransportId(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID);
         factory.setServiceClass(Hello.class);
         factory.setAddress(address);
         Hello client = (Hello)factory.create();

@@ -253,8 +253,9 @@ public class JMSOldConfigHolder {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        // Retrieve configuration information that was extracted from the WSDL
-        /* address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); */
+        // TODO Need to check if we need to retrieve configuration information that 
+        // was extracted from the WSDL
+        //address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); 
         clientConfig = endpointInfo.getTraversedExtensor(new ClientConfig(), ClientConfig.class);
         runtimePolicy = endpointInfo.getTraversedExtensor(new ClientBehaviorPolicyType(),
                                                           ClientBehaviorPolicyType.class);
@@ -299,6 +300,7 @@ public class JMSOldConfigHolder {
             JNDIConfiguration jndiConfig = new JNDIConfiguration();
             jndiConfig.setJndiConnectionFactoryName(endpoint.getJndiConnectionFactoryName());
             jmsConfig.setJndiTemplate(jt);
+            // TODO need to check the userName and Password setting the specification
             /*
              * jndiConfig.setConnectionUserName(address.getConnectionUserName());
              * jndiConfig.setConnectionPassword(address.getConnectionPassword());

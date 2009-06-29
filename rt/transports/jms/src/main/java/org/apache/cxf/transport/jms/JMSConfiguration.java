@@ -90,7 +90,8 @@ public class JMSConfiguration implements InitializingBean {
     private JNDIConfiguration jndiConfig;
     
     public void ensureProperlyConfigured(org.apache.cxf.common.i18n.Message msg) {
-        if (targetDestination == null || getOrCreateWrappedConnectionFactory() == null) {
+        if (targetDestination == null ||  getOrCreateWrappedConnectionFactory() == null) {
+            System.out.println("targetDestination " + targetDestination);
             throw new ConfigurationException(msg);
         }
     }

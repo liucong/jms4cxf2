@@ -27,6 +27,7 @@ import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
 import org.apache.cxf.systest.jaxws.Hello;
 import org.apache.cxf.systest.jaxws.HelloImpl;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 
 public class Server extends AbstractBusTestServerBase {
 
@@ -88,12 +89,9 @@ public class Server extends AbstractBusTestServerBase {
         JaxWsServerFactoryBean svrFactory = new JaxWsServerFactoryBean();
         svrFactory.setServiceClass(Hello.class);
         svrFactory.setAddress(address);
+        svrFactory.setTransportId(JMSSpecConstants.SOAP_JMS_SPECIFICIATION_TRANSPORTID);
         svrFactory.setServiceBean(implementor);
-        // We need to create the server first but not start the server
-        svrFactory.setStart(false);
-        org.apache.cxf.endpoint.Server server = svrFactory.create();
-        // Start the server after the configuration
-        server.start();
+        svrFactory.create();
     }
 
 
