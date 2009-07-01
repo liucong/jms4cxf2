@@ -24,6 +24,7 @@
 		schemaLocation="http://schemas.xmlsoap.org/wsdl/2003-02-11.xsd" />
 
 	<xs:element name="deliveryMode" type="soapjms:deliveryModeType" />
+	<xs:element name="jndiURL" type="soapjms:jndiURLType" />
 	
 	<!-- JMS specification for wsdl-->
 	<xs:complexType name="jndiConnectionFactoryNameType">
@@ -78,20 +79,14 @@
 	</xs:complexType>
 
 	<xs:complexType name="deliveryModeType">
-		<xs:complexContent>
-			<xs:extension base="wsdl:tExtensibilityElement">
-				<xs:sequence>
-					<xs:element name="deliveryMode">
-						<xs:simpleType>
-							<xs:restriction base="xs:string">
-								<xs:enumeration value="PERSISTENT" />
-								<xs:enumeration value="NON_PERSISTENT" />
-							</xs:restriction>
-						</xs:simpleType>
-					</xs:element>
-				</xs:sequence>
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+			<!-- 
+				<xs:enumeration value="PERSISTENT" />
+				<xs:enumeration value="NON_PERSISTENT" />
+			 -->
 			</xs:extension>
-		</xs:complexContent>
+		</xs:simpleContent>
 	</xs:complexType>
 
 	<xs:complexType name="timeToLiveType">

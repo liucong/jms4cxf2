@@ -33,7 +33,9 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.service.model.EndpointInfo;
+import org.apache.cxf.transport.jms.spec.DeliveryModeType;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
+import org.apache.cxf.transport.jms.spec.JndiURLType;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.apache.cxf.transport.jms.uri.JMSURIConstants;
@@ -253,6 +255,8 @@ public class JMSOldConfigHolder {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
+        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(new DeliveryModeType(), DeliveryModeType.class);
+        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(), JndiURLType.class);
         // TODO Need to check if we need to retrieve configuration information that 
         // was extracted from the WSDL
         //address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); 
