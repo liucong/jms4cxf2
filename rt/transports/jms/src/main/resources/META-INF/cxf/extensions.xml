@@ -26,6 +26,8 @@
     <entry key="org.apache.cxf.transport.jms-4">javax.wsdl.Port=org.apache.cxf.transport.jms.ClientConfig</entry>
     <entry key="org.apache.cxf.transport.jms-5">javax.wsdl.Port=org.apache.cxf.transport.jms.ServerConfig</entry>
     <entry key="org.apache.cxf.transport.jms-6">javax.wsdl.Port=org.apache.cxf.transport.jms.SessionPoolType</entry>
+    <!-- 
     <entry key="org.apache.cxf.transport.jms.spec-1">javax.wsdl.Binding=org.apache.cxf.transport.jms.spec.DeliveryModeType</entry>
     <entry key="org.apache.cxf.transport.jms.spec-2">javax.wsdl.Binding=org.apache.cxf.transport.jms.spec.JndiURLType</entry>
+     -->
 </properties>

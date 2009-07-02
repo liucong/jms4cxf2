@@ -35,8 +35,10 @@
     <modules>
         <module>dv</module>
         <module>ts</module>
+        <module>wsdlextension</module>
         <module>dv-test</module>
         <module>ts-test</module>
+        <module>wsdlextension-test</module>
     </modules>
 
 

@@ -27,6 +27,9 @@ public class Orders {
 
     @GET
     @Produces("text/plain")
+    /**
+     * Foo
+     */
     public int getNumberOfOrders() {
         return 100;
     }
