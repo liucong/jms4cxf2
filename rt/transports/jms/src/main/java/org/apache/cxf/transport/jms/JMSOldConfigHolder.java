@@ -255,8 +255,10 @@ public class JMSOldConfigHolder {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(new DeliveryModeType(), DeliveryModeType.class);
-        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(), JndiURLType.class);
+        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(new DeliveryModeType(),
+                                                                              DeliveryModeType.class);
+        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(),
+                                                                         JndiURLType.class);
         // TODO Need to check if we need to retrieve configuration information that 
         // was extracted from the WSDL
         //address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); 
