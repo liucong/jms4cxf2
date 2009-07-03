@@ -33,12 +33,18 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.service.model.EndpointInfo;
-import org.apache.cxf.transport.jms.spec.DeliveryModeType;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
-import org.apache.cxf.transport.jms.spec.JndiURLType;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.apache.cxf.transport.jms.uri.JMSURIConstants;
+import org.apache.cxf.transport.jms.wsdl.DeliveryModeType;
+import org.apache.cxf.transport.jms.wsdl.JndiConnectionFactoryNameType;
+import org.apache.cxf.transport.jms.wsdl.JndiContextParameterType;
+import org.apache.cxf.transport.jms.wsdl.JndiInitialContextFactoryType;
+import org.apache.cxf.transport.jms.wsdl.JndiURLType;
+import org.apache.cxf.transport.jms.wsdl.PriorityType;
+import org.apache.cxf.transport.jms.wsdl.ReplyToNameType;
+import org.apache.cxf.transport.jms.wsdl.TimeToLiveType;
 import org.springframework.jms.support.destination.JndiDestinationResolver;
 import org.springframework.jndi.JndiTemplate;
 
@@ -255,10 +261,23 @@ public class JMSOldConfigHolder {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(new DeliveryModeType(),
-                                                                              DeliveryModeType.class);
-        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(),
-                                                                         JndiURLType.class);
+        JndiContextParameterType jcpt = endpointInfo.getBinding().getTraversedExtensor(
+                              new JndiContextParameterType(), JndiContextParameterType.class);
+        JndiConnectionFactoryNameType jcfn = endpointInfo.getBinding().getTraversedExtensor(
+                              new JndiConnectionFactoryNameType(), JndiConnectionFactoryNameType.class);
+        JndiInitialContextFactoryType jicf = endpointInfo.getBinding().getTraversedExtensor(
+                              new JndiInitialContextFactoryType(), JndiInitialContextFactoryType.class);
+        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(
+                              new JndiURLType(), JndiURLType.class);
+        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(
+                              new DeliveryModeType(), DeliveryModeType.class);
+        PriorityType pt = endpointInfo.getBinding().getTraversedExtensor(
+                              new PriorityType(), PriorityType.class);
+        TimeToLiveType ttt = endpointInfo.getBinding().getTraversedExtensor(
+                              new TimeToLiveType(), TimeToLiveType.class);
+        ReplyToNameType rtnt = endpointInfo.getBinding().getTraversedExtensor(
+                              new ReplyToNameType(), ReplyToNameType.class);
+
         // TODO Need to check if we need to retrieve configuration information that 
         // was extracted from the WSDL
         //address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); 

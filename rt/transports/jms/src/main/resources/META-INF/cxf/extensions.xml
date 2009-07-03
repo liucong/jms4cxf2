@@ -26,8 +26,15 @@
     <entry key="org.apache.cxf.transport.jms-4">javax.wsdl.Port=org.apache.cxf.transport.jms.ClientConfig</entry>
     <entry key="org.apache.cxf.transport.jms-5">javax.wsdl.Port=org.apache.cxf.transport.jms.ServerConfig</entry>
     <entry key="org.apache.cxf.transport.jms-6">javax.wsdl.Port=org.apache.cxf.transport.jms.SessionPoolType</entry>
-    <!-- 
-    <entry key="org.apache.cxf.transport.jms.spec-1">javax.wsdl.Binding=org.apache.cxf.transport.jms.spec.DeliveryModeType</entry>
-    <entry key="org.apache.cxf.transport.jms.spec-2">javax.wsdl.Binding=org.apache.cxf.transport.jms.spec.JndiURLType</entry>
-     -->
+
+    <entry key="org.apache.cxf.transport.jms.spec-binding-1">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.JndiContextParameterType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-2">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.JndiConnectionFactoryNameType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-3">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.JndiInitialContextFactoryType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-4">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.JndiURLType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-5">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.DeliveryModeType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-6">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.PriorityType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-7">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.TimeToLiveType</entry>
+    <entry key="org.apache.cxf.transport.jms.spec-binding-8">javax.wsdl.Binding=org.apache.cxf.transport.jms.wsdl.ReplyToNameType</entry>
+    
+    
 </properties>

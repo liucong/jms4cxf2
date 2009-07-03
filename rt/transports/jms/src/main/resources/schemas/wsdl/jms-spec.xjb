@@ -33,7 +33,7 @@
     </jaxb:bindings>
     <jaxb:bindings schemaLocation="jms-spec.xsd" node="/xs:schema">
         <jaxb:schemaBindings>
-            <jaxb:package name="org.apache.cxf.transport.jms.spec"/>
+            <jaxb:package name="org.apache.cxf.transport.jms.wsdl"/>
         </jaxb:schemaBindings>
     </jaxb:bindings>
 </jaxb:bindings>
