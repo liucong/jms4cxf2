@@ -78,7 +78,7 @@
                 <configuration>
                     <outputDirectory>${basedir}/target/generated/src/test/java</outputDirectory>
                     <schemaDirectory>${basedir}/src/test/resources/schemas/configuration</schemaDirectory>
-                    <arguments>-Xts</arguments>
+                    <arguments>-Xwsdlextension</arguments>
                     <extension>true</extension>
                     <quiet>true</quiet>
                 </configuration>
@@ -92,6 +92,11 @@
                     <dependency>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-xjc-ts</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.cxf</groupId>
+                        <artifactId>cxf-xjc-wsdlextension</artifactId>
                         <version>${project.version}</version>
                     </dependency>
                 </dependencies>

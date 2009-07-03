@@ -32,7 +32,9 @@ import javax.naming.Context;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurer;
+import org.apache.cxf.service.model.BindingInfo;
 import org.apache.cxf.service.model.EndpointInfo;
+import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
@@ -261,25 +263,7 @@ public class JMSOldConfigHolder {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        JndiContextParameterType jcpt = endpointInfo.getBinding().getTraversedExtensor(
-                              new JndiContextParameterType(), JndiContextParameterType.class);
-        JndiConnectionFactoryNameType jcfn = endpointInfo.getBinding().getTraversedExtensor(
-                              new JndiConnectionFactoryNameType(), JndiConnectionFactoryNameType.class);
-        JndiInitialContextFactoryType jicf = endpointInfo.getBinding().getTraversedExtensor(
-                              new JndiInitialContextFactoryType(), JndiInitialContextFactoryType.class);
-        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(
-                              new JndiURLType(), JndiURLType.class);
-        DeliveryModeType dmt = endpointInfo.getBinding().getTraversedExtensor(
-                              new DeliveryModeType(), DeliveryModeType.class);
-        PriorityType pt = endpointInfo.getBinding().getTraversedExtensor(
-                              new PriorityType(), PriorityType.class);
-        TimeToLiveType ttt = endpointInfo.getBinding().getTraversedExtensor(
-                              new TimeToLiveType(), TimeToLiveType.class);
-        ReplyToNameType rtnt = endpointInfo.getBinding().getTraversedExtensor(
-                              new ReplyToNameType(), ReplyToNameType.class);
-
-        // TODO Need to check if we need to retrieve configuration information that 
-        // was extracted from the WSDL
+        retrieveWSDLInformation(endpoint, endpointInfo);
         //address = endpointInfo.getTraversedExtensor(new AddressType(), AddressType.class); 
         clientConfig = endpointInfo.getTraversedExtensor(new ClientConfig(), ClientConfig.class);
         runtimePolicy = endpointInfo.getTraversedExtensor(new ClientBehaviorPolicyType(),
@@ -391,6 +375,38 @@ public class JMSOldConfigHolder {
         String targetService = endpoint.getParameter(JMSSpecConstants.TARGETSERVICE_PARAMETER_NAME);
         jmsConfig.setTargetService(targetService);
         return jmsConfig;
+    }
+
+    /**
+     * @param endpoint
+     * @param endpointInfo
+     */
+    private void retrieveWSDLInformation(JMSEndpoint endpoint, EndpointInfo endpointInfo) {
+        EndpointInfo ei = endpointInfo;
+        ServiceInfo si = endpointInfo.getService();
+        BindingInfo bi = endpointInfo.getBinding();
+        
+        if (ei.getExtensor(JndiContextParameterType.class) != null) {
+            System.out.println("ok");
+        }
+        JndiContextParameterType jcpt = endpointInfo.getBinding()
+            .getTraversedExtensor(new JndiContextParameterType(), JndiContextParameterType.class);
+        JndiConnectionFactoryNameType jcfn = endpointInfo.getBinding()
+            .getTraversedExtensor(new JndiConnectionFactoryNameType(),
+                                  JndiConnectionFactoryNameType.class);
+        JndiInitialContextFactoryType jicf = endpointInfo.getBinding()
+            .getTraversedExtensor(new JndiInitialContextFactoryType(),
+                                  JndiInitialContextFactoryType.class);
+        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(),
+                                                                         JndiURLType.class);
+        DeliveryModeType dmt = endpointInfo.getBinding()
+            .getTraversedExtensor(new DeliveryModeType(), DeliveryModeType.class);
+        PriorityType pt = endpointInfo.getBinding().getTraversedExtensor(new PriorityType(),
+                                                                         PriorityType.class);
+        TimeToLiveType ttt = endpointInfo.getBinding().getTraversedExtensor(new TimeToLiveType(),
+                                                                            TimeToLiveType.class);
+        ReplyToNameType rtnt = endpointInfo.getBinding()
+            .getTraversedExtensor(new ReplyToNameType(), ReplyToNameType.class);
     }
 
     private static Properties getInitialContextEnv(JMSEndpoint endpoint) {

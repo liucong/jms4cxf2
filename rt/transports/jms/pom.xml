@@ -122,6 +122,7 @@
                                         <deleteDir>${basedir}/target/generated/src/main/java/org/apache/cxf/wsdl</deleteDir>
                                     </deleteDirs>
                                 </xsdOption>
+                                <!-- 
                                 <xsdOption>
                                     <xsd>${basedir}/src/main/resources/schemas/wsdl/jms-spec.xsd</xsd>
                                     <bindingFile>${basedir}/src/main/resources/schemas/wsdl/jms-spec.xjb</bindingFile>
@@ -130,6 +131,7 @@
                                         <deleteDir>${basedir}/target/generated/src/main/java/org/apache/cxf/wsdl</deleteDir>
                                     </deleteDirs>
                                 </xsdOption>
+                                -->
                             </xsdOptions>
                         </configuration>
                         <goals>
