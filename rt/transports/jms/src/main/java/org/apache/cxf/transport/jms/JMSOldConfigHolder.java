@@ -381,34 +381,74 @@ public class JMSOldConfigHolder {
      * @param endpoint
      * @param endpointInfo
      */
-    private void retrieveWSDLInformation(JMSEndpoint endpoint, EndpointInfo endpointInfo) {
-        EndpointInfo ei = endpointInfo;
-        ServiceInfo si = endpointInfo.getService();
-        BindingInfo bi = endpointInfo.getBinding();
-        
-        if (ei.getExtensor(JndiContextParameterType.class) != null) {
-            System.out.println("ok");
+    private void retrieveWSDLInformation(JMSEndpoint endpoint, EndpointInfo ei) {
+        JndiContextParameterType jndiContextParameterType = 
+            getWSDLExtensor(ei, JndiContextParameterType.class);
+        if (jndiContextParameterType != null) {
+            endpoint.putJndiParameter(jndiContextParameterType.getName().trim(), 
+                                      jndiContextParameterType.getValue().trim());
         }
-        JndiContextParameterType jcpt = endpointInfo.getBinding()
-            .getTraversedExtensor(new JndiContextParameterType(), JndiContextParameterType.class);
-        JndiConnectionFactoryNameType jcfn = endpointInfo.getBinding()
-            .getTraversedExtensor(new JndiConnectionFactoryNameType(),
-                                  JndiConnectionFactoryNameType.class);
-        JndiInitialContextFactoryType jicf = endpointInfo.getBinding()
-            .getTraversedExtensor(new JndiInitialContextFactoryType(),
-                                  JndiInitialContextFactoryType.class);
-        JndiURLType jut = endpointInfo.getBinding().getTraversedExtensor(new JndiURLType(),
-                                                                         JndiURLType.class);
-        DeliveryModeType dmt = endpointInfo.getBinding()
-            .getTraversedExtensor(new DeliveryModeType(), DeliveryModeType.class);
-        PriorityType pt = endpointInfo.getBinding().getTraversedExtensor(new PriorityType(),
-                                                                         PriorityType.class);
-        TimeToLiveType ttt = endpointInfo.getBinding().getTraversedExtensor(new TimeToLiveType(),
-                                                                            TimeToLiveType.class);
-        ReplyToNameType rtnt = endpointInfo.getBinding()
-            .getTraversedExtensor(new ReplyToNameType(), ReplyToNameType.class);
+        
+        JndiConnectionFactoryNameType jndiConnectionFactoryNameType = 
+            getWSDLExtensor(ei, JndiConnectionFactoryNameType.class);
+        if (jndiConnectionFactoryNameType != null) {
+            endpoint.setJndiConnectionFactoryName(jndiConnectionFactoryNameType.getValue().trim());
+        }
+        
+        JndiInitialContextFactoryType jndiInitialContextFactoryType = 
+            getWSDLExtensor(ei, JndiInitialContextFactoryType.class);
+        if (jndiInitialContextFactoryType != null) {
+            endpoint.setJndiInitialContextFactory(jndiInitialContextFactoryType.getValue().trim()); 
+        }
+        
+        JndiURLType jndiURLType = getWSDLExtensor(ei, JndiURLType.class);
+        if (jndiURLType != null) {
+            endpoint.setJndiURL(jndiURLType.getValue().trim());
+        }
+        
+        DeliveryModeType deliveryModeType = getWSDLExtensor(ei, DeliveryModeType.class);
+        if (deliveryModeType != null) {
+            String deliveryMode = deliveryModeType.getValue().trim();
+            endpoint.setDeliveryMode(org.apache.cxf.transport.jms.uri.DeliveryModeType.valueOf(deliveryMode));
+        }
+        
+        PriorityType priorityType = getWSDLExtensor(ei, PriorityType.class);
+        if (priorityType != null) {
+            endpoint.setPriority(priorityType.getValue());
+        }
+        
+        TimeToLiveType timeToLiveType = getWSDLExtensor(ei, TimeToLiveType.class);
+        if (timeToLiveType != null) {
+            endpoint.setTimeToLive(timeToLiveType.getValue()); 
+        }
+        
+        ReplyToNameType replyToNameType = getWSDLExtensor(ei, ReplyToNameType.class);
+        if (replyToNameType != null) {
+            endpoint.setReplyToName(replyToNameType.getValue());
+        }
     }
 
+    public <T> T getWSDLExtensor(EndpointInfo ei, Class<T> cls) {
+        ServiceInfo si = ei.getService();
+        BindingInfo bi = ei.getBinding();
+        
+        Object o = ei.getExtensor(cls);
+        if (o == null) {
+            o = si.getExtensor(cls);
+        }
+        if (o == null) {
+            o = bi.getExtensor(cls);
+        }
+        
+        if (o == null) {
+            return null;
+        }
+        if (cls.isInstance(o)) {
+            return cls.cast(o);
+        }
+        return null;
+    }
+    
     private static Properties getInitialContextEnv(JMSEndpoint endpoint) {
         Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
