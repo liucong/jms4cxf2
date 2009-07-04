@@ -379,52 +379,67 @@ public class JMSOldConfigHolder {
 
     /**
      * @param endpoint
-     * @param endpointInfo
+     * @param ei
      */
     private void retrieveWSDLInformation(JMSEndpoint endpoint, EndpointInfo ei) {
         JndiContextParameterType jndiContextParameterType = 
             getWSDLExtensor(ei, JndiContextParameterType.class);
-        if (jndiContextParameterType != null) {
-            endpoint.putJndiParameter(jndiContextParameterType.getName().trim(), 
-                                      jndiContextParameterType.getValue().trim());
+        if (jndiContextParameterType != null 
+            && endpoint.getJndiParameters().get(jndiContextParameterType.getName()) == null) {
+            endpoint.putJndiParameter(jndiContextParameterType.getName().trim(),
+                                              jndiContextParameterType.getValue().trim());
         }
         
-        JndiConnectionFactoryNameType jndiConnectionFactoryNameType = 
-            getWSDLExtensor(ei, JndiConnectionFactoryNameType.class);
-        if (jndiConnectionFactoryNameType != null) {
-            endpoint.setJndiConnectionFactoryName(jndiConnectionFactoryNameType.getValue().trim());
+        if (!endpoint.isSetJndiConnectionFactoryName()) {
+            JndiConnectionFactoryNameType jndiConnectionFactoryNameType = getWSDLExtensor(
+                ei, JndiConnectionFactoryNameType.class);
+            if (jndiConnectionFactoryNameType != null) {
+                endpoint.setJndiConnectionFactoryName(jndiConnectionFactoryNameType.getValue().trim());
+            }
+        }
+        if (!endpoint.isSetJndiInitialContextFactory()) {
+            JndiInitialContextFactoryType jndiInitialContextFactoryType = 
+                getWSDLExtensor(ei, JndiInitialContextFactoryType.class);
+            if (jndiInitialContextFactoryType != null) {
+                endpoint.setJndiInitialContextFactory(jndiInitialContextFactoryType.getValue().trim()); 
+            }
         }
         
-        JndiInitialContextFactoryType jndiInitialContextFactoryType = 
-            getWSDLExtensor(ei, JndiInitialContextFactoryType.class);
-        if (jndiInitialContextFactoryType != null) {
-            endpoint.setJndiInitialContextFactory(jndiInitialContextFactoryType.getValue().trim()); 
+        if (!endpoint.isSetJndiURL()) {
+            JndiURLType jndiURLType = getWSDLExtensor(ei, JndiURLType.class);
+            if (jndiURLType != null) {
+                endpoint.setJndiURL(jndiURLType.getValue().trim());
+            }
         }
         
-        JndiURLType jndiURLType = getWSDLExtensor(ei, JndiURLType.class);
-        if (jndiURLType != null) {
-            endpoint.setJndiURL(jndiURLType.getValue().trim());
+        if (!endpoint.isSetDeliveryMode()) {
+            DeliveryModeType deliveryModeType = getWSDLExtensor(ei, DeliveryModeType.class);
+            if (deliveryModeType != null) {
+                String deliveryMode = deliveryModeType.getValue().trim();
+                endpoint.setDeliveryMode(org.apache.cxf.transport.jms.uri.DeliveryModeType
+                    .valueOf(deliveryMode));
+            }
         }
         
-        DeliveryModeType deliveryModeType = getWSDLExtensor(ei, DeliveryModeType.class);
-        if (deliveryModeType != null) {
-            String deliveryMode = deliveryModeType.getValue().trim();
-            endpoint.setDeliveryMode(org.apache.cxf.transport.jms.uri.DeliveryModeType.valueOf(deliveryMode));
+        if (!endpoint.isSetPriority()) {
+            PriorityType priorityType = getWSDLExtensor(ei, PriorityType.class);
+            if (priorityType != null) {
+                endpoint.setPriority(priorityType.getValue());
+            }
         }
         
-        PriorityType priorityType = getWSDLExtensor(ei, PriorityType.class);
-        if (priorityType != null) {
-            endpoint.setPriority(priorityType.getValue());
+        if (!endpoint.isSetTimeToLive()) {
+            TimeToLiveType timeToLiveType = getWSDLExtensor(ei, TimeToLiveType.class);
+            if (timeToLiveType != null) {
+                endpoint.setTimeToLive(timeToLiveType.getValue()); 
+            }
         }
         
-        TimeToLiveType timeToLiveType = getWSDLExtensor(ei, TimeToLiveType.class);
-        if (timeToLiveType != null) {
-            endpoint.setTimeToLive(timeToLiveType.getValue()); 
-        }
-        
-        ReplyToNameType replyToNameType = getWSDLExtensor(ei, ReplyToNameType.class);
-        if (replyToNameType != null) {
-            endpoint.setReplyToName(replyToNameType.getValue());
+        if (!endpoint.isSetReplyToName()) {
+            ReplyToNameType replyToNameType = getWSDLExtensor(ei, ReplyToNameType.class);
+            if (replyToNameType != null) {
+                endpoint.setReplyToName(replyToNameType.getValue());
+            }
         }
     }
 
