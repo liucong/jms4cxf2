@@ -31,10 +31,6 @@ import com.sun.tools.xjc.outline.Outline;
 
 import org.apache.cxf.xjc.wsdlextension.WSDLExtension;
 
-/**
- * Thin wrapper around the ToStringPlugin. This must be in the com.sun.tools.xjc.addon package
- * for it to work with Java 6. See https://issues.apache.org/jira/browse/CXF-1880.
- */
 public class WSDLExtensionPlugin extends Plugin {
     
     WSDLExtension impl = new WSDLExtension();

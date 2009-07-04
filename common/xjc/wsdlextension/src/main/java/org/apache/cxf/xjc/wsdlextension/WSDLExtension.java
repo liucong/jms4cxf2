@@ -43,10 +43,6 @@ import com.sun.tools.xjc.outline.Outline;
 
 import org.apache.cxf.common.logging.LogUtils;
 
-/**
- * Modifies the JAXB code model to override the Object.toString() method with an implementation that provides
- * a String representation of the xml content.
- */
 public class WSDLExtension {
 
     private static final Logger LOG = LogUtils.getL7dLogger(WSDLExtension.class);
@@ -73,12 +69,12 @@ public class WSDLExtension {
         LOG.fine("Running WSDLExtension plugin.");
 
         for (ClassOutline co : outline.getClasses()) {
-            addToStringMethod(co);
+            addWSDLExtension(co);
         }
         return true;
     }
 
-    private void addToStringMethod(ClassOutline co) {
+    private void addWSDLExtension(ClassOutline co) {
         final JDefinedClass implementation = co.implClass;
         implementation._implements(ExtensibilityElement.class);
 
