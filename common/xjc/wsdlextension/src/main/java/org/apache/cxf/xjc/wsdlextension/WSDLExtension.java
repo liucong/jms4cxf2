@@ -22,85 +22,89 @@ package org.apache.cxf.xjc.wsdlextension;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.wsdl.extensions.ExtensibilityElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.namespace.QName;
+
 import org.xml.sax.ErrorHandler;
 
-import com.sun.codemodel.JClass;
+import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldRef;
-import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JPrimitiveType;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.jaxb.JAXBToStringBuilder;
-import org.apache.cxf.jaxb.JAXBToStringStyle;
-
 
 /**
- * Modifies the JAXB code model to override the Object.toString() method with an 
- * implementation that provides a String representation of the xml content.
+ * Modifies the JAXB code model to override the Object.toString() method with an implementation that provides
+ * a String representation of the xml content.
  */
 public class WSDLExtension {
-    
+
     private static final Logger LOG = LogUtils.getL7dLogger(WSDLExtension.class);
 
-    private String styleFieldName = "DEFAULT_STYLE";
     public String getOptionName() {
         return "Xwsdlextension";
     }
 
     public String getUsage() {
-        return "  -Xwsdlextension      : Activate plugin to add a toString() method to generated classes\n"
-            +  "  -Xwsdlextension:style:multiline : Have toString produce multi line output\n"
-            +  "  -Xwsdlextension:style:simple    : Have toString produce single line terse output\n";
+        return "  -Xwsdlextension               "
+               + ":Activate plugin to add wsdl extension methods to generated root classes\n";
     }
 
-    public int parseArgument(Options opt, String[] args, int index) 
-        throws BadCommandLineException, IOException {
+    public int parseArgument(Options opt, String[] args, int index) throws BadCommandLineException,
+        IOException {
         int ret = 0;
-        if (args[index].equals("-Xwsdlextension:style:multiline")) {
-            styleFieldName = "MULTI_LINE_STYLE";
-            ret = 1;
-        } else if (args[index].equals("-Xwsdlextension:style:simple")) {
-            styleFieldName = "SIMPLE_STYLE";
+        if (args[index].equals("-Xwsdlextension")) {
             ret = 1;
         }
         return ret;
     }
-    
+
     public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) {
-        LOG.fine("Running toString() plugin.");
-        
-        final JClass toStringDelegateImpl = outline.getCodeModel().ref(JAXBToStringBuilder.class);
-        final JClass styleClass = outline.getCodeModel().ref(JAXBToStringStyle.class);
-        final JFieldRef toStringDelegateStyleParam = styleClass.staticRef(styleFieldName);
-        
+        LOG.fine("Running WSDLExtension plugin.");
+
         for (ClassOutline co : outline.getClasses()) {
-            addToStringMethod(co, toStringDelegateImpl, toStringDelegateStyleParam);
+            addToStringMethod(co);
         }
-        
         return true;
     }
 
-    private void addToStringMethod(ClassOutline co, 
-                                   JClass delegateImpl, 
-                                   JFieldRef toStringDelegateStyleParam) {
+    private void addToStringMethod(ClassOutline co) {
         final JDefinedClass implementation = co.implClass;
-        final JMethod toStringMethod = implementation.method(JMod.PUBLIC, String.class, "toString");
-        final JInvocation invoke = delegateImpl.staticInvoke("valueOf");
-        invoke.arg(JExpr._this());
-        invoke.arg(toStringDelegateStyleParam);
-        toStringMethod.body()._return(invoke);
-        
-        JDocComment doc = toStringMethod.javadoc();
-        doc.add("Generates a String representation of the contents of this type.");
-        doc.add("\nThis is an extension method, produced by the 'ts' xjc plugin");
-        toStringMethod.annotate(Override.class);
+        implementation._implements(ExtensibilityElement.class);
+
+        JFieldVar elementTypeVar = implementation.field(JMod.PROTECTED, QName.class, "elementType");
+        elementTypeVar.annotate(XmlTransient.class);
+
+        JFieldVar requiredVar = implementation.field(JMod.PROTECTED, Boolean.class, "required");
+        JAnnotationUse requiredAnnotation = requiredVar.annotate(XmlAttribute.class);
+        requiredAnnotation.param("namespace", "http://schemas.xmlsoap.org/wsdl/");
+
+        JMethod getElementTypeMethod = implementation.method(JMod.PUBLIC, QName.class,
+                                                             "getElementType");
+        getElementTypeMethod.body()._return(JExpr.direct("elementType"));
+
+        JMethod setElementTypeMethod = implementation.method(JMod.PUBLIC, JPrimitiveType.parse(co
+            .parent().getCodeModel(), "void"), "setElementType");
+        setElementTypeMethod.param(QName.class, "type");
+        setElementTypeMethod.body().directStatement("this.elementType = type;");
+
+        JMethod getRequiredMethod = implementation.method(JMod.PUBLIC, Boolean.class,
+                                                             "getRequired");
+        getRequiredMethod.body()._return(JExpr.direct("required == null ? false : required"));
+
+        JMethod setRequiredMethod = implementation.method(JMod.PUBLIC, JPrimitiveType.parse(co
+            .parent().getCodeModel(), "void"), "setRequired");
+        setRequiredMethod.param(Boolean.class, "required");
+        setRequiredMethod.body().directStatement("this.required = required;");
     }
 }

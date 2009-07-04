@@ -19,50 +19,30 @@
 
 package org.apache.cxf.xjc.wsdlextension;
 
-import java.lang.reflect.Method;
-
+import java.lang.reflect.Type;
 
 import org.apache.cxf.configuration.foo.Foo;
-import org.apache.cxf.configuration.foo.TpAddress;
-import org.apache.cxf.configuration.foo.TpAddressPresentation;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-
 
 public class WSDLExtensionTest extends Assert {
 
     @Test
     public void testFooToStringOverride() throws Exception {
-        
+
         Foo foo = new org.apache.cxf.configuration.foo.ObjectFactory().createFoo();
 
-        Method method = foo.getClass().getMethod("toString");
-        assertEquals("toString is overridden", foo.getClass(),
-                     method.getDeclaringClass());
-        
-        String fooS = foo.toString();
-        assertTrue("contains null", fooS.indexOf("null") != -1);
-    }    
+        Type[] interfaces = foo.getClass().getGenericInterfaces();
+        boolean extensibilityElementExist = false;
+        for (int i = 0; i < interfaces.length; i++) {
+            Type inter = interfaces[i];
+            if (inter.toString().equals("interface javax.wsdl.extensions.ExtensibilityElement")) {
+                extensibilityElementExist = true;
+                break;
+            }
+        }
 
-    
-    @Test
-    public void testAddressToStringOverride() throws Exception {
-        
-        TpAddress foo = new org.apache.cxf.configuration.foo.ObjectFactory().createTpAddress();
-
-        Method method = foo.getClass().getMethod("toString");
-        assertEquals("toString is overridden", foo.getClass(),
-                     method.getDeclaringClass());
-     
-        TpAddressPresentation value = TpAddressPresentation.P_ADDRESS_PRESENTATION_ALLOWED;
-        foo.setPresentation(value);
-        String fooS = foo.toString();
-        assertTrue("contains null", fooS.indexOf("null") != -1);
-        assertTrue("contains P_ADDRESS_PRESENTATION_ALLOWED", 
-                   fooS.indexOf("P_ADDRESS_PRESENTATION_ALLOWED") != -1);
-        
-
-    }    
-
+        assertTrue("The interface ExtensibilityElement should be used.", extensibilityElementExist);
+    }
 }
