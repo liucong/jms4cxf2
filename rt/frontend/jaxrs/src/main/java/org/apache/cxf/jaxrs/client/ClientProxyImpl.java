@@ -62,7 +62,7 @@ import org.apache.cxf.transport.http.HTTPConduit;
  * Proxy-based client implementation
  *
  */
-public class ClientProxyImpl extends AbstractClient implements InvocationHandler {
+public class ClientProxyImpl extends AbstractClient implements InvocationHandlerAware, InvocationHandler {
 
     private static final Logger LOG = LogUtils.getL7dLogger(ClientProxyImpl.class);
     private static final ResourceBundle BUNDLE = BundleUtils.getBundle(ClientProxyImpl.class);
@@ -145,10 +145,7 @@ public class ClientProxyImpl extends AbstractClient implements InvocationHandler
                 reportInvalidResourceMethod(m, "INVALID_SUBRESOURCE");
             }
             ClientProxyImpl proxyImpl = new ClientProxyImpl(getBaseURI(), uri, subCri, false, inheritHeaders);
-            proxyImpl.setBus(bus);
-            proxyImpl.setConduitSelector(conduitSelector);
-            proxyImpl.setInInterceptors(inInterceptors);
-            proxyImpl.setOutInterceptors(outInterceptors);
+            proxyImpl.setConfiguration(getConfiguration());
             
             Object proxy = JAXRSClientFactory.create(m.getReturnType(), proxyImpl);
             if (inheritHeaders) {
@@ -410,6 +407,10 @@ public class ClientProxyImpl extends AbstractClient implements InvocationHandler
                         method.getGenericReturnType(), method.getDeclaredAnnotations());
     }
 
+    public Object getInvocationHandler() {
+        return this;
+    }
+    
     protected static void reportInvalidResourceMethod(Method m, String name) {
         org.apache.cxf.common.i18n.Message errorMsg = 
             new org.apache.cxf.common.i18n.Message(name, 

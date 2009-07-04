@@ -36,6 +36,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -304,6 +305,17 @@ public class WebClient extends AbstractClient {
     }
     
     /**
+     * Updates the current URI path with path segment which may contain template variables
+     * @param path new relative path segment
+     * @param values template variable values
+     * @return updated WebClient
+     */
+    public WebClient path(String path, Object... values) {
+        URI u = UriBuilder.fromUri(URI.create("http://tempuri")).path(path).buildFromEncoded(values);
+        return path(u.getRawPath());
+    }
+    
+    /**
      * Updates the current URI query parameters
      * @param name query name
      * @param values query values
@@ -536,10 +548,7 @@ public class WebClient extends AbstractClient {
     static void copyProperties(Client toClient, Client fromClient) {
         AbstractClient newClient = toAbstractClient(toClient);
         AbstractClient oldClient = toAbstractClient(fromClient);
-        newClient.bus = oldClient.bus;
-        newClient.conduitSelector = oldClient.conduitSelector;
-        newClient.inInterceptors = oldClient.inInterceptors;
-        newClient.outInterceptors = oldClient.outInterceptors;
+        newClient.setConfiguration(oldClient.getConfiguration());
     }
     
     private static AbstractClient toAbstractClient(Client client) {
