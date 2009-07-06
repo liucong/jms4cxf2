@@ -37,6 +37,7 @@ import org.apache.cxf.security.SecurityContext;
 import org.apache.cxf.transport.Conduit;
 import org.apache.cxf.transport.MessageObserver;
 import org.apache.cxf.transport.MultiplexDestination;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -433,4 +434,16 @@ public class JMSDestinationTest extends AbstractJMSTester {
         destination.shutdown();
     }
 
+/*    @Test 
+    public void testPortExtensionError() throws Exception {
+        setupServiceInfo("http://cxf.apache.org/jms_greeter", "/wsdl/jms_spec_test.wsdl",
+                         "JMSGreeterService", "GreeterPort");
+        final JMSDestination destination = setupJMSDestination(true);
+        destination.shutdown();
+        
+        setupServiceInfo("http://cxf.apache.org/jms_greeter", "/wsdl/jms_spec_test.wsdl",
+                         "JMSGreeterService2", "GreeterPort2");
+        final JMSDestination destination2 = setupJMSDestination(true);
+        destination2.shutdown();
+    }*/
 }

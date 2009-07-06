@@ -258,7 +258,7 @@ public class JMSOldConfigHolder {
                                                                                     boolean isConduit) 
         throws IOException {
         JMSEndpoint endpoint = null;
-        try {
+        try {           
             endpoint = JMSEndpointParser.createEndpoint(endpointInfo.getAddress());
         } catch (Exception e) {
             throw new IOException(e.getMessage());
