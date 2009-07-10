@@ -32,10 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -43,17 +50,23 @@ import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.DOMUtils;
+import org.apache.cxf.helpers.MapNamespaceContext;
 import org.apache.cxf.resource.ResourceManager;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.ws.policy.AssertionInfo;
 import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.policy.PolicyAssertion;
+import org.apache.cxf.ws.policy.PolicyConstants;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.SP11Constants;
 import org.apache.cxf.ws.security.policy.SP12Constants;
 import org.apache.cxf.ws.security.policy.SPConstants;
 import org.apache.cxf.ws.security.policy.model.AsymmetricBinding;
+import org.apache.cxf.ws.security.policy.model.ContentEncryptedElements;
 import org.apache.cxf.ws.security.policy.model.Header;
+import org.apache.cxf.ws.security.policy.model.RequiredElements;
+import org.apache.cxf.ws.security.policy.model.RequiredParts;
+import org.apache.cxf.ws.security.policy.model.SignedEncryptedElements;
 import org.apache.cxf.ws.security.policy.model.SignedEncryptedParts;
 import org.apache.cxf.ws.security.policy.model.SymmetricBinding;
 import org.apache.cxf.ws.security.policy.model.Token;
@@ -279,10 +292,95 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
         return action;
     }
     
-    
+    private void assertXPathTokens(AssertionInfoMap aim, 
+                                   QName name, 
+                                   Collection<WSDataRef> refs,
+                                   SoapMessage msg,
+                                   SOAPMessage doc,
+                                   String type,
+                                   boolean content) throws SOAPException {
+        Collection<AssertionInfo> ais = aim.get(name);
+        if (ais != null) {
+            for (AssertionInfo ai : ais) {
+                ai.setAsserted(true);
+                Map<String, String> namespaces = null;
+                List<String> xpaths = null;
+                if (content) {
+                    ContentEncryptedElements p = (ContentEncryptedElements)ai.getAssertion();
+                    namespaces = p.getDeclaredNamespaces();
+                    xpaths = p.getXPathExpressions();
+                } else {
+                    SignedEncryptedElements p = (SignedEncryptedElements)ai.getAssertion();
+                    namespaces = p.getDeclaredNamespaces();
+                    xpaths = p.getXPathExpressions();
+                }
+                if (xpaths != null) {
+                    XPathFactory factory = XPathFactory.newInstance();
+                    for (String expression : xpaths) {
+                        XPath xpath = factory.newXPath();
+                        if (namespaces != null) {
+                            xpath.setNamespaceContext(new MapNamespaceContext(namespaces));
+                        }
+                        try {
+                            NodeList list = (NodeList)xpath.evaluate(expression, 
+                                                                     doc.getSOAPPart().getEnvelope(),
+                                                                     XPathConstants.NODESET);
+                            boolean found = list.getLength() == 0;
+                            for (int x = 0; x < list.getLength(); x++) {
+                                Element el = (Element)list.item(x);
+                                for (WSDataRef r : refs) {
+                                    if (r.getProtectedElement() == el
+                                        && r.isContent() == content) {
+                                        found = true;
+                                    }
+                                }
+                            }
+                            if (!found && "signed".equals(type)) {
+                                for (int x = 0; x < list.getLength(); x++) {
+                                    Element el = (Element)list.item(x);
+                                    
+                                    Attr idAttr = el.getAttributeNodeNS(PolicyConstants.WSU_NAMESPACE_URI,
+                                                                   "Id");
+                                    if (idAttr == null) {
+                                        idAttr = el.getAttributeNode("Id");
+                                    }
+                                    String id = idAttr == null ? null : idAttr.getValue();
+
+                                    for (WSDataRef r : refs) {
+                                        if (r.getName().equals(new QName(el.getNamespaceURI(),
+                                                                     el.getLocalName()))
+                                            && r.getWsuId() != null
+                                            && (r.getWsuId().equals(id)
+                                             || r.getWsuId().equals("#" + id))) {
+                                            found = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!found) {
+                                ai.setNotAsserted("No " + type 
+                                                  + " element found matching XPath " + expression);
+                            }
+                        } catch (Exception ex) {
+                            //REVISIT
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean contains(Collection<WSDataRef> refs, QName qn) {
+        for (WSDataRef r : refs) {
+            if (r.getName().equals(qn)) {
+                return true;
+            }
+        }
+        return false;
+    }
     private void assertTokens(AssertionInfoMap aim, 
                               QName name, 
-                              Collection<QName> signed,
+                              Collection<WSDataRef> signed,
                               SoapMessage msg,
                               SOAPMessage doc,
                               String type) throws SOAPException {
@@ -291,12 +389,12 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
             for (AssertionInfo ai : ais) {
                 ai.setAsserted(true);
                 SignedEncryptedParts p = (SignedEncryptedParts)ai.getAssertion();
-                if (p.isBody() && !signed.contains(msg.getVersion().getBody())) {
+                if (p.isBody() && !contains(signed, msg.getVersion().getBody())) {
                     ai.setNotAsserted(msg.getVersion().getBody() + " not " + type);
                     return;
                 }
                 for (Header h : p.getHeaders()) {
-                    if (!signed.contains(h.getQName())) {
+                    if (!contains(signed, h.getQName())) {
                         boolean found = false;
                         Element nd = DOMUtils.getFirstElement(doc.getSOAPHeader());
                         while (nd != null && !found) {
@@ -389,8 +487,8 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
     protected void doResults(SoapMessage msg, String actor, 
                              SOAPMessage doc, Vector results) throws SOAPException, XMLStreamException {
         AssertionInfoMap aim = msg.get(AssertionInfoMap.class);
-        Collection<QName> signed = new HashSet<QName>();
-        Collection<QName> encrypted = new HashSet<QName>();
+        Collection<WSDataRef> signed = new HashSet<WSDataRef>();
+        Collection<WSDataRef> encrypted = new HashSet<WSDataRef>();
         boolean hasDerivedKeys = false;
         boolean hasEndorsement = false;
         Protections prots = Protections.NONE;
@@ -411,7 +509,7 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
                         break;
                     }
                     for (WSDataRef r : sl) {
-                        signed.add(r.getName());
+                        signed.add(r);
                     }
                     prots = addSign(prots);
                 }
@@ -421,7 +519,7 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
                                                        .get(WSSecurityEngineResult.TAG_DATA_REF_URIS));
                 if (el != null) {
                     for (WSDataRef r : el) {
-                        encrypted.add(r.getName());
+                        encrypted.add(r);
                     }
                     prots = addEncrypt(prots);
                 }
@@ -444,8 +542,14 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
             }                        
         }
         assertTokens(aim, SP12Constants.SIGNED_PARTS, signed, msg, doc, "signed");
-        assertTokens(aim, SP12Constants.ENCRYPTED_PARTS, signed, msg, doc, "encrypted");
+        assertTokens(aim, SP12Constants.ENCRYPTED_PARTS, encrypted, msg, doc, "encrypted");
+        assertXPathTokens(aim, SP12Constants.SIGNED_ELEMENTS, signed, msg, doc, "signed", false);
+        assertXPathTokens(aim, SP12Constants.ENCRYPTED_ELEMENTS, encrypted, msg, doc, "encrypted", false);
+        assertXPathTokens(aim, SP12Constants.CONTENT_ENCRYPTED_ELEMENTS, encrypted, msg,
+                          doc, "encrypted", true);
         
+        assertHeadersExists(aim, msg, doc);
+
         assertAsymetricBinding(aim, msg, doc, prots, hasDerivedKeys);
         assertSymetricBinding(aim, msg, doc, prots, hasDerivedKeys);
         assertTransportBinding(aim);
@@ -465,6 +569,51 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
         
         super.doResults(msg, actor, doc, results);
     }
+    private void assertHeadersExists(AssertionInfoMap aim, SoapMessage msg, SOAPMessage doc) 
+        throws SOAPException {
+        
+        SOAPHeader header = doc.getSOAPHeader();
+        Collection<AssertionInfo> ais = aim.get(SP12Constants.REQUIRED_PARTS);
+        if (ais != null) {
+            for (AssertionInfo ai : ais) {
+                RequiredParts rp = (RequiredParts)ai.getAssertion();
+                ai.setAsserted(true);
+                for (Header h : rp.getHeaders()) {
+                    if (header == null || !header.getChildElements(h.getQName()).hasNext()) {
+                        ai.setNotAsserted("No header element of name " + h.getQName() + " found.");
+                    }
+                }
+            }
+        }
+        ais = aim.get(SP12Constants.REQUIRED_ELEMENTS);
+        if (ais != null) {
+            for (AssertionInfo ai : ais) {
+                RequiredElements rp = (RequiredElements)ai.getAssertion();
+                ai.setAsserted(true);
+                Map<String, String> namespaces = rp.getDeclaredNamespaces();
+                XPathFactory factory = XPathFactory.newInstance();
+                for (String expression : rp.getXPathExpressions()) {
+                    XPath xpath = factory.newXPath();
+                    if (namespaces != null) {
+                        xpath.setNamespaceContext(new MapNamespaceContext(namespaces));
+                    }
+                    NodeList list;
+                    try {
+                        list = (NodeList)xpath.evaluate(expression, 
+                                                                 header,
+                                                                 XPathConstants.NODESET);
+                        if (list.getLength() == 0) {
+                            ai.setNotAsserted("No header element matching XPath " + expression + " found.");
+                        }
+                    } catch (XPathExpressionException e) {
+                        ai.setNotAsserted("Invalid XPath expression " + expression + " " + e.getMessage());
+                    }
+                }
+            }
+        }
+        
+    }
+
     private boolean assertSymetricBinding(AssertionInfoMap aim, 
                                            SoapMessage message,
                                            SOAPMessage doc,
@@ -512,7 +661,7 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
                                            Protections prots,
                                            boolean derived) {
         Collection<AssertionInfo> ais = aim.get(SP12Constants.ASYMMETRIC_BINDING);
-        if (ais == null) {
+        if (ais == null) {                       
             return true;
         }
         for (AssertionInfo ai : ais) {

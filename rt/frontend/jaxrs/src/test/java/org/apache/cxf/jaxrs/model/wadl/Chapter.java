@@ -20,10 +20,16 @@ package org.apache.cxf.jaxrs.model.wadl;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
+@XmlRootElement(name = "thechapter", namespace = "http://superbooks")
+@XmlType(name = "chapter", namespace = "http://superbooks")
 public class Chapter {
 
     private int id;
+    public Chapter() {
+    }
     public Chapter(int id) {
         this.id = id;
     }
@@ -34,6 +40,8 @@ public class Chapter {
         return id;
     }
     
-    
+    public void setId(int ident) {
+        id = ident;
+    }
 
 }

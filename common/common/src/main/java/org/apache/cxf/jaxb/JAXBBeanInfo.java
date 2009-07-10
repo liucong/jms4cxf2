@@ -17,38 +17,20 @@
  * under the License.
  */
 
-package org.apache.cxf.jaxrs.resources;
+package org.apache.cxf.jaxb;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Collection;
 
-@XmlRootElement
-public class TagVO {
-    private String name;
-    private String group;
-    
-    public TagVO() { 
-        
-    }
-    
-    public TagVO(String name, String group) {
-        this.name = name;
-        this.group = group;
-    }
-    
-    public void setName(String n) {
-        this.name = n;
-    }
-    
-    public void setGroup(String g) {
-        this.group = g;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public String getGroup() {
-        return group;
-    }
-    
+import javax.xml.namespace.QName;
+
+public interface JAXBBeanInfo {
+
+    boolean isElement();
+
+    Collection<QName> getTypeNames();
+
+    String getElementNamespaceURI(Object object);
+
+    String getElementLocalName(Object object);
+
 }

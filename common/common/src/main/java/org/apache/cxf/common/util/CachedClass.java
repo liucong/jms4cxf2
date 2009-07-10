@@ -16,39 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.cxf.common.util;
 
-package org.apache.cxf.jaxrs.resources;
+import java.lang.ref.WeakReference;
 
-import javax.xml.bind.annotation.XmlRootElement;
+public class CachedClass {
+    private WeakReference<Class<?>> cachedClass;
 
-@XmlRootElement
-public class TagVO {
-    private String name;
-    private String group;
-    
-    public TagVO() { 
-        
+    public CachedClass(Class<?> cachedClass) {
+        this.cachedClass = new WeakReference<Class<?>>(cachedClass);
     }
-    
-    public TagVO(String name, String group) {
-        this.name = name;
-        this.group = group;
+
+    public Class<?> getCachedClass() {
+        return cachedClass == null ? null : cachedClass.get();
     }
-    
-    public void setName(String n) {
-        this.name = n;
+
+    public void setCachedClass(Class<?> cachedClass) {
+        this.cachedClass = new WeakReference<Class<?>>(cachedClass);
     }
-    
-    public void setGroup(String g) {
-        this.group = g;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public String getGroup() {
-        return group;
-    }
-    
 }
