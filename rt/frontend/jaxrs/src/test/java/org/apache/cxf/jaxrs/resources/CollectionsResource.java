@@ -16,13 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package demo.hw.server;
+package org.apache.cxf.jaxrs.resources;
 
-import org.w3c.dom.Document;
+import java.util.List;
 
-public interface HelloWorld {
+import javax.ws.rs.GET;
+
+import javax.ws.rs.POST;
+
+public class CollectionsResource {
+    @GET
+    public List<Book> getBooks() {
+        return null;
+    }
     
-    String sayHi(String text);
-    public Document getADocument();
+    @GET
+    public List<TagVO2> getTags() {
+        return null;
+    }
+    
+    @GET
+    public Book[] getBooksArray() {
+        return null;
+    }
+    
+    @POST
+    public void setBooks(List<Book> books) {
+    }
+    
+    @POST
+    public void setTags(List<TagVO2> tags) {
+    }
+    
+    @POST
+    public void setTagsArray(TagVO2[] tags) {
+    }
 }
-

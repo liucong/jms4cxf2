@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package demo.hw.server;
+
+package org.apache.cxf.aegis.services;
 
 import org.w3c.dom.Document;
 
-public interface HelloWorld {
-    
-    String sayHi(String text);
-    public Document getADocument();
+public interface IDocumentService {
+    Document returnDocument();
+    BeanWithDOM getBeanWithDOM();
+    String simpleStringReturn(); // purposes of comparison
 }
-
