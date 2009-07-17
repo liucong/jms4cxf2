@@ -106,23 +106,6 @@
     	<xs:attribute name="SOAPJMSRequestURI" type="xs:string"/>
     </xs:complexType>
     
-    <!-- 
-    <xs:complexType name="SOAPOverJMSMessageType">
-    	<xs:annotation>
-    		<xs:documentation>SOAP Over JMS Message Properties</xs:documentation>
-    	</xs:annotation>
-    	<xs:sequence>
-    		<xs:element name="property" type="jms:JMSPropertyType" minOccurs="0" maxOccurs="unbounded"/>
-    	</xs:sequence>
-    	<xs:attribute name="SOAPJMSTargetService" type="xs:string"/>
-    	<xs:attribute name="SOAPJMSBindingVersion" type="xs:string"/>
-    	<xs:attribute name="SOAPJMSContentType" type="xs:string"/>
-    	<xs:attribute name="SOAPJMSSOAPAction" type="xs:anyURI"/>
-    	<xs:attribute name="SOAPJMSIsFault" type="xs:boolean"/>
-    	<xs:attribute name="SOAPJMSRequestURI" type="xs:string"/>
-    </xs:complexType>
-     -->
-    
     <xs:simpleType name="JMSClientReceiveTimeOut">
         <xs:restriction base="xs:long"/>
     </xs:simpleType>
