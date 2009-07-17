@@ -96,7 +96,7 @@ public final class JMSFactory {
         if (jmsConfig.getReceiveTimeout() != null) {
             jmsTemplate.setReceiveTimeout(jmsConfig.getReceiveTimeout());
         }
-        long timeToLive = (messageProperties != null && messageProperties.isSetTimeToLive())
+/*        long timeToLive = (messageProperties != null && messageProperties.isSetTimeToLive())
             ? messageProperties.getTimeToLive() : jmsConfig.getTimeToLive();
         jmsTemplate.setTimeToLive(timeToLive);
         int priority = (messageProperties != null && messageProperties.isSetJMSPriority())
@@ -104,7 +104,7 @@ public final class JMSFactory {
         jmsTemplate.setPriority(priority);
         int deliveryMode = (messageProperties != null && messageProperties.isSetJMSDeliveryMode())
             ? messageProperties.getJMSDeliveryMode() : jmsConfig.getDeliveryMode();
-        jmsTemplate.setDeliveryMode(deliveryMode);
+        jmsTemplate.setDeliveryMode(deliveryMode);*/
         jmsTemplate.setExplicitQosEnabled(jmsConfig.isExplicitQosEnabled());
         jmsTemplate.setSessionTransacted(jmsConfig.isSessionTransacted());
         if (jmsConfig.getDestinationResolver() != null) {
