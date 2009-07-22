@@ -19,13 +19,19 @@
 
 package org.apache.cxf.transport.jms.spec.util;
 
-import javax.jms.Destination;
+import javax.jms.DeliveryMode;
 import javax.jms.MessageListener;
 
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
-import org.springframework.jms.core.JmsTemplate;
+import org.apache.cxf.transport.jms.JMSOldConfigHolder;
+import org.apache.cxf.transport.jms.JNDIConfiguration;
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
+import org.apache.cxf.transport.jms.uri.JMSURIConstants;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.support.destination.JndiDestinationResolver;
+import org.springframework.jndi.JndiTemplate;
 
 /**
  * 
@@ -35,71 +41,68 @@ public final class JMSTestUtil {
     private JMSTestUtil() {
     }
 
-    public static DefaultMessageListenerContainer createJmsListener(
-                                                                    JMSConfiguration jmsConfig,
-                                                                    MessageListener listenerHandler,
-                                                                    String destinationName,
-                                                                    String messageSelectorPrefix,
-                                                                    boolean userCID) {
-        DefaultMessageListenerContainer jmsListener = new DefaultMessageListenerContainer();
-        jmsListener.setConcurrentConsumers(1);
-        jmsListener.setMaxConcurrentConsumers(jmsConfig.getMaxConcurrentConsumers());
-        jmsListener.setPubSubDomain(jmsConfig.isPubSubDomain());
-        jmsListener.setPubSubNoLocal(jmsConfig.isPubSubNoLocal());
-        jmsListener.setAutoStartup(true);
-        jmsListener.setConnectionFactory(jmsConfig.getOrCreateWrappedConnectionFactory());
-        jmsListener.setMessageSelector(jmsConfig.getMessageSelector());
-        // jmsListener.setSubscriptionDurable(jmsConfig.isSubscriptionDurable());
-        jmsListener.setDurableSubscriptionName(jmsConfig.getDurableSubscriptionName());
-        jmsListener.setSessionTransacted(jmsConfig.isSessionTransacted());
-        jmsListener.setTransactionManager(jmsConfig.getTransactionManager());
-        jmsListener.setMessageListener(listenerHandler);
-        if (jmsConfig.getReceiveTimeout() != null) {
-            jmsListener.setReceiveTimeout(jmsConfig.getReceiveTimeout());
-        }
-        if (jmsConfig.getRecoveryInterval() != JMSConfiguration.DEFAULT_VALUE) {
-            jmsListener.setRecoveryInterval(jmsConfig.getRecoveryInterval());
-        }
-        if (jmsConfig.getCacheLevelName() != null
-            && (jmsConfig.getCacheLevelName().trim().length() > 0)) {
-            jmsListener.setCacheLevelName(jmsConfig.getCacheLevelName());
-        } else if (jmsConfig.getCacheLevel() != JMSConfiguration.DEFAULT_VALUE) {
-            jmsListener.setCacheLevel(jmsConfig.getCacheLevel());
-        }
-        if (jmsListener.getCacheLevel() >= DefaultMessageListenerContainer.CACHE_CONSUMER
-            && jmsConfig.getMaxSuspendedContinuations() > 0) {
-            LOG
-                .info("maxSuspendedContinuations value will be ignored - "
-                      + ", please set cacheLevel to the value less than "
-                      + " org.springframework.jms.listener.DefaultMessageListenerContainer.CACHE_CONSUMER");
-        }
-        if (jmsConfig.isAcceptMessagesWhileStopping()) {
-            jmsListener.setAcceptMessagesWhileStopping(jmsConfig.isAcceptMessagesWhileStopping());
-        }
-        String staticSelectorPrefix = jmsConfig.getConduitSelectorPrefix();
-        if (!userCID && messageSelectorPrefix != null && jmsConfig.isUseConduitIdSelector()) {
-            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" + staticSelectorPrefix
-                                           + messageSelectorPrefix + "%'");
-        } else if (staticSelectorPrefix.length() > 0) {
-            jmsListener.setMessageSelector("JMSCorrelationID LIKE '" + staticSelectorPrefix + "%'");
-        }
-        if (jmsConfig.getDestinationResolver() != null) {
-            jmsListener.setDestinationResolver(jmsConfig.getDestinationResolver());
-        }
-        if (jmsConfig.getTaskExecutor() != null) {
-            jmsListener.setTaskExecutor(jmsConfig.getTaskExecutor());
+    private static JMSConfiguration getInitJMSConfiguration(String address) throws Exception {
+        JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
+
+        JMSConfiguration jmsConfig = new JMSConfiguration();
+
+        if (endpoint.isSetDeliveryMode()) {
+            int deliveryMode = endpoint.getDeliveryMode()
+                .equals(JMSURIConstants.DELIVERYMODE_PERSISTENT)
+                ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
+            jmsConfig.setDeliveryMode(deliveryMode);
         }
 
-        if (jmsConfig.isAutoResolveDestination()) {
-            jmsListener.setDestinationName(destinationName);
-        } else {
-            JmsTemplate jmsTemplate = createJmsTemplate(jmsConfig, null);
-            Destination dest = JMSFactory.resolveOrCreateDestination(jmsTemplate, destinationName,
-                                                                     jmsConfig.isPubSubDomain());
-            jmsListener.setDestination(dest);
+        if (endpoint.isSetPriority()) {
+            int priority = endpoint.getPriority();
+            jmsConfig.setPriority(priority);
         }
-        jmsListener.initialize();
-        return jmsListener;
+
+        if (endpoint.isSetTimeToLive()) {
+            long timeToLive = endpoint.getTimeToLive();
+            jmsConfig.setTimeToLive(timeToLive);
+        }
+
+        if (jmsConfig.isUsingEndpointInfo()) {
+            JndiTemplate jt = new JndiTemplate();
+            jt.setEnvironment(JMSOldConfigHolder.getInitialContextEnv(endpoint));
+            boolean pubSubDomain = false;
+            pubSubDomain = endpoint.getJmsVariant().equals(JMSURIConstants.TOPIC);
+            JNDIConfiguration jndiConfig = new JNDIConfiguration();
+            jndiConfig.setJndiConnectionFactoryName(endpoint.getJndiConnectionFactoryName());
+            jmsConfig.setJndiTemplate(jt);
+            jmsConfig.setJndiConfig(jndiConfig);
+            jmsConfig.setExplicitQosEnabled(true);
+            jmsConfig.setPubSubDomain(pubSubDomain);
+            jmsConfig.setPubSubNoLocal(true);
+            boolean useJndi = endpoint.getJmsVariant().equals(JMSURIConstants.JNDI);
+            if (useJndi) {
+                // Setup Destination jndi destination resolver
+                final JndiDestinationResolver jndiDestinationResolver = new JndiDestinationResolver();
+                jndiDestinationResolver.setJndiTemplate(jt);
+                jmsConfig.setDestinationResolver(jndiDestinationResolver);
+                jmsConfig.setTargetDestination(endpoint.getDestinationName());
+                jmsConfig.setReplyDestination(endpoint.getReplyToName());
+            } else {
+                // Use the default dynamic destination resolver
+                jmsConfig.setTargetDestination(endpoint.getDestinationName());
+                jmsConfig.setReplyDestination(endpoint.getReplyToName());
+            }
+        }
+        return jmsConfig;
     }
 
+    public static DefaultMessageListenerContainer createJmsListener(
+                                                                    String address,
+                                                                    MessageListener listenerHandler,
+                                                                    String destinationName) {
+        JMSConfiguration jmsConfig = null;
+        try {
+            jmsConfig = getInitJMSConfiguration(address);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JMSFactory.createJmsListener(jmsConfig, listenerHandler,
+                                            destinationName, null, false);
+    }
 }
