@@ -469,7 +469,7 @@ public class JMSOldConfigHolder {
         return null;
     }
     
-    private static Properties getInitialContextEnv(JMSEndpoint endpoint) {
+    public static Properties getInitialContextEnv(JMSEndpoint endpoint) {
         Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
         env.put(Context.PROVIDER_URL, endpoint.getJndiURL());
