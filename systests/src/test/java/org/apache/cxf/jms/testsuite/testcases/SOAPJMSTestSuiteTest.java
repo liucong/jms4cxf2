@@ -21,15 +21,18 @@ package org.apache.cxf.jms.testsuite.testcases;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.jms.JMSException;
 import javax.jms.MessageListener;
 import javax.xml.namespace.QName;
 
 import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.jms_testsuite.JMSTestSuitePortType;
 import org.apache.cxf.jms_testsuite.JMSTestSuiteService;
-import org.apache.cxf.transport.jms.AbstractJMSTester;
-import org.apache.cxf.transport.jms.JMSBrokerSetup;
+import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
+import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,11 +41,19 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 /**
  * 
  */
-public class SOAPJMSTestSuiteTest extends AbstractJMSTester {
+public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
 
     @BeforeClass
-    public static void createAndStartBroker() throws Exception {
-        startBroker(new JMSBrokerSetup("tcp://localhost:61500"));
+    public static void startServers() throws Exception {
+        Map<String, String> props = new HashMap<String, String>();                
+        if (System.getProperty("activemq.store.dir") != null) {
+            props.put("activemq.store.dir", System.getProperty("activemq.store.dir"));
+        }
+        props.put("java.util.logging.config.file", 
+                  System.getProperty("java.util.logging.config.file"));
+        
+        assertTrue("server did not launch correctly", 
+                   launchServer(EmbeddedJMSBrokerLauncher.class, props, null));
     }
 
     public URL getWSDLURL(String s) throws Exception {
@@ -89,7 +100,13 @@ public class SOAPJMSTestSuiteTest extends AbstractJMSTester {
 
     private class MessageTest implements MessageListener {
         public void onMessage(javax.jms.Message message) {
-            System.out.println("test ok");
+            try {
+                assertEquals(message.getJMSDeliveryMode(), 1);
+                assertEquals(message.getJMSPriority(), 4);
+                
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -30,12 +30,15 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.cxf.transport.jms.AbstractJMSTester;
+import org.apache.cxf.transport.jms.JMSBrokerSetup;
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
 import org.apache.cxf.transport.jms.JMSOldConfigHolder;
@@ -51,9 +54,9 @@ import org.springframework.jndi.JndiTemplate;
 /**
  * 
  */
-public final class JMSTestUtil {
+public final class CopyOfJMSTestUtil {
 
-    private JMSTestUtil() {
+    private CopyOfJMSTestUtil() {
     }
 
     public static void createSession(String address) throws Exception {
@@ -95,6 +98,7 @@ public final class JMSTestUtil {
         try {
             connection = connectionFactory.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Queue queue = session.createQueue(endpoint.getDestinationName());
             JmsTemplate jmsTemplate = JMSFactory
                 .createJmsTemplate(getInitJMSConfiguration(address), null);
             Destination dest = JMSFactory.resolveOrCreateDestination(jmsTemplate, endpoint
@@ -122,7 +126,7 @@ public final class JMSTestUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        //AbstractJMSTester.startBroker(new JMSBrokerSetup("tcp://localhost:61500"));
+        AbstractJMSTester.startBroker(new JMSBrokerSetup("tcp://localhost:61500"));
 
         String destinationName = "dynamicQueues/testqueue";
         String address = "jms:jndi:"
