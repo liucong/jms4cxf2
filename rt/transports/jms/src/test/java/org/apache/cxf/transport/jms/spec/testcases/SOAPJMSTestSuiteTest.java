@@ -19,8 +19,14 @@
 
 package org.apache.cxf.transport.jms.spec.testcases;
 
-import javax.jms.MessageListener;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URL;
 
+import javax.jms.MessageListener;
+import javax.xml.namespace.QName;
+
+import org.apache.cxf.jms_testsuite.JMSTestSuitePortType;
+import org.apache.cxf.jms_testsuite.JMSTestSuiteService;
 import org.apache.cxf.transport.jms.AbstractJMSTester;
 import org.apache.cxf.transport.jms.JMSBrokerSetup;
 import org.apache.cxf.transport.jms.spec.util.JMSTestUtil;
@@ -33,12 +39,24 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
  * 
  */
 public class SOAPJMSTestSuiteTest extends AbstractJMSTester {
-    
+
     @BeforeClass
     public static void createAndStartBroker() throws Exception {
         startBroker(new JMSBrokerSetup("tcp://localhost:61500"));
     }
-    
+
+    public URL getWSDLURL(String s) throws Exception {
+        return getClass().getResource(s);
+    }
+
+    public QName getServiceName(QName q) {
+        return q;
+    }
+
+    public QName getPortName(QName q) {
+        return q;
+    }
+
     @Test
     public void test0001() throws Exception {
         String destinationName = "dynamicQueues/testqueue";
@@ -50,8 +68,23 @@ public class SOAPJMSTestSuiteTest extends AbstractJMSTester {
 
         DefaultMessageListenerContainer jmsListener = JMSTestUtil
             .createJmsListener(address, new MessageTest(), destinationName);
-        
-        
+
+        QName serviceName = getServiceName(new QName("http://cxf.apache.org/jms_testsuite",
+                                                     "JMSTestSuiteService"));
+        QName portName = getPortName(new QName("http://cxf.apache.org/jms_testsuite",
+                                               "TestSuitePort"));
+        URL wsdl = getWSDLURL("/wsdl/jms_spec_testsuite.wsdl");
+        assertNotNull(wsdl);
+
+        JMSTestSuiteService service = new JMSTestSuiteService(wsdl, serviceName);
+        assertNotNull(service);
+
+        try {
+            JMSTestSuitePortType test = service.getPort(portName, JMSTestSuitePortType.class);
+            test.greetMeOneWay("test String");
+        } catch (UndeclaredThrowableException ex) {
+            throw (Exception)ex.getCause();
+        }
     }
 
     private class MessageTest implements MessageListener {
