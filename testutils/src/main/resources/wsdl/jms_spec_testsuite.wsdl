@@ -81,7 +81,7 @@
 
     <wsdl:service name="JMSSimpleService">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
-            <soap:address location="jms:jndi:dynamicQueues/testqueue?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

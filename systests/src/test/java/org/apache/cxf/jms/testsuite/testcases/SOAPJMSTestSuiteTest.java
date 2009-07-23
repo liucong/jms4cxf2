@@ -42,6 +42,7 @@ import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 /**
  * 
  */
@@ -92,7 +93,9 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
             assertEquals(message.getJMSExpiration(), messageProperties.getExpiration().intValue());
         }
         if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
-            assertEquals(message.getJMSReplyTo().toString(), messageProperties.getReplyTo());
+            String replyTo = message.getJMSReplyTo().toString();
+            int i = replyTo.indexOf(messageProperties.getReplyTo());
+            assertTrue(i >= 0);
         }
         if (messageProperties.isSetCorrelationID()
             && !messageProperties.getCorrelationID().trim().equals("")) {
@@ -132,14 +135,15 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
         if (messageProperties.isSetRequestURI()
             && !messageProperties.getRequestURI().trim().equals("")) {
             assertEquals(message.getStringProperty(JMSSpecConstants.REQUESTURI_FIELD),
-                         messageProperties.getRequestURI());
+                         messageProperties.getRequestURI().trim());
         }
         // todo messagebody
     }
 
     @Test
     public void test0001() throws Exception {
-        String destinationName = "dynamicQueues/testqueue";
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0001");
+        String destinationName = testcase.getDestinationName();
         String address = "jms:jndi:"
                          + destinationName
                          + "?jndiInitialContextFactory"
@@ -148,13 +152,38 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
         Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
-        JMSSimplePortType test = getPort("JMSSimpleService", "SimplePort",
-                                            JMSSimpleService.class, JMSSimplePortType.class);
+        JMSSimplePortType test = getPort("JMSSimpleService", "SimplePort", JMSSimpleService.class,
+                                         JMSSimplePortType.class);
         test.ping("test");
 
         Message message = jmsTemplate.receive(dest);
-
-        TestCaseType testcase = JMSTestUtil.getTestCase("test0001");
         checkJMSProperties(message, testcase.getRequestMessage(), true);
+    }
+
+    @Test
+    public void test0002() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0002");
+        String destinationName = testcase.getDestinationName();
+        String address = "jms:jndi:"
+                         + destinationName
+                         + "?jndiInitialContextFactory"
+                         + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+        JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
+        Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
+
+        final JMSSimplePortType test = getPort("JMSSimpleService", "SimplePort",
+                                               JMSSimpleService.class, JMSSimplePortType.class);
+        Thread serviceThread = new Thread() {
+            public void run() {
+                test.echo("test");
+            }
+        };
+        serviceThread.start();
+
+        Message message = jmsTemplate.receive(dest);
+        checkJMSProperties(message, testcase.getRequestMessage(), false);
+        
+        serviceThread.interrupt();
     }
 }
