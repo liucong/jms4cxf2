@@ -25,7 +25,11 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
 
+import org.apache.cxf.testsuite.testcase.TestCasesType;
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
 import org.apache.cxf.transport.jms.JMSOldConfigHolder;
@@ -64,6 +68,20 @@ public final class JMSTestUtil {
         } catch (JMSException e) {
             System.out.println("Exception occurred: " + e.toString());
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        loadTestCases();
+    }
+    
+    public static void loadTestCases() throws Exception {
+        JAXBContext context = JAXBContext.newInstance("org.apache.cxf.testsuite.testcase");
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        JAXBElement e = (JAXBElement)unmarshaller.unmarshal(new JMSTestUtil().getClass()
+            .getResource("/org/apache/cxf/jms/testsuite/util/testcases.xml"));
+        TestCasesType tct = (TestCasesType)e.getValue();
+        System.out.println(tct.getTestCase().size());
+        System.out.println(tct.getTestCase().get(0).getRequestMessage());
     }
 
     public static JmsTemplate getJmsTemplate(String address) throws Exception {
