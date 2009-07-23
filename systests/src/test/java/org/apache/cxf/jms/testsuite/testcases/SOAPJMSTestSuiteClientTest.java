@@ -32,11 +32,11 @@ import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
-import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.jms.core.JmsTemplate;
 /**
  * 
  */
