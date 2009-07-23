@@ -19,25 +19,26 @@
 
 package org.apache.cxf.jms.testsuite.testcases;
 
-import java.lang.reflect.UndeclaredThrowableException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jms.JMSException;
-import javax.jms.MessageListener;
+import javax.jms.Destination;
+import javax.jms.Message;
 import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
 
 import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.jms_testsuite.JMSTestSuitePortType;
 import org.apache.cxf.jms_testsuite.JMSTestSuiteService;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
 /**
  * 
  */
@@ -45,27 +46,31 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
 
     @BeforeClass
     public static void startServers() throws Exception {
-        Map<String, String> props = new HashMap<String, String>();                
+        Map<String, String> props = new HashMap<String, String>();
         if (System.getProperty("activemq.store.dir") != null) {
             props.put("activemq.store.dir", System.getProperty("activemq.store.dir"));
         }
-        props.put("java.util.logging.config.file", 
-                  System.getProperty("java.util.logging.config.file"));
-        
-        assertTrue("server did not launch correctly", 
-                   launchServer(EmbeddedJMSBrokerLauncher.class, props, null));
+        props.put("java.util.logging.config.file", System
+            .getProperty("java.util.logging.config.file"));
+
+        assertTrue("server did not launch correctly", launchServer(EmbeddedJMSBrokerLauncher.class,
+                                                                   props, null));
     }
 
-    public URL getWSDLURL(String s) throws Exception {
-        return getClass().getResource(s);
-    }
+    public <T1, T2> T2 getPort(String serviceName, String portName, Class<T1> serviceClass,
+                               Class<T2> portTypeClass) throws Exception {
+        QName qServiceName = new QName("http://cxf.apache.org/jms_testsuite", "JMSTestSuiteService");
+        QName qPortName = new QName("http://cxf.apache.org/jms_testsuite", "TestSuitePort");
+        URL wsdl = getClass().getResource("/wsdl/jms_spec_testsuite.wsdl");
 
-    public QName getServiceName(QName q) {
-        return q;
-    }
+        Class<? extends Service> svcls = serviceClass.asSubclass(Service.class);
 
-    public QName getPortName(QName q) {
-        return q;
+        Constructor<? extends Service> serviceConstructor = svcls.getConstructor(URL.class,
+                                                                                 QName.class);
+        Service service = serviceConstructor.newInstance(new Object[] {
+            wsdl, qServiceName
+        });
+        return service.getPort(qPortName, portTypeClass);
     }
 
     @Test
@@ -76,37 +81,20 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
                          + "?jndiInitialContextFactory"
                          + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
                          + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+        JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
+        Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName,
+                                                                 false);
 
-        DefaultMessageListenerContainer jmsListener = JMSTestUtil
-            .createJmsListener(address, new MessageTest(), destinationName);
+        JMSTestSuitePortType test = getPort("JMSTestSuiteService", "TestSuitePort",
+                                            JMSTestSuiteService.class, JMSTestSuitePortType.class);
+        test.greetMeOneWay("test");
 
-        QName serviceName = getServiceName(new QName("http://cxf.apache.org/jms_testsuite",
-                                                     "JMSTestSuiteService"));
-        QName portName = getPortName(new QName("http://cxf.apache.org/jms_testsuite",
-                                               "TestSuitePort"));
-        URL wsdl = getWSDLURL("/wsdl/jms_spec_testsuite.wsdl");
-        assertNotNull(wsdl);
-
-        JMSTestSuiteService service = new JMSTestSuiteService(wsdl, serviceName);
-        assertNotNull(service);
-
-        try {
-            JMSTestSuitePortType test = service.getPort(portName, JMSTestSuitePortType.class);
-            test.greetMeOneWay("test String");
-        } catch (UndeclaredThrowableException ex) {
-            throw (Exception)ex.getCause();
-        }
-    }
-
-    private class MessageTest implements MessageListener {
-        public void onMessage(javax.jms.Message message) {
-            try {
-                assertEquals(message.getJMSDeliveryMode(), 1);
-                assertEquals(message.getJMSPriority(), 4);
-                
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
-        }
+        Message message = jmsTemplate.receive(dest);
+        assertEquals(message.getJMSDeliveryMode(), 2);
+        assertEquals(message.getJMSPriority(), 4);
+        assertEquals(message.getJMSExpiration(), 0);
+        assertEquals(message.getJMSReplyTo(), null);
+        assertEquals(message.getJMSCorrelationID(), null);
+        assertEquals(message.getJMSDestination(), destinationName);
     }
 }

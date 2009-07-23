@@ -19,22 +19,12 @@
 
 package org.apache.cxf.jms.testsuite.util;
 
-import java.util.Properties;
-
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
@@ -44,7 +34,7 @@ import org.apache.cxf.transport.jms.uri.JMSEndpoint;
 import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.apache.cxf.transport.jms.uri.JMSURIConstants;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.support.destination.JndiDestinationResolver;
 import org.springframework.jndi.JndiTemplate;
 
@@ -57,81 +47,32 @@ public final class JMSTestUtil {
     }
 
     public static void createSession(String address) throws Exception {
-        Context jndiContext = null;
-        ConnectionFactory connectionFactory = null;
-        Connection connection = null;
-        Session session = null;
-        MessageProducer producer = null;
-        TextMessage message = null;
-        Destination destination = null;
 
         JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
-
-        Properties environment = new Properties();
-        environment.put(Context.INITIAL_CONTEXT_FACTORY, endpoint.getJndiInitialContextFactory());
-        environment.put(Context.PROVIDER_URL, endpoint.getJndiURL());
         try {
-            jndiContext = new InitialContext(environment);
-        } catch (NamingException e) {
-            System.out.println("Could not create JNDI API " + "context: " + e.toString());
-            System.exit(1);
-        }
-
-        /*
-         * Look up connection factory and queue. If either does not exist, exit.
-         */
-        try {
-            connectionFactory = (ConnectionFactory)jndiContext.lookup(endpoint
-                .getJndiConnectionFactoryName());
-        } catch (NamingException e) {
-            System.out.println("JNDI API lookup failed: " + e.toString());
-            System.exit(1);
-        }
-
-        /*
-         * Create connection. Create session from connection; false means session is not transacted. Create
-         * sender and text message. Send messages, varying text slightly. Finally, close connection.
-         */
-        try {
-            connection = connectionFactory.createConnection();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             JmsTemplate jmsTemplate = JMSFactory
                 .createJmsTemplate(getInitJMSConfiguration(address), null);
             Destination dest = JMSFactory.resolveOrCreateDestination(jmsTemplate, endpoint
                 .getDestinationName(), false);
-            producer = session.createProducer(dest);
-            message = session.createTextMessage();
-            message.setText("This is message " + 1);
-            producer.send(message);
-
-            MessageConsumer consumer = session.createConsumer(dest);
-            Message respMsg = (Message)consumer.receive(300000);
-            System.out.println(respMsg);
+            jmsTemplate.send(dest, new MessageCreator() {
+                public Message createMessage(Session session) throws JMSException {
+                    TextMessage message = session.createTextMessage();
+                    message.setText("This is message " + 1);
+                    return message;
+                }
+            });
         } catch (JMSException e) {
             System.out.println("Exception occurred: " + e.toString());
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (JMSException e) {
-                    System.out.println("test");
-                }
-            }
-            System.exit(0);
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        //AbstractJMSTester.startBroker(new JMSBrokerSetup("tcp://localhost:61500"));
+    public static JmsTemplate getJmsTemplate(String address) throws Exception {
+        return JMSFactory.createJmsTemplate(getInitJMSConfiguration(address), null);
+    }
 
-        String destinationName = "dynamicQueues/testqueue";
-        String address = "jms:jndi:"
-                         + destinationName
-                         + "?jndiInitialContextFactory"
-                         + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
-                         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
-
-        createSession(address);
+    public static Destination getJmsDestination(JmsTemplate jmsTemplate, String destinationName,
+                                                boolean pubSubDomain) {
+        return JMSFactory.resolveOrCreateDestination(jmsTemplate, destinationName, pubSubDomain);
     }
 
     private static JMSConfiguration getInitJMSConfiguration(String address) throws Exception {
@@ -183,19 +124,5 @@ public final class JMSTestUtil {
             }
         }
         return jmsConfig;
-    }
-
-    public static DefaultMessageListenerContainer createJmsListener(
-                                                                    String address,
-                                                                    MessageListener listenerHandler,
-                                                                    String destinationName) {
-        JMSConfiguration jmsConfig = null;
-        try {
-            jmsConfig = getInitJMSConfiguration(address);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return JMSFactory.createJmsListener(jmsConfig, listenerHandler, destinationName, null,
-                                            false);
     }
 }
