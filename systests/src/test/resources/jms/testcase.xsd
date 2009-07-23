@@ -21,6 +21,7 @@
 	<xs:element name="soapAction" type="xs:string"></xs:element>
 	<xs:element name="requestURI" type="xs:string"></xs:element>
 	<xs:element name="messageBody" type="xs:string"></xs:element>
+	<xs:element name="address" type="xs:string"></xs:element>
 
 	<xs:complexType name="testCasesType">
 		<xs:sequence>
@@ -29,16 +30,15 @@
 	</xs:complexType>
 
 	<xs:complexType name="testCaseType">
-		<xs:sequence>
+		<xs:all>
+			<xs:element ref="tns:address"></xs:element>
 			<xs:element ref="tns:requestMessage"></xs:element>
 			<xs:element ref="tns:responseMessage" minOccurs="0"
 				maxOccurs="1">
 			</xs:element>
-		</xs:sequence>
+		</xs:all>
 		<xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
 		<xs:attribute name="mep" type="tns:mepType" use="required"></xs:attribute>
-		<xs:attribute name="destinationName" type="xs:string" use="required"></xs:attribute>
-		<xs:attribute name="replyToName" type="xs:string"></xs:attribute>
 	</xs:complexType>
 
 	<xs:simpleType name="mepType">
@@ -49,7 +49,7 @@
 	</xs:simpleType>
 	
 	<xs:complexType name="messagePropertiesType">
-		<xs:sequence>
+		<xs:all>
 			<xs:element ref="tns:messageType" minOccurs="0" maxOccurs="1"></xs:element>
 			<xs:element ref="tns:deliveryMode" minOccurs="0"
 				maxOccurs="1"></xs:element>
@@ -68,6 +68,6 @@
 			<xs:element ref="tns:soapAction" minOccurs="0" maxOccurs="1"></xs:element>
 			<xs:element ref="tns:requestURI" minOccurs="0" maxOccurs="1"></xs:element>
 			<xs:element ref="tns:messageBody" minOccurs="0" maxOccurs="1"></xs:element>
-		</xs:sequence>
+		</xs:all>
 	</xs:complexType>
 </xs:schema>

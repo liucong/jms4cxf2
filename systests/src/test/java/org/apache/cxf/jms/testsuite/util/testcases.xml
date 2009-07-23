@@ -16,7 +16,8 @@
 		License.
 	-->
 <testCases xmlns="http://cxf.apache.org/jms/testcase/">
-	<testCase id="test0001" mep="inonly" destinationName="dynamicQueues/testqueue0001">
+	<testCase id="test0001" mep="inonly">
+		<address>jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0001</address>
 		<requestMessage>
 			<messageType>byte</messageType>
 			<deliveryMode>2</deliveryMode>
@@ -36,7 +37,8 @@
 		</requestMessage>
 	</testCase>
 	
-	<testCase id="test0002" mep="inout" destinationName="dynamicQueues/testqueue0001" replyToName="dynamicQueues/replyqueue0001">
+	<testCase id="test0002" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0001</address>
 		<requestMessage>
 			<messageType>byte</messageType>
 			<deliveryMode>2</deliveryMode>
