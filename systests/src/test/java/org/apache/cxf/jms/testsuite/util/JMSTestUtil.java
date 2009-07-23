@@ -19,6 +19,10 @@
 
 package org.apache.cxf.jms.testsuite.util;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -29,6 +33,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testsuite.testcase.TestCasesType;
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
@@ -47,11 +52,12 @@ import org.springframework.jndi.JndiTemplate;
  */
 public final class JMSTestUtil {
 
+    private static TestCasesType testcases;
+
     private JMSTestUtil() {
     }
 
     public static void createSession(String address) throws Exception {
-
         JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
         try {
             JmsTemplate jmsTemplate = JMSFactory
@@ -70,18 +76,38 @@ public final class JMSTestUtil {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        loadTestCases();
+    public List<TestCaseType> getTestCases() {
+        try {
+            if (testcases == null) {
+                loadTestCases();
+            }
+            return testcases.getTestCase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<TestCaseType>();
     }
-    
-    public static void loadTestCases() throws Exception {
+
+    public TestCaseType getTestCase(String testId) {
+        if (testId == null) {
+            return null;
+        }
+        Iterator<TestCaseType> iter = getTestCases().iterator();
+        while (iter.hasNext()) {
+            TestCaseType testcase = iter.next();
+            if (testId.equals(testcase.getId())) {
+                return testcase;
+            }
+        }
+        return null;
+    }
+
+    private static void loadTestCases() throws Exception {
         JAXBContext context = JAXBContext.newInstance("org.apache.cxf.testsuite.testcase");
         Unmarshaller unmarshaller = context.createUnmarshaller();
         JAXBElement e = (JAXBElement)unmarshaller.unmarshal(new JMSTestUtil().getClass()
             .getResource("/org/apache/cxf/jms/testsuite/util/testcases.xml"));
-        TestCasesType tct = (TestCasesType)e.getValue();
-        System.out.println(tct.getTestCase().size());
-        System.out.println(tct.getTestCase().get(0).getRequestMessage());
+        testcases = (TestCasesType)e.getValue();
     }
 
     public static JmsTemplate getJmsTemplate(String address) throws Exception {
