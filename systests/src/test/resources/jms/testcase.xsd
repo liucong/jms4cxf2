@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://cxf.apache.org/jms/testcase/"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://cxf.apache.org/jms/testcase/">
+
+	<xs:element name="testCases" type="tns:testCasesType"></xs:element>
+
+	<xs:complexType name="testCasesType">
+		<xs:sequence>
+			<xs:element name="testCase" type="tns:testCaseType"
+				minOccurs="0" maxOccurs="unbounded">
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="testCaseType">
+		<xs:sequence>
+			<xs:element name="requestMessage"
+				type="tns:messagePropertiesType" minOccurs="1" maxOccurs="1">
+			</xs:element>
+			<xs:element name="response" type="tns:messagePropertiesType"
+				minOccurs="0" maxOccurs="1">
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="messagePropertiesType">
+		<xs:sequence>
+			<xs:element name="messageType" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="deliveryMode" type="xs:int" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="priority" type="xs:int" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="expiration" type="xs:int" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="replyTo" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="correlationID" type="xs:string"
+				minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="destination" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="redelivered" type="xs:boolean"
+				minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="bindingVersion" type="xs:string"
+				minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="targetService" type="xs:string"
+				minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="contentType" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="soapAction" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="requestURI" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+			<xs:element name="messageBody" type="xs:string" minOccurs="0"
+				maxOccurs="1"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
