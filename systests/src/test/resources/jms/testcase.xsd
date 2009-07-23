@@ -32,11 +32,20 @@
 		<xs:sequence>
 			<xs:element ref="tns:requestMessage"></xs:element>
 			<xs:element ref="tns:responseMessage" minOccurs="0"
-				maxOccurs="1"></xs:element>
+				maxOccurs="1">
+			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
+		<xs:attribute name="mep" type="tns:mepType" use="required"></xs:attribute>
 	</xs:complexType>
 
+	<xs:simpleType name="mepType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="inonly" />
+			<xs:enumeration value="inout" />
+		</xs:restriction>
+	</xs:simpleType>
+	
 	<xs:complexType name="messagePropertiesType">
 		<xs:sequence>
 			<xs:element ref="tns:messageType" minOccurs="0" maxOccurs="1"></xs:element>

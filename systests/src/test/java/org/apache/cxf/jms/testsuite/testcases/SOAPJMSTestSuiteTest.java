@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
@@ -33,13 +34,14 @@ import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.jms_testsuite.JMSTestSuitePortType;
 import org.apache.cxf.jms_testsuite.JMSTestSuiteService;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
+import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
+import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
+import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.springframework.jms.core.JmsTemplate;
-
 
 /**
  * 
@@ -75,6 +77,66 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
         return service.getPort(qPortName, portTypeClass);
     }
 
+    private void checkJMSProperties(Message message, MessagePropertiesType messageProperties,
+                                    boolean noResponse) throws JMSException {
+        // todo messagetype
+        // todo messageid
+        if (messageProperties.isSetDeliveryMode()) {
+            assertEquals(message.getJMSDeliveryMode(), messageProperties.getDeliveryMode()
+                .intValue());
+        }
+        if (messageProperties.isSetPriority()) {
+            assertEquals(message.getJMSPriority(), messageProperties.getPriority().intValue());
+        }
+        if (messageProperties.isSetExpiration()) {
+            assertEquals(message.getJMSExpiration(), messageProperties.getExpiration().intValue());
+        }
+        if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
+            assertEquals(message.getJMSReplyTo().toString(), messageProperties.getReplyTo());
+        }
+        if (messageProperties.isSetCorrelationID()
+            && !messageProperties.getCorrelationID().trim().equals("")) {
+            assertEquals(message.getJMSCorrelationID(), messageProperties.getCorrelationID());
+        }
+        if (noResponse) {
+            assertEquals(message.getJMSReplyTo(), null);
+            assertEquals(message.getJMSCorrelationID(), null);
+        }
+        if (messageProperties.isSetDestination()
+            && !messageProperties.getDestination().trim().equals("")) {
+            assertEquals(message.getJMSDestination().toString(), messageProperties.getDestination());
+        }
+        if (messageProperties.isSetRedelivered()) {
+            assertEquals(message.getJMSRedelivered(), messageProperties.isRedelivered());
+        }
+        if (messageProperties.isSetBindingVersion()
+            && !messageProperties.getBindingVersion().trim().equals("")) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD),
+                         messageProperties.getBindingVersion());
+        }
+        if (messageProperties.isSetTargetService()
+            && !messageProperties.getTargetService().trim().equals("")) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD),
+                         messageProperties.getTargetService());
+        }
+        if (messageProperties.isSetContentType()
+            && !messageProperties.getContentType().trim().equals("")) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.CONTENTTYPE_FIELD),
+                         messageProperties.getContentType());
+        }
+        if (messageProperties.isSetSoapAction()
+            && !messageProperties.getSoapAction().trim().equals("")) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.SOAPACTION_FIELD),
+                         messageProperties.getSoapAction());
+        }
+        if (messageProperties.isSetRequestURI()
+            && !messageProperties.getRequestURI().trim().equals("")) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.REQUESTURI_FIELD),
+                         messageProperties.getRequestURI());
+        }
+        // todo messagebody
+    }
+
     @Test
     public void test0001() throws Exception {
         String destinationName = "dynamicQueues/testqueue";
@@ -84,19 +146,15 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
                          + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
                          + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
-        Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName,
-                                                                 false);
+        Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
         JMSTestSuitePortType test = getPort("JMSTestSuiteService", "TestSuitePort",
                                             JMSTestSuiteService.class, JMSTestSuitePortType.class);
         test.greetMeOneWay("test");
 
         Message message = jmsTemplate.receive(dest);
-        assertEquals(message.getJMSDeliveryMode(), 2);
-        assertEquals(message.getJMSPriority(), 4);
-        assertEquals(message.getJMSExpiration(), 0);
-        assertEquals(message.getJMSReplyTo(), null);
-        assertEquals(message.getJMSCorrelationID(), null);
-        assertEquals(message.getJMSDestination(), destinationName);
+
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0001");
+        checkJMSProperties(message, testcase.getRequestMessage(), true);
     }
 }

@@ -76,7 +76,7 @@ public final class JMSTestUtil {
         }
     }
 
-    public List<TestCaseType> getTestCases() {
+    public static List<TestCaseType> getTestCases() {
         try {
             if (testcases == null) {
                 loadTestCases();
@@ -88,7 +88,7 @@ public final class JMSTestUtil {
         return new ArrayList<TestCaseType>();
     }
 
-    public TestCaseType getTestCase(String testId) {
+    public static TestCaseType getTestCase(String testId) {
         if (testId == null) {
             return null;
         }

@@ -16,22 +16,22 @@
 		License.
 	-->
 <testCases xmlns="http://cxf.apache.org/jms/testcase/">
-	<testCase id="test0001">
+	<testCase id="test0001" mep="inonly">
 		<requestMessage>
-			<messageType>aa</messageType>
+			<messageType>byte</messageType>
 			<deliveryMode>2</deliveryMode>
 			<priority>4</priority>
 			<expiration>0</expiration>
-			<replyTo>replyTo</replyTo>
-			<correlationID>ids</correlationID>
-			<destination>dest</destination>
+			<replyTo></replyTo>
+			<correlationID></correlationID>
+			<destination>queue://testqueue</destination>
 			<redelivered>false</redelivered>
 			<bindingVersion>1.0</bindingVersion>
-			<targetService>service</targetService>
-			<contentType>contentType</contentType>
-			<soapAction>action</soapAction>
-			<requestURI>uri</requestURI>
-			<messageBody>body</messageBody>
+			<targetService></targetService>
+			<contentType>text/xml; charset=UTF-8</contentType>
+			<soapAction></soapAction>
+			<requestURI>jms:jndi:dynamicQueues/testqueue</requestURI>
+			<messageBody></messageBody>
 		</requestMessage>
 	</testCase>
 	<testCase id="test0002">

@@ -154,10 +154,10 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         
         final javax.jms.Destination replyTo = exchange.isOneWay() ? null : jmsList.getDestination();
 
-        final String correlationId = (headers != null && headers.isSetJMSCorrelationID()) 
-            ? headers.getJMSCorrelationID() 
-            : JMSUtils.createCorrelationId(jmsConfig.getConduitSelectorPrefix() + conduitId, 
-                                           messageCount.incrementAndGet());
+        final String correlationId = exchange.isOneWay() ? null : ((headers != null && headers
+            .isSetJMSCorrelationID()) ? headers.getJMSCorrelationID() : JMSUtils
+            .createCorrelationId(jmsConfig.getConduitSelectorPrefix() + conduitId, messageCount
+                .incrementAndGet()));
             
         MessageCreator messageCreator = new MessageCreator() {
             public javax.jms.Message createMessage(Session session) throws JMSException {
