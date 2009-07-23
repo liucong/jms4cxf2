@@ -93,9 +93,7 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
             assertEquals(message.getJMSExpiration(), messageProperties.getExpiration().intValue());
         }
         if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
-            String replyTo = message.getJMSReplyTo().toString();
-            int i = replyTo.indexOf(messageProperties.getReplyTo());
-            assertTrue(i >= 0);
+            assertEquals(message.getJMSReplyTo().toString(), messageProperties.getReplyTo());
         }
         if (messageProperties.isSetCorrelationID()
             && !messageProperties.getCorrelationID().trim().equals("")) {
@@ -163,12 +161,14 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
     @Test
     public void test0002() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0002");
-        String destinationName = testcase.getDestinationName();
+        String destinationName = testcase.getDestinationName().trim();
+        String replyToName = testcase.getReplyToName().trim();
         String address = "jms:jndi:"
                          + destinationName
                          + "?jndiInitialContextFactory"
                          + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
-                         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500";
+                         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:61500" 
+                         + "&replyToName=" + replyToName;
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
         Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
@@ -185,5 +185,7 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
         checkJMSProperties(message, testcase.getRequestMessage(), false);
         
         serviceThread.interrupt();
+        
+        
     }
 }

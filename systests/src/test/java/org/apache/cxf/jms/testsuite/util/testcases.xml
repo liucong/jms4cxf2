@@ -35,13 +35,14 @@
 			<messageBody></messageBody>
 		</requestMessage>
 	</testCase>
-	<testCase id="test0002" mep="inout" destinationName="dynamicQueues/testqueue0001">
+	
+	<testCase id="test0002" mep="inout" destinationName="dynamicQueues/testqueue0001" replyToName="dynamicQueues/replyqueue0001">
 		<requestMessage>
 			<messageType>byte</messageType>
 			<deliveryMode>2</deliveryMode>
 			<priority>4</priority>
 			<expiration>0</expiration>
-			<replyTo>temp-queue:</replyTo>
+			<replyTo>queue://replyqueue0001</replyTo>
 			<correlationID></correlationID>
 			<destination>queue://testqueue0001</destination>
 			<redelivered>false</redelivered>
@@ -60,13 +61,13 @@
 			<expiration>0</expiration>
 			<replyTo></replyTo>
 			<correlationID>notnull</correlationID>
-			<destination>temp-queue</destination>
+			<destination>queue://replyqueue0001</destination>
 			<redelivered>false</redelivered>
 			<bindingVersion>1.0</bindingVersion>
 			<targetService></targetService>
 			<contentType>text/xml; charset=UTF-8</contentType>
 			<soapAction></soapAction>
-			<requestURI>jms:jndi:dynamicQueues/testqueue0002</requestURI>
+			<requestURI>jms:jndi:dynamicQueues/testqueue0001</requestURI>
 			<messageBody></messageBody>
 		</responseMessage>
 	</testCase>

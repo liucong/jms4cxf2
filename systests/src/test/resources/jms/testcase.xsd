@@ -38,6 +38,7 @@
 		<xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
 		<xs:attribute name="mep" type="tns:mepType" use="required"></xs:attribute>
 		<xs:attribute name="destinationName" type="xs:string" use="required"></xs:attribute>
+		<xs:attribute name="replyToName" type="xs:string"></xs:attribute>
 	</xs:complexType>
 
 	<xs:simpleType name="mepType">
