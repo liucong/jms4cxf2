@@ -38,11 +38,11 @@ import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
-import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.jms.core.JmsTemplate;
 /**
  * 
  */
