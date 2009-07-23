@@ -31,18 +31,17 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
 import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
-import org.apache.cxf.jms_testsuite.JMSTestSuitePortType;
-import org.apache.cxf.jms_testsuite.JMSTestSuiteService;
+import org.apache.cxf.jms_simple.JMSSimplePortType;
+import org.apache.cxf.jms_simple.JMSSimpleService;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
+import org.springframework.jms.core.JmsTemplate;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.springframework.jms.core.JmsTemplate;
 /**
  * 
  */
@@ -63,8 +62,9 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
 
     public <T1, T2> T2 getPort(String serviceName, String portName, Class<T1> serviceClass,
                                Class<T2> portTypeClass) throws Exception {
-        QName qServiceName = new QName("http://cxf.apache.org/jms_testsuite", "JMSTestSuiteService");
-        QName qPortName = new QName("http://cxf.apache.org/jms_testsuite", "TestSuitePort");
+        String namespace = "http://cxf.apache.org/jms_simple";
+        QName qServiceName = new QName(namespace, serviceName);
+        QName qPortName = new QName(namespace, portName);
         URL wsdl = getClass().getResource("/wsdl/jms_spec_testsuite.wsdl");
 
         Class<? extends Service> svcls = serviceClass.asSubclass(Service.class);
@@ -148,9 +148,9 @@ public class SOAPJMSTestSuiteTest extends AbstractBusClientServerTestBase {
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
         Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
-        JMSTestSuitePortType test = getPort("JMSTestSuiteService", "TestSuitePort",
-                                            JMSTestSuiteService.class, JMSTestSuitePortType.class);
-        test.greetMeOneWay("test");
+        JMSSimplePortType test = getPort("JMSSimpleService", "SimplePort",
+                                            JMSSimpleService.class, JMSSimplePortType.class);
+        test.ping("test");
 
         Message message = jmsTemplate.receive(dest);
 
