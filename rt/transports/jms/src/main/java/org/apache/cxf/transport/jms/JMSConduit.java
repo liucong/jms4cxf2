@@ -131,7 +131,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         DefaultMessageListenerContainer jmsList = jmsListener;
         boolean messageIdPattern = false;
         if (!exchange.isOneWay()) {
-            if (!jmsConfig.isSetUseConduitIdSelector()) {
+            if (!jmsConfig.isSetConduitSelectorPrefix() && !jmsConfig.isSetUseConduitIdSelector()) {
                 messageIdPattern = true;
                 jmsList = JMSFactory.createJmsListener(jmsConfig, this, 
                                                        jmsConfig.getReplyDestination(), 
@@ -165,10 +165,9 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             ? headers.getJMSCorrelationID() 
             : JMSUtils.createCorrelationId(jmsConfig.getConduitSelectorPrefix() + conduitId, 
                                            messageCount.incrementAndGet());
-         
+        final boolean isMessageIdPattern = messageIdPattern; 
         class JMSConduitMessageCreator implements MessageCreator {
             private javax.jms.Message jmsMessage;
-            private String correlationId;
 
             public javax.jms.Message createMessage(Session session) throws JMSException {
                 String messageType = jmsConfig.getMessageType();
@@ -183,9 +182,13 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                                                                   jmsConfig.isPubSubDomain());
                     }
                 }
+                String cid = correlationId;
+                if (isMessageIdPattern) {
+                    cid = null;
+                }
                 jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(jmsConfig, outMessage, request,
                                                                     messageType, session, replyToDestination,
-                                                                    correlationId);
+                                                                    cid);
                 LOG.log(Level.FINE, "client sending request: ", jmsMessage);
                 return jmsMessage;
             }
@@ -213,6 +216,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                 String cid = correlationId;
                 if (messageIdPattern) {
                     cid = messageCreator.getMessageID();
+                    correlationMap.put(cid, exchange);
                     jmsList.setMessageSelector("JMSCorrelationID = '" + cid + "'");   
                 }
                 correlationMap.put(cid, exchange);
