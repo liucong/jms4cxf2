@@ -26,10 +26,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
 
 @XmlRootElement(name = "Book")
-public class Book {
+@XmlSeeAlso({SuperBook.class })
+public class Book implements Comparable<Book> {
     private String name;
     private long id;
     private Map<Long, Chapter> chapters = new HashMap<Long, Chapter>();
@@ -80,5 +82,11 @@ public class Book {
         
         return other.name.equals(name) && other.id == id;
         
+    }
+
+    public int compareTo(Book b) {
+        Long i1 = new Long(getId());
+        Long i2 = new Long(b.getId());
+        return i1.compareTo(i2);
     }
 }

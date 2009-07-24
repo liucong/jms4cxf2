@@ -18,15 +18,37 @@
  */
 package org.apache.cxf.jaxrs.resources;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.GET;
-
 import javax.ws.rs.POST;
+import javax.xml.bind.JAXBElement;
 
 public class CollectionsResource {
     @GET
     public List<Book> getBooks() {
+        return null;
+    }
+    
+    @GET
+    public Collection<Book> getBookCollection() {
+        return null;
+    }
+    
+    @GET
+    public List<JAXBElement<Book>> getBookElements() {
+        return null;
+    }
+    
+    @GET
+    public List<JAXBElement> getBookElements2() {
+        return null;
+    }
+    
+    @GET
+    public Set<Book> getBookSet() {
         return null;
     }
     
@@ -45,10 +67,22 @@ public class CollectionsResource {
     }
     
     @POST
+    public void setBooksArray(Book[] books) {
+    }
+    
+    @POST
     public void setTags(List<TagVO2> tags) {
     }
     
     @POST
     public void setTagsArray(TagVO2[] tags) {
+    }
+    
+    @POST
+    public void setBookCollection(Collection<Book> books) {
+    }
+    
+    @POST
+    public void setBookSet(Set<Book> books) {
     }
 }

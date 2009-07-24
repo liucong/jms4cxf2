@@ -150,7 +150,7 @@ public class JAXBElementProvider extends AbstractJAXBProvider  {
                 response = doUnmarshal(unmarshaller, type, is, mt);
             }
             if (isCollection) {
-                response = ((CollectionWrapper)response).getCollectionOrArray(theType, type.isArray()); 
+                response = ((CollectionWrapper)response).getCollectionOrArray(theType, type); 
             }
             
             response = checkAdapter(response, anns, false);
@@ -203,7 +203,7 @@ public class JAXBElementProvider extends AbstractJAXBProvider  {
         throws IOException {
         try {
             Object actualObject = checkAdapter(obj, anns, true);
-            Class<?> actualClass = actualObject.getClass();
+            Class<?> actualClass = obj != actualObject ? actualObject.getClass() : cls;
             String encoding = getEncoding(m, headers);
             if (InjectionUtils.isSupportedCollectionOrArray(actualClass)) {
                 actualClass = InjectionUtils.getActualType(genericType);
@@ -224,7 +224,16 @@ public class JAXBElementProvider extends AbstractJAXBProvider  {
                                      Type genericType, String encoding, OutputStream os, MediaType m) 
         throws Exception {
         
-        QName qname = getCollectionWrapperQName(actualClass, genericType, actualObject, true);
+        Object[] arr = originalCls.isArray() ? (Object[])actualObject : ((Collection)actualObject).toArray();
+        
+        QName qname = null;
+        if (arr.length > 0 && arr[0] instanceof JAXBElement) {
+            JAXBElement el = (JAXBElement)arr[0];
+            qname = el.getName();
+            actualClass = el.getDeclaredType();
+        } else {
+            qname = getCollectionWrapperQName(actualClass, genericType, actualObject, true);
+        }
         if (qname == null) {
             String message = new org.apache.cxf.common.i18n.Message("NO_COLLECTION_ROOT", 
                                                                     BUNDLE).toString();
@@ -243,10 +252,9 @@ public class JAXBElementProvider extends AbstractJAXBProvider  {
             endTag = "</" + qname.getLocalPart() + ">";
         }
         os.write(startTag.getBytes());
-        Object[] arr = originalCls.isArray() ? (Object[])actualObject : ((Collection)actualObject).toArray();
         for (Object o : arr) {
-            marshalCollectionMember(o, actualClass, genericType, encoding, os, m, 
-                                    qname.getNamespaceURI());    
+            marshalCollectionMember(o instanceof JAXBElement ? ((JAXBElement)o).getValue() : o, 
+                                    actualClass, genericType, encoding, os, m, qname.getNamespaceURI());    
         }
         os.write(endTag.getBytes());
     }
@@ -269,6 +277,11 @@ public class JAXBElementProvider extends AbstractJAXBProvider  {
     
     protected void marshal(Object obj, Class<?> cls, Type genericType, 
                            String enc, OutputStream os, MediaType mt) throws Exception {
+        obj = convertToJaxbElementIfNeeded(obj, cls, genericType);
+        if (obj instanceof JAXBElement && cls != JAXBElement.class) {
+            cls = JAXBElement.class;
+        }
+        
         Marshaller ms = createMarshaller(obj, cls, genericType, enc);
         marshal(obj, cls, genericType, enc, os, mt, ms);
     }

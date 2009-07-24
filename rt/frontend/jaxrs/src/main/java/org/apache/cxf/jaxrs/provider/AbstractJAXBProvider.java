@@ -19,6 +19,8 @@
 
 package org.apache.cxf.jaxrs.provider;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -85,6 +87,23 @@ public abstract class AbstractJAXBProvider extends AbstractConfigurableProvider
     private Schema schema;
     private String collectionWrapperName;
     private Map<String, String> collectionWrapperMap;
+    private List<String> jaxbElementClassNames;
+    
+    public void setJaxbElementClassNames(List<String> names) {
+        jaxbElementClassNames = names;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Object convertToJaxbElementIfNeeded(Object obj, Class<?> cls, Type genericType) 
+        throws Exception {
+        if (jaxbElementClassNames != null && jaxbElementClassNames.contains(cls.getName())) {
+            QName name = getJaxbQName(cls, genericType, obj, false);
+            if (name != null) {
+                return new JAXBElement(name, cls, null, obj);
+            }
+        }
+        return obj;
+    }
     
     public void setCollectionWrapperName(String wName) {
         collectionWrapperName = wName;
@@ -155,7 +174,11 @@ public abstract class AbstractJAXBProvider extends AbstractConfigurableProvider
     
     protected QName getJaxbQName(Class<?> cls, Type type, Object object, boolean pluralName) 
         throws Exception {
-        //try the easy way first
+        
+        if (cls == JAXBElement.class) {
+            return object != null ? ((JAXBElement)object).getName() : null;
+        }
+        
         XmlRootElement root = cls.getAnnotation(XmlRootElement.class);
         QName qname = null;
         if (root != null) {
@@ -431,6 +454,9 @@ public abstract class AbstractJAXBProvider extends AbstractConfigurableProvider
     }
     
     protected static void handleJAXBException(JAXBException e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        LOG.warning(sw.toString());
         StringBuilder sb = new StringBuilder();
         if (e.getMessage() != null) {
             sb.append(e.getMessage()).append(". ");
@@ -445,7 +471,6 @@ public abstract class AbstractJAXBProvider extends AbstractConfigurableProvider
             ? e.getLinkedException() : e.getCause() != null ? e.getCause() : e;
         String message = new org.apache.cxf.common.i18n.Message("JAXB_EXCEPTION", 
                              BUNDLE, sb.toString()).toString();
-        LOG.warning(message);
         Response r = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .type(MediaType.TEXT_PLAIN).entity(message).build();
         throw new WebApplicationException(t, r);
@@ -469,14 +494,16 @@ public abstract class AbstractJAXBProvider extends AbstractConfigurableProvider
         }
         
         @SuppressWarnings("unchecked")
-        public <T> Object getCollectionOrArray(Class<T> type, boolean isArray) {
+        public <T> Object getCollectionOrArray(Class<T> type, Class<?> origType) {
             List<?> theList = getList();
-            if (isArray) {
+            if (origType.isArray()) {
                 T[] values = (T[])Array.newInstance(type, theList.size());
                 for (int i = 0; i < theList.size(); i++) {
                     values[i] = (T)theList.get(i);
                 }
                 return values;
+            } else if (origType == Set.class) {
+                return new HashSet(theList);
             } else {
                 return theList;
             }

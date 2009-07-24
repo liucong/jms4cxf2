@@ -206,8 +206,7 @@ public final class InjectionUtils {
             throw new RuntimeException("No type can be found at position " + pos);
         }
         Type t = types[pos];
-        // we don't recurse at this stage, otherwise GenericEntity won't be handled properly
-        return t instanceof Class ? (Class<?>)t : null;
+        return t instanceof Class ? (Class<?>)t : getActualType(t, pos);
     }
     
     public static Type[] getActualTypes(Type genericType) {
@@ -519,9 +518,7 @@ public final class InjectionUtils {
     }
 
     public static boolean isSupportedCollectionOrArray(Class<?> type) {
-        return List.class.isAssignableFrom(type)
-            || Set.class.isAssignableFrom(type)
-            || type.isArray();
+        return Collection.class.isAssignableFrom(type) || type.isArray();
     }
 
     @SuppressWarnings("unchecked")
@@ -545,12 +542,12 @@ public final class InjectionUtils {
     
     static Class<?> getCollectionType(Class<?> rawType) {
         Class<?> type = null;
-        if (List.class.isAssignableFrom(rawType)) {
-            type = ArrayList.class;
-        } else if (SortedSet.class.isAssignableFrom(rawType)) {
+        if (SortedSet.class.isAssignableFrom(rawType)) {
             type = TreeSet.class;
         } else if (Set.class.isAssignableFrom(rawType)) {
             type = HashSet.class;
+        } else if (Collection.class.isAssignableFrom(rawType)) {
+            type = ArrayList.class;
         }
         return type;
         

@@ -21,8 +21,12 @@ package org.apache.cxf.transport.jbi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.jbi.messaging.DeliveryChannel;
@@ -38,6 +42,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
@@ -123,19 +128,40 @@ public class JBIConduitOutputStream extends CachedOutputStream {
                 xchng.setInterfaceName(interfaceName);
 
                 xchng.setOperation(bop.getName());
+                //copy context
+                Map<String, Object> invocationContext = 
+                    CastUtils.cast((Map)message.get(Message.INVOCATION_CONTEXT));
+                if (invocationContext != null) {
+                    for (Map.Entry<String, Object> ent 
+                        : CastUtils.cast((Map)invocationContext.get("RequestContext"), 
+                                             String.class, Object.class).entrySet()) {
+                        // check if value is Serializable, and if value is Map
+                        // or collection,
+                        // just exclude it since the entry of it may not be
+                        // Serializable as well
+                        if (ent.getValue() instanceof Serializable
+                                && !(ent.getValue() instanceof Map)
+                                && !(ent.getValue() instanceof Collection)) {
+                            inMsg.setProperty(ent.getKey(), ent.getValue());
+                        }
+                    }
+                }
                 xchng.setMessage(inMsg, "in");
                 LOG.info("sending message");
                 if (!isOneWay) {
                     channel.sendSync(xchng);
                     NormalizedMessage outMsg = ((InOut)xchng).getOutMessage();
                     Source content = null;
+                    Set normalizedMessageProps = null;
                     if (outMsg != null) {
                         content = outMsg.getContent();
+                        normalizedMessageProps = outMsg.getPropertyNames();
                     } else {
                         if (((InOut)xchng).getFault() == null) {
                             throw xchng.getError();
                         }
                         content = ((InOut)xchng).getFault().getContent();
+                        normalizedMessageProps = ((InOut)xchng).getFault().getPropertyNames();
                     }
                     Message inMessage = new MessageImpl();
                     message.getExchange().setInMessage(inMessage);
@@ -148,6 +174,14 @@ public class JBIConduitOutputStream extends CachedOutputStream {
                     inMessage.put(MessageExchange.class, xchng);
                     
                     
+                    if (normalizedMessageProps != null) {
+                  
+                        for (Object name : normalizedMessageProps) {
+                            inMessage.put((String) name, outMsg
+                                    .getProperty((String) name));
+
+                        }
+                    }
                     conduit.getMessageObserver().onMessage(inMessage);
 
                     xchng.setStatus(ExchangeStatus.DONE);
