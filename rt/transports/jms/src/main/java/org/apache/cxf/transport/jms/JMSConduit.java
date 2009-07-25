@@ -146,6 +146,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                     addBusListener(exchange.get(Bus.class));
                 }
                 jmsList = jmsListener;
+                jmsList.start();
             } else {
                 if (allListener == null) {
                     allListener = JMSFactory.createJmsListener(jmsConfig, 
@@ -156,6 +157,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                     addBusListener(exchange.get(Bus.class));
                 }
                 jmsList = allListener;
+                jmsList.start();
             }
         }
         
@@ -217,7 +219,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                 if (messageIdPattern) {
                     cid = messageCreator.getMessageID();
                     correlationMap.put(cid, exchange);
-                    jmsList.setMessageSelector("JMSCorrelationID = '" + cid + "'");   
+                    jmsList.setMessageSelector("JMSCorrelationID = '" + cid + "'");
+                    jmsList.start();
                 }
                 correlationMap.put(cid, exchange);
                 
