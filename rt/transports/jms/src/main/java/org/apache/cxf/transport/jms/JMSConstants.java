@@ -56,8 +56,6 @@ public final class JMSConstants {
     
     public static final String JMS_REBASED_REPLY_TO = "org.apache.cxf.jms.server.replyto";
     
-    public static final String JMS_CLIENT_RESPONSE_JMSMESSAGE =
-        "org.apache.cxf.jms.client.response.jmsmessage";   
     
     private JMSConstants() {
         //utility class

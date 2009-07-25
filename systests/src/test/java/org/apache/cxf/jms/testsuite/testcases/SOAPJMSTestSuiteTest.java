@@ -19,18 +19,29 @@
 
 package org.apache.cxf.jms.testsuite.testcases;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.ws.BindingProvider;
+
 import org.apache.cxf.jms.testsuite.services.Server;
+import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
+import org.apache.cxf.jms_simple.JMSSimplePortType;
+import org.apache.cxf.jms_simple.JMSSimpleService;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
+import org.apache.cxf.testsuite.testcase.TestCaseType;
+import org.apache.cxf.transport.jms.JMSConstants;
+import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * 
  */
-public class SOAPJMSTestSuiteServerTest extends AbstractSOAPJMSTestSuite {
+public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
 
     @BeforeClass
     public static void startServers() throws Exception {
@@ -45,27 +56,42 @@ public class SOAPJMSTestSuiteServerTest extends AbstractSOAPJMSTestSuite {
         assertTrue("server did not launch correctly", launchServer(Server.class, false));
     }
 
-/*    @Test
+    @Test
+    public void test0001() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0001");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService", "SimplePort",
+                                                     JMSSimpleService.class,
+                                                     JMSSimplePortType.class);
+        InvocationHandler handler = Proxy.getInvocationHandler(simplePort);
+        BindingProvider bp = (BindingProvider)handler;
+
+        Map<String, Object> requestContext = bp.getRequestContext();
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
+
+        simplePort.ping("test");
+        checkJMSProperties(testcase, requestHeader);
+    }
+    
+    @Test
     public void test0002() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0002");
         final JMSSimplePortType simplePort = getPort("JMSSimpleService", "SimplePort",
                                                      JMSSimpleService.class,
                                                      JMSSimplePortType.class);
         InvocationHandler handler = Proxy.getInvocationHandler(simplePort);
-        BindingProvider bp = null;
+        BindingProvider bp = (BindingProvider)handler;
 
-        if (handler instanceof BindingProvider) {
-            bp = (BindingProvider)handler;
-        }
+        Map<String, Object> requestContext = bp.getRequestContext();
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
 
         String response = simplePort.echo("test");
         assertEquals(response, "test");
 
-        if (bp != null) {
-            Map<String, Object> responseContext = bp.getResponseContext();
-            Message m = (Message)responseContext
-                .get(JMSConstants.JMS_CLIENT_RESPONSE_JMSMESSAGE);
-            checkJMSProperties(m, testcase.getResponseMessage(), false);
-        }
-    }*/
+        Map<String, Object> responseContext = bp.getResponseContext();
+        JMSMessageHeadersType responseHeader = (JMSMessageHeadersType)responseContext
+            .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
+        checkJMSProperties(testcase, requestHeader, responseHeader);
+    }
 }

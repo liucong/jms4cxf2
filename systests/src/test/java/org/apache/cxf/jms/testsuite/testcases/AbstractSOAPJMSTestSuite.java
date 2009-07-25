@@ -28,7 +28,9 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
 import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
+import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
 
 /**
@@ -120,4 +122,71 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
         // todo messagebody
     }
 
+    public void checkJMSProperties(TestCaseType testcase, JMSMessageHeadersType requestHeader)
+        throws JMSException {
+        if (testcase.getRequestMessage() != null) {
+            checkJMSProperties(testcase.getRequestMessage(), requestHeader);
+        }
+    }
+
+    public void checkJMSProperties(TestCaseType testcase, JMSMessageHeadersType requestHeader,
+                                   JMSMessageHeadersType responseHeader) throws JMSException {
+        if (testcase.getRequestMessage() != null) {
+            checkJMSProperties(testcase.getRequestMessage(), requestHeader);
+        }
+        if (testcase.getResponseMessage() != null) {
+            checkJMSProperties(testcase.getResponseMessage(), responseHeader);
+        }
+        if (requestHeader.getJMSCorrelationID() != null) {
+            assertEquals(requestHeader.getJMSCorrelationID(), responseHeader.getJMSCorrelationID());
+        } else {
+            assertEquals(requestHeader.getJMSMessageID(), responseHeader.getJMSCorrelationID());
+        }
+    }
+
+    private void checkJMSProperties(MessagePropertiesType messageProperties,
+                                    JMSMessageHeadersType header) {
+        // todo messagetype
+        // todo messageid
+        if (messageProperties.isSetDeliveryMode()) {
+            assertEquals(header.getJMSDeliveryMode(), messageProperties.getDeliveryMode()
+                .intValue());
+        }
+        if (messageProperties.isSetPriority()) {
+            assertEquals(header.getJMSPriority(), messageProperties.getPriority().intValue());
+        }
+        /*
+         * if (messageProperties.isSetExpiration()) { assertEquals(header.getJMSExpiration(),
+         * messageProperties.getExpiration().intValue()); }
+         */
+        if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
+            assertEquals(header.getJMSReplyTo().toString(), messageProperties.getReplyTo());
+        }
+        // correlationid
+        /*
+         * if (messageProperties.isSetDestination() && !messageProperties.getDestination().trim().equals(""))
+         * { assertEquals(header.get.toString(), messageProperties.getDestination()); }
+         */
+        if (messageProperties.isSetBindingVersion()
+            && !messageProperties.getBindingVersion().trim().equals("")) {
+            assertEquals(header.getSOAPJMSBindingVersion(), messageProperties.getBindingVersion());
+        }
+        if (messageProperties.isSetTargetService()
+            && !messageProperties.getTargetService().trim().equals("")) {
+            assertEquals(header.getSOAPJMSTargetService(), messageProperties.getTargetService());
+        }
+        if (messageProperties.isSetContentType()
+            && !messageProperties.getContentType().trim().equals("")) {
+            assertEquals(header.getSOAPJMSContentType(), messageProperties.getContentType());
+        }
+        if (messageProperties.isSetSoapAction()
+            && !messageProperties.getSoapAction().trim().equals("")) {
+            assertEquals(header.getSOAPJMSSOAPAction(), messageProperties.getSoapAction());
+        }
+        if (messageProperties.isSetRequestURI()
+            && !messageProperties.getRequestURI().trim().equals("")) {
+            assertEquals(header.getSOAPJMSRequestURI(), messageProperties.getRequestURI().trim());
+        }
+        // todo messagebody
+    }
 }
