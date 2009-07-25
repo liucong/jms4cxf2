@@ -28,9 +28,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
-
 import org.junit.After;
 import org.junit.AfterClass;
 
