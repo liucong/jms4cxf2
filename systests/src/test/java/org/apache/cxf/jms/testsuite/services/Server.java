@@ -27,10 +27,16 @@ public class Server extends AbstractBusTestServerBase {
 
     protected void run() {
         Test0001Impl t0001 = new Test0001Impl();
-        Test0003Impl t0003 = new Test0003Impl();
-        
         Endpoint.publish(JMSTestUtil.getTestCase("test0001").getAddress().trim(), t0001);
+        
+        Test0003Impl t0003 = new Test0003Impl();
         Endpoint.publish(JMSTestUtil.getTestCase("test0003").getAddress().trim(), t0003);
+        
+        Test0005Impl t0005 = new Test0005Impl();
+        Endpoint.publish(JMSTestUtil.getTestCase("test0005").getAddress().trim(), t0005);
+        
+        Test0006Impl t0006 = new Test0006Impl();
+        Endpoint.publish(JMSTestUtil.getTestCase("test0006").getAddress().trim(), t0006);
     }
 
     public static void main(String[] args) {

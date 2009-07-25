@@ -80,16 +80,54 @@
         </wsdl:operation>
     </wsdl:binding>
 
+    <wsdl:binding name="JMSSimplePortBinding0006" type="tns:JMSSimplePortType">
+        <soap:binding style="document" transport="http://www.w3.org/2008/07/soap/bindings/JMS/"/>
+        
+        <soapjms:deliveryMode>NON_PERSISTENT</soapjms:deliveryMode>
+        <soapjms:timeToLive>7200000</soapjms:timeToLive>
+        <soapjms:priority>6</soapjms:priority>
+        <soapjms:replyToName>dynamicQueues/replyqueue0006</soapjms:replyToName>
+        
+        <wsdl:operation name="echo">
+            <soap:operation soapAction="echo" style="document"/>
+            <wsdl:input name="echoRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="echoResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        
+        <wsdl:operation name="ping">
+            <soap:operation soapaction="ping" style="document"/>
+            <wsdl:input name="pingRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    
     <wsdl:service name="JMSSimpleService0001">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
-            <soap:address location="jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0001"/>
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
         </wsdl:port>
     </wsdl:service>
     
     <wsdl:service name="JMSSimpleService0003">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
-            <soap:address location="jms:jndi:dynamicQueues/testqueue0003?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0003"/>
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0003?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
             <jms:client messageType="text"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0005">
+        <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0005?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;targetService=EchoPort&amp;deliveryMode=NON_PERSISTENT&amp;timeToLive=3600000&amp;priority=5&amp;replyToName=dynamicQueues/replyqueue0005"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0006">
+        <wsdl:port binding="tns:JMSSimplePortBinding0006" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0006?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

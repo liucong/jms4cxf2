@@ -32,6 +32,8 @@ import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.jms_simple.JMSSimplePortType;
 import org.apache.cxf.jms_simple.JMSSimpleService0001;
 import org.apache.cxf.jms_simple.JMSSimpleService0003;
+import org.apache.cxf.jms_simple.JMSSimpleService0005;
+import org.apache.cxf.jms_simple.JMSSimpleService0006;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.transport.jms.JMSConstants;
@@ -119,7 +121,25 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
     public void test0004() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0004");
         final JMSSimplePortType simplePort = getPort("JMSSimpleService0003", "SimplePort",
-                                                     JMSSimpleService0001.class,
+                                                     JMSSimpleService0003.class,
+                                                     JMSSimplePortType.class);
+        twoWayTest(testcase, simplePort);
+    }
+    
+    @Test
+    public void test0005() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0005");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0005", "SimplePort",
+                                                     JMSSimpleService0005.class,
+                                                     JMSSimplePortType.class);
+        twoWayTest(testcase, simplePort);
+    }
+    
+    @Test
+    public void test0006() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0006");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0006", "SimplePort",
+                                                     JMSSimpleService0006.class,
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
