@@ -171,9 +171,6 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         
         final javax.jms.Destination replyTo = exchange.isOneWay() ? null : (jmsList != null
             ? jmsList.getDestination() : jmsListener.getDestination());
-        if (replyTo != null) {
-            headers.setJMSReplyTo(replyTo.toString());
-        }
         
         final String cid = correlationId; 
         final String contextReplyToName = headers.getJMSReplyTo();
@@ -183,13 +180,10 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             public javax.jms.Message createMessage(Session session) throws JMSException {
                 String messageType = jmsConfig.getMessageType();
                 Destination replyToDestination = replyTo;
-                if (exchange.isOneWay() && !jmsConfig.isEnforceSpec()) {
-                    if (contextReplyToName != null) {
-                        replyToDestination = 
-                            JMSFactory.resolveOrCreateDestination(jmsTemplate, 
-                                                                  contextReplyToName, 
-                                                                  jmsConfig.isPubSubDomain());
-                    }
+                if (exchange.isOneWay() && !jmsConfig.isEnforceSpec() && contextReplyToName != null) {
+                    replyToDestination = JMSFactory
+                        .resolveOrCreateDestination(jmsTemplate, contextReplyToName, jmsConfig
+                            .isPubSubDomain());
                 }
                 jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(jmsConfig, outMessage, request,
                                                                     messageType, session, replyToDestination,
@@ -231,10 +225,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
                     correlationToListenerMap.put(correlationId, jmsList);
                 }
                 
-                headers.setJMSMessageID(messageCreator.getMessageID());
-                if (!messageIdPattern) {
-                    headers.setJMSCorrelationID(correlationId);
-                }
+                headers.setJMSMessageID(correlationId);
                 
                 if (exchange.isSynchronous()) {
                     try {

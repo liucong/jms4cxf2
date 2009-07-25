@@ -163,9 +163,10 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
          * if (messageProperties.isSetExpiration()) { assertEquals(header.getJMSExpiration(),
          * messageProperties.getExpiration().intValue()); }
          */
-        if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
-            assertEquals(header.getJMSReplyTo().toString(), messageProperties.getReplyTo());
-        }
+        /*
+         * if (messageProperties.isSetReplyTo() && !messageProperties.getReplyTo().trim().equals("")) {
+         * assertEquals(header.getJMSReplyTo().toString(), messageProperties.getReplyTo()); }
+         */
         // correlationid
         /*
          * if (messageProperties.isSetDestination() && !messageProperties.getDestination().trim().equals(""))

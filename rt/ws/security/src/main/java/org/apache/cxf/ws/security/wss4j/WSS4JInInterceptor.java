@@ -81,6 +81,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     public static final String PRINCIPAL_RESULT = "wss4j.principal.result";
     public static final String PROCESSOR_MAP = "wss4j.processor.map";
 
+    private static final String SECURITY_PROCESSED = WSS4JInInterceptor.class.getName() + ".DONE";
+    
     private static final Logger LOG = LogUtils.getL7dLogger(WSS4JInInterceptor.class);
     private static final Logger TIME_LOG = LogUtils.getL7dLogger(WSS4JInInterceptor.class,
                                                                  null,
@@ -142,6 +144,10 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     }
     
     public void handleMessage(SoapMessage msg) throws Fault {
+        if (msg.containsKey(SECURITY_PROCESSED)) {
+            return;
+        }
+        msg.put(SECURITY_PROCESSED, Boolean.TRUE);
         SOAPMessage doc = getSOAPMessage(msg);
         
         boolean doDebug = LOG.isLoggable(Level.FINE);
@@ -227,18 +233,24 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              */
 
             // Extract the signature action result from the action vector
-            WSSecurityEngineResult actionResult = WSSecurityUtil
-                .fetchActionResult(wsResult, WSConstants.SIGN);
+            Vector signatureResults = new Vector();
+            signatureResults = 
+                WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.SIGN, signatureResults);
 
-            if (actionResult != null) {
-                X509Certificate returnCert = (X509Certificate)actionResult
-                    .get(WSSecurityEngineResult.TAG_X509_CERTIFICATE);
-
-                if (returnCert != null && !verifyTrust(returnCert, reqData)) {
-                    LOG.warning("The certificate used for the signature is not trusted");
-                    throw new WSSecurityException(WSSecurityException.FAILED_CHECK);
+            if (!signatureResults.isEmpty()) {
+                for (int i = 0; i < signatureResults.size(); i++) {
+                    WSSecurityEngineResult result = 
+                        (WSSecurityEngineResult) signatureResults.get(i);
+                    
+                    X509Certificate returnCert = (X509Certificate)result
+                        .get(WSSecurityEngineResult.TAG_X509_CERTIFICATE);
+    
+                    if (returnCert != null && !verifyTrust(returnCert, reqData)) {
+                        LOG.warning("The certificate used for the signature is not trusted");
+                        throw new WSSecurityException(WSSecurityException.FAILED_CHECK);
+                    }
+                    msg.put(SIGNATURE_RESULT, result);
                 }
-                msg.put(SIGNATURE_RESULT, actionResult);
             }
 
             /*
@@ -251,16 +263,22 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              */
 
             // Extract the timestamp action result from the action vector
-            actionResult = WSSecurityUtil.fetchActionResult(wsResult, WSConstants.TS);
+            Vector timestampResults = new Vector();
+            timestampResults = 
+                WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.TS, timestampResults);
 
-            if (actionResult != null) {
-                Timestamp timestamp = (Timestamp)actionResult.get(WSSecurityEngineResult.TAG_TIMESTAMP);
-
-                if (timestamp != null && !verifyTimestamp(timestamp, decodeTimeToLive(reqData))) {
-                    LOG.warning("The timestamp could not be validated");
-                    throw new WSSecurityException(WSSecurityException.MESSAGE_EXPIRED);
+            if (!timestampResults.isEmpty()) {
+                for (int i = 0; i < timestampResults.size(); i++) {
+                    WSSecurityEngineResult result = 
+                        (WSSecurityEngineResult) timestampResults.get(i);
+                    Timestamp timestamp = (Timestamp)result.get(WSSecurityEngineResult.TAG_TIMESTAMP);
+    
+                    if (timestamp != null && !verifyTimestamp(timestamp, decodeTimeToLive(reqData))) {
+                        LOG.warning("The timestamp could not be validated");
+                        throw new WSSecurityException(WSSecurityException.MESSAGE_EXPIRED);
+                    }
+                    msg.put(TIMESTAMP_RESULT, result);
                 }
-                msg.put(TIMESTAMP_RESULT, actionResult);
             }
 
             /*

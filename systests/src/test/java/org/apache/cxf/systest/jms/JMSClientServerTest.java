@@ -810,7 +810,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         HelloWorldPortType portEng = service.getPort(portNameEng, HelloWorldPortType.class);
         HelloWorldPortType portSales = service.getPort(portNameSales, HelloWorldPortType.class);
         
-        for (int i = 0; i < 1; ++i) {
+        for (int i = 0; i < 10; ++i) {
             ClientRunnable client =  new ClientRunnable(portEng, "com.mycompany.eng:");
             Thread thread = new Thread(client);
             threads.add(thread);
@@ -824,7 +824,11 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         }
     
         for (Thread t : threads) {
-            t.join(5000);
+            t.join(2000);
+        }
+
+        for (Thread t : threads) {
+            t.join(1000);
             assertTrue("Not terminated state: " + t.getState(), t.getState() == State.TERMINATED);
         }
 

@@ -160,7 +160,7 @@
     <xs:simpleType name="MessageFormatType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="text"/>
-            <!-- <xs:enumeration value="binary"/> -->
+            <xs:enumeration value="binary"/>
             <xs:enumeration value="byte"/>
         </xs:restriction>
     </xs:simpleType>
@@ -257,9 +257,9 @@
     <xs:complexType name="ClientBehaviorPolicyType">
         <xs:complexContent>
             <xs:extension base="wsdl:tExtensibilityElement">
-                <xs:attribute name="messageType" type="jms:MessageFormatType" default="byte">
+                <xs:attribute name="messageType" type="jms:MessageFormatType" default="text">
                     <xs:annotation>
-                        <xs:documentation>Type of the JMS Message payload, currently supported text and byte.</xs:documentation>
+                        <xs:documentation>Type of the JMS Message payload, currently supported text and binary.</xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
             </xs:extension>
