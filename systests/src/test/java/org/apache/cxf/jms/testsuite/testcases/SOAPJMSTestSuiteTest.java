@@ -35,6 +35,10 @@ import org.apache.cxf.jms_simple.JMSSimpleService0001;
 import org.apache.cxf.jms_simple.JMSSimpleService0003;
 import org.apache.cxf.jms_simple.JMSSimpleService0005;
 import org.apache.cxf.jms_simple.JMSSimpleService0006;
+import org.apache.cxf.jms_simple.JMSSimpleService0008;
+import org.apache.cxf.jms_simple.JMSSimpleService0009;
+import org.apache.cxf.jms_simple.JMSSimpleService0010;
+import org.apache.cxf.jms_simple.JMSSimpleService0011;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.transport.jms.JMSConstants;
@@ -158,7 +162,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
     public void test0008() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0008");
         final JMSSimplePortType simplePort = getPort("JMSSimpleService0008", "SimplePort",
-                                                     JMSSimpleService0006.class,
+                                                     JMSSimpleService0008.class,
                                                      JMSSimplePortType.class);
 
         JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
@@ -168,5 +172,39 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
         requestHeader.setJMSReplyTo("dynamicQueues/replyqueue0008");
 
         twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
+    }
+    
+    @Test
+    public void test0009() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0009");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0009", "SimplePort",
+                                                     JMSSimpleService0009.class,
+                                                     JMSSimplePortType.class);
+
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        requestHeader.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        requestHeader.setTimeToLive(10800000);
+        requestHeader.setJMSPriority(3);
+        requestHeader.setJMSReplyTo("dynamicQueues/replyqueue00093");
+
+        twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
+    }
+    
+    @Test
+    public void test0010() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0010");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0010", "SimplePort",
+                                                     JMSSimpleService0010.class,
+                                                     JMSSimplePortType.class);
+        twoWayTest(testcase, simplePort);
+    }
+    
+    @Test
+    public void test0011() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0011");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0011", "SimplePort",
+                                                     JMSSimpleService0011.class,
+                                                     JMSSimplePortType.class);
+        twoWayTest(testcase, simplePort);
     }
 }

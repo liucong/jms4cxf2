@@ -106,6 +106,58 @@
         </wsdl:operation>
     </wsdl:binding>
     
+    <wsdl:binding name="JMSSimplePortBinding0009" type="tns:JMSSimplePortType">
+        <soap:binding style="document" transport="http://www.w3.org/2008/07/soap/bindings/JMS/"/>
+        
+        <soapjms:deliveryMode>PERSISTENT</soapjms:deliveryMode>
+        <soapjms:timeToLive>7200000</soapjms:timeToLive>
+        <soapjms:priority>2</soapjms:priority>
+        <soapjms:replyToName>dynamicQueues/replyqueue00092</soapjms:replyToName>
+        
+        <wsdl:operation name="echo">
+            <soap:operation soapAction="echo" style="document"/>
+            <wsdl:input name="echoRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="echoResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        
+        <wsdl:operation name="ping">
+            <soap:operation soapaction="ping" style="document"/>
+            <wsdl:input name="pingRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    
+    <wsdl:binding name="JMSSimplePortBinding0010" type="tns:JMSSimplePortType">
+        <soap:binding style="document" transport="http://www.w3.org/2008/07/soap/bindings/JMS/"/>
+        
+        <soapjms:deliveryMode>NON_PERSISTENT</soapjms:deliveryMode>
+        <soapjms:timeToLive>7200000</soapjms:timeToLive>
+        <soapjms:priority>2</soapjms:priority>
+        <soapjms:replyToName>dynamicQueues/replyqueue000102</soapjms:replyToName>
+        
+        <wsdl:operation name="echo">
+            <soap:operation soapAction="echo" style="document"/>
+            <wsdl:input name="echoRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="echoResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        
+        <wsdl:operation name="ping">
+            <soap:operation soapaction="ping" style="document"/>
+            <wsdl:input name="pingRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    
     <wsdl:service name="JMSSimpleService0001">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
             <soap:address location="jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
@@ -134,6 +186,24 @@
     <wsdl:service name="JMSSimpleService0008">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
             <soap:address location="jms:jndi:dynamicQueues/testqueue0008?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0009">
+        <wsdl:port binding="tns:JMSSimplePortBinding0009" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0009?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;targetService=EchoPort&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00091"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0010">
+        <wsdl:port binding="tns:JMSSimplePortBinding0010" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0010?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00101"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0011">
+        <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0011?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00111&amp;deliveryMode=NON_PERSISTENT&amp;timeToLive=7200000&amp;priority=2&amp;replyToName=dynamicQueues/replyqueue00112"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

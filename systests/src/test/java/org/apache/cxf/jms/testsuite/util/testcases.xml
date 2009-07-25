@@ -173,4 +173,46 @@
 			<destination>queue://replyqueue0008</destination>
 		</responseMessage>
 	</testCase>
+	
+	<testCase id="test0009" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue0009?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;targetService=EchoPort&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00091</address>
+		<requestMessage>
+			<deliveryMode>1</deliveryMode>
+			<priority>3</priority>
+			<expiration>0</expiration>
+			<replyTo>queue://replyqueue00093</replyTo>
+			<destination>queue://testqueue0009</destination>
+		</requestMessage>
+		<responseMessage>
+			<destination>queue://replyqueue00093</destination>
+		</responseMessage>
+	</testCase>
+	
+	<testCase id="test0010" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue0010?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00101</address>
+		<requestMessage>
+			<deliveryMode>2</deliveryMode>
+			<priority>1</priority>
+			<expiration>0</expiration>
+			<replyTo>queue://replyqueue00101</replyTo>
+			<destination>queue://testqueue0010</destination>
+		</requestMessage>
+		<responseMessage>
+			<destination>queue://replyqueue00101</destination>
+		</responseMessage>
+	</testCase>
+	
+	<testCase id="test0011" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue0011?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00111&amp;deliveryMode=NON_PERSISTENT&amp;timeToLive=7200000&amp;priority=2&amp;replyToName=dynamicQueues/replyqueue00112</address>
+		<requestMessage>
+			<deliveryMode>1</deliveryMode>
+			<priority>2</priority>
+			<expiration>0</expiration>
+			<replyTo>queue://replyqueue00112</replyTo>
+			<destination>queue://testqueue0011</destination>
+		</requestMessage>
+		<responseMessage>
+			<destination>queue://replyqueue00112</destination>
+		</responseMessage>
+	</testCase>
 </testCases>
