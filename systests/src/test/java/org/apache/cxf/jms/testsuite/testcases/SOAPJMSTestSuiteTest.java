@@ -24,6 +24,7 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.xml.ws.BindingProvider;
 
@@ -71,14 +72,23 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
         port.ping("test");
         checkJMSProperties(testcase, requestHeader);
     }
-    
+
     private void twoWayTest(TestCaseType testcase, final JMSSimplePortType port)
+        throws JMSException {
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        twoWayTestWithRequestHeader(testcase, port, requestHeader);
+    }
+
+    private void twoWayTestWithRequestHeader(TestCaseType testcase, final JMSSimplePortType port,
+                                             JMSMessageHeadersType requestHeader)
         throws JMSException {
         InvocationHandler handler = Proxy.getInvocationHandler(port);
         BindingProvider bp = (BindingProvider)handler;
 
         Map<String, Object> requestContext = bp.getRequestContext();
-        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        if (requestHeader == null) {
+            requestHeader = new JMSMessageHeadersType();
+        }
         requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
 
         String response = port.echo("test");
@@ -89,16 +99,16 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
             .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
         checkJMSProperties(testcase, requestHeader, responseHeader);
     }
-    
+
     @Test
     public void test0001() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0001");
         final JMSSimplePortType simplePort = getPort("JMSSimpleService0001", "SimplePort",
                                                      JMSSimpleService0001.class,
                                                      JMSSimplePortType.class);
-        oneWayTest(testcase, simplePort);  
+        oneWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0002() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0002");
@@ -107,16 +117,16 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0003() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0003");
         final JMSSimplePortType simplePort = getPort("JMSSimpleService0003", "SimplePort",
                                                      JMSSimpleService0003.class,
                                                      JMSSimplePortType.class);
-        oneWayTest(testcase, simplePort); 
+        oneWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0004() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0004");
@@ -125,7 +135,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0005() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0005");
@@ -134,7 +144,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0006() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0006");
@@ -142,5 +152,21 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimpleService0006.class,
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
+    }
+
+    @Test
+    public void test0008() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0008");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0008", "SimplePort",
+                                                     JMSSimpleService0006.class,
+                                                     JMSSimplePortType.class);
+
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        requestHeader.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        requestHeader.setTimeToLive(14400000);
+        requestHeader.setJMSPriority(8);
+        requestHeader.setJMSReplyTo("dynamicQueues/replyqueue0008");
+
+        twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
     }
 }

@@ -131,7 +131,10 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             headers = new JMSMessageHeadersType();
             outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, headers);
         }
-
+        String rplt = headers.getJMSReplyTo();
+        if (rplt == null) {
+            rplt = jmsConfig.getReplyDestination();
+        }
         final JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, headers);
         String userCID = headers.getJMSCorrelationID();
         DefaultMessageListenerContainer jmsList = null;
@@ -139,23 +142,18 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         String correlationId = null;
         if (!exchange.isOneWay()) {
             if (userCID != null) {
-                jmsList = JMSFactory.createJmsListener(jmsConfig, this, 
-                                                       jmsConfig.getReplyDestination(), 
-                                                       null);
+                jmsList = JMSFactory.createJmsListener(jmsConfig, this, rplt, null);
                 addBusListener(exchange.get(Bus.class));
                 correlationId = userCID;
             } else if (!jmsConfig.isSetConduitSelectorPrefix()
                        && (!jmsConfig.isSetUseConduitIdSelector() || !jmsConfig
                            .isUseConduitIdSelector())) {
                 messageIdPattern = true;
-                jmsList = JMSFactory.createJmsListener(jmsConfig, this, jmsConfig
-                    .getReplyDestination(), null);
+                jmsList = JMSFactory.createJmsListener(jmsConfig, this, rplt, null);
                 addBusListener(exchange.get(Bus.class));
             } else { 
                 if (jmsListener == null) {
-                    jmsListener = JMSFactory.createJmsListener(jmsConfig, this, 
-                                                               jmsConfig.getReplyDestination(), 
-                                                               conduitId);
+                    jmsListener = JMSFactory.createJmsListener(jmsConfig, this, rplt, conduitId);
                     jmsListener.start();
                     addBusListener(exchange.get(Bus.class));
                 }
