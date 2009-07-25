@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.jms.DeliveryMode;
-import javax.jms.JMSException;
 import javax.xml.ws.BindingProvider;
 
 import org.apache.cxf.jms.testsuite.services.Server;
@@ -39,6 +38,8 @@ import org.apache.cxf.jms_simple.JMSSimpleService0008;
 import org.apache.cxf.jms_simple.JMSSimpleService0009;
 import org.apache.cxf.jms_simple.JMSSimpleService0010;
 import org.apache.cxf.jms_simple.JMSSimpleService0011;
+import org.apache.cxf.jms_simple.JMSSimpleService0012;
+import org.apache.cxf.jms_simple.JMSSimpleService1001;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.transport.jms.JMSConstants;
@@ -72,20 +73,27 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
         Map<String, Object> requestContext = bp.getRequestContext();
         JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
         requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
-
-        port.ping("test");
+        Exception e = null;
+        try {
+            port.ping("test");
+        } catch (Exception e1) {
+            e = e1;
+        }
         checkJMSProperties(testcase, requestHeader);
+        if (e != null) {
+            throw e;
+        }
     }
 
     private void twoWayTest(TestCaseType testcase, final JMSSimplePortType port)
-        throws JMSException {
+        throws Exception {
         JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
         twoWayTestWithRequestHeader(testcase, port, requestHeader);
     }
 
     private void twoWayTestWithRequestHeader(TestCaseType testcase, final JMSSimplePortType port,
                                              JMSMessageHeadersType requestHeader)
-        throws JMSException {
+        throws Exception {
         InvocationHandler handler = Proxy.getInvocationHandler(port);
         BindingProvider bp = (BindingProvider)handler;
 
@@ -94,14 +102,20 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
             requestHeader = new JMSMessageHeadersType();
         }
         requestContext.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, requestHeader);
-
-        String response = port.echo("test");
-        assertEquals(response, "test");
-
+        Exception e = null;
+        try {
+            String response = port.echo("test");
+            assertEquals(response, "test");
+        } catch (Exception e1) {
+            e = e1;
+        }
         Map<String, Object> responseContext = bp.getResponseContext();
         JMSMessageHeadersType responseHeader = (JMSMessageHeadersType)responseContext
             .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
         checkJMSProperties(testcase, requestHeader, responseHeader);
+        if (e != null) {
+            throw e;
+        }
     }
 
     @Test
@@ -173,7 +187,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
 
         twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
     }
-    
+
     @Test
     public void test0009() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0009");
@@ -189,7 +203,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
 
         twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
     }
-    
+
     @Test
     public void test0010() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0010");
@@ -198,7 +212,7 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0011() throws Exception {
         TestCaseType testcase = JMSTestUtil.getTestCase("test0011");
@@ -207,14 +221,31 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
-    
+
     @Test
     public void test0012() throws Exception {
-        //same to test0002
+        // same to test0002
         TestCaseType testcase = JMSTestUtil.getTestCase("test0012");
-        final JMSSimplePortType simplePort = getPort("JMSSimpleService0001", "SimplePort",
-                                                     JMSSimpleService0001.class,
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0012", "SimplePort",
+                                                     JMSSimpleService0012.class,
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
+    }
+
+    @Test
+    public void test1001() throws Exception {
+        // same to test0002
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1001");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService1001", "SimplePort",
+                                                     JMSSimpleService1001.class,
+                                                     JMSSimplePortType.class);
+
+        JMSMessageHeadersType requestHeader = new JMSMessageHeadersType();
+        requestHeader.setSOAPJMSBindingVersion("0.3");
+        try {
+            twoWayTestWithRequestHeader(testcase, simplePort, requestHeader);
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("Unrecognized BindingVersion"));
+        }
     }
 }

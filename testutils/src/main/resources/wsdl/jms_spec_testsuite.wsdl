@@ -206,4 +206,16 @@
             <soap:address location="jms:jndi:dynamicQueues/testqueue0011?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;deliveryMode=PERSISTENT&amp;timeToLive=3600000&amp;priority=1&amp;replyToName=dynamicQueues/replyqueue00111&amp;deliveryMode=NON_PERSISTENT&amp;timeToLive=7200000&amp;priority=2&amp;replyToName=dynamicQueues/replyqueue00112"/>
         </wsdl:port>
     </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0012">
+        <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0012?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService1001">
+        <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue1001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500"/>
+        </wsdl:port>
+    </wsdl:service>
 </wsdl:definitions>

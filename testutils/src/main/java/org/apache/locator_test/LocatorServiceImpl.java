@@ -25,7 +25,6 @@
 package org.apache.locator_test;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
@@ -33,9 +32,9 @@ import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 import org.apache.locator.EndpointNotExistFault;
 import org.apache.locator.LocatorService;
 import org.apache.locator.types.EndpointIdentity;
-import org.apache.locator.types.ListEndpointsResponse.Endpoint;
 import org.apache.locator.types.QueryEndpoints;
 import org.apache.locator.types.QueryEndpointsResponse;
+import org.apache.locator.types.ListEndpointsResponse.Endpoint;
 
 
 /**

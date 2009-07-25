@@ -119,6 +119,10 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
             assertEquals(message.getStringProperty(JMSSpecConstants.REQUESTURI_FIELD),
                          messageProperties.getRequestURI().trim());
         }
+        if (messageProperties.isSetIsFault()) {
+            assertEquals(message.getStringProperty(JMSSpecConstants.ISFAULT_FIELD),
+                         messageProperties.isIsFault());
+        }
         // todo messagebody
     }
 
@@ -186,6 +190,9 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
         if (messageProperties.isSetRequestURI()
             && !messageProperties.getRequestURI().trim().equals("")) {
             assertEquals(header.getSOAPJMSRequestURI(), messageProperties.getRequestURI().trim());
+        }
+        if (messageProperties.isSetIsFault()) {
+            assertEquals(header.isSOAPJMSIsFault(), messageProperties.isIsFault());
         }
         // todo messagebody
     }

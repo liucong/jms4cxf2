@@ -22,6 +22,7 @@
 	<xs:element name="requestURI" type="xs:string"></xs:element>
 	<xs:element name="messageBody" type="xs:string"></xs:element>
 	<xs:element name="address" type="xs:string"></xs:element>
+	<xs:element name="isFault" type="xs:boolean"></xs:element>
 
 	<xs:complexType name="testCasesType">
 		<xs:sequence>
@@ -67,6 +68,7 @@
 			<xs:element ref="tns:contentType" minOccurs="0" maxOccurs="1"></xs:element>
 			<xs:element ref="tns:soapAction" minOccurs="0" maxOccurs="1"></xs:element>
 			<xs:element ref="tns:requestURI" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element ref="tns:isFault" minOccurs="0" maxOccurs="1"></xs:element>			
 			<xs:element ref="tns:messageBody" minOccurs="0" maxOccurs="1"></xs:element>
 		</xs:all>
 	</xs:complexType>
