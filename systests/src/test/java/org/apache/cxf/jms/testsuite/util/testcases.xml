@@ -215,4 +215,17 @@
 			<destination>queue://replyqueue00112</destination>
 		</responseMessage>
 	</testCase>
+	
+	<testCase id="test0012" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500</address>
+		<requestMessage>
+			<deliveryMode>2</deliveryMode>
+			<priority>4</priority>
+			<expiration>0</expiration>
+			<destination>queue://testqueue0001</destination>
+		</requestMessage>
+		<responseMessage>
+			<destination>queue://replyqueue0001</destination>
+		</responseMessage>
+	</testCase>
 </testCases>

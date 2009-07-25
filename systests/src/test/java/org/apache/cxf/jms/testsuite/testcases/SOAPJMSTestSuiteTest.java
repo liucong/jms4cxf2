@@ -207,4 +207,14 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
                                                      JMSSimplePortType.class);
         twoWayTest(testcase, simplePort);
     }
+    
+    @Test
+    public void test0012() throws Exception {
+        //same to test0002
+        TestCaseType testcase = JMSTestUtil.getTestCase("test0012");
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0001", "SimplePort",
+                                                     JMSSimpleService0001.class,
+                                                     JMSSimplePortType.class);
+        twoWayTest(testcase, simplePort);
+    }
 }
