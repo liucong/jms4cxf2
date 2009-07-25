@@ -329,8 +329,12 @@ public class JMSOldConfigHolder {
             if (jmsConfig.getMessageSelector() == null) {
                 jmsConfig.setMessageSelector(serverBehavior.getMessageSelector());
             }
-            if (isConduit && runtimePolicy.isSetMessageType()) {
-                jmsConfig.setMessageType(runtimePolicy.getMessageType().value());
+            if (isConduit) {
+                if (runtimePolicy.isSetMessageType()) {
+                    jmsConfig.setMessageType(runtimePolicy.getMessageType().value());
+                } else {
+                    jmsConfig.setMessageType(JMSConstants.BYTE_MESSAGE_TYPE);
+                }
             }
             jmsConfig.setPubSubDomain(pubSubDomain);
             jmsConfig.setPubSubNoLocal(true);

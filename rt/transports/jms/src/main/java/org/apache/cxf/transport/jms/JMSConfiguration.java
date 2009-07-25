@@ -72,7 +72,7 @@ public class JMSConfiguration implements InitializingBean {
 
     private String targetDestination;
     private String replyDestination;
-    private String messageType = JMSConstants.TEXT_MESSAGE_TYPE;
+    private String messageType = JMSConstants.BYTE_MESSAGE_TYPE;
     private boolean pubSubDomain;
     private Boolean useConduitIdSelector;
     private String conduitSelectorPrefix;

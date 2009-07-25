@@ -21,15 +21,16 @@ package org.apache.cxf.jms.testsuite.services;
 import javax.xml.ws.Endpoint;
 
 import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
-import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 
 public class Server extends AbstractBusTestServerBase {
 
     protected void run() {
-        TestCaseType testcase = JMSTestUtil.getTestCase("test0002");
-        Test0002Impl o = new Test0002Impl();
-        Endpoint.publish(testcase.getAddress().trim(), o);
+        Test0001Impl t0001 = new Test0001Impl();
+        Test0003Impl t0003 = new Test0003Impl();
+        
+        Endpoint.publish(JMSTestUtil.getTestCase("test0001").getAddress().trim(), t0001);
+        Endpoint.publish(JMSTestUtil.getTestCase("test0003").getAddress().trim(), t0003);
     }
 
     public static void main(String[] args) {

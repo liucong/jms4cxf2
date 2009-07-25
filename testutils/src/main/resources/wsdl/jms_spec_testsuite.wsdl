@@ -22,6 +22,7 @@
 <wsdl:definitions name="JMSSimpleService"
     targetNamespace="http://cxf.apache.org/jms_simple"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:jms="http://cxf.apache.org/transports/jms" 
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:tns="http://cxf.apache.org/jms_simple"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -79,9 +80,16 @@
         </wsdl:operation>
     </wsdl:binding>
 
-    <wsdl:service name="JMSSimpleService">
+    <wsdl:service name="JMSSimpleService0001">
         <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
             <soap:address location="jms:jndi:dynamicQueues/testqueue0001?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0001"/>
+        </wsdl:port>
+    </wsdl:service>
+    
+    <wsdl:service name="JMSSimpleService0003">
+        <wsdl:port binding="tns:JMSSimplePortBinding" name="SimplePort">
+            <soap:address location="jms:jndi:dynamicQueues/testqueue0003?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500&amp;replyToName=dynamicQueues/replyqueue0003"/>
+            <jms:client messageType="text"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

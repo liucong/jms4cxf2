@@ -27,7 +27,7 @@ import javax.jms.Message;
 
 import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.jms_simple.JMSSimplePortType;
-import org.apache.cxf.jms_simple.JMSSimpleService;
+import org.apache.cxf.jms_simple.JMSSimpleService0001;
 import org.apache.cxf.systest.jms.EmbeddedJMSBrokerLauncher;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.transport.jms.uri.JMSEndpoint;
@@ -37,6 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.jms.core.JmsTemplate;
+
 /**
  * 
  */
@@ -65,8 +66,8 @@ public class SOAPJMSTestSuiteClientTest extends AbstractSOAPJMSTestSuite {
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
         Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
-        JMSSimplePortType simplePort = getPort("JMSSimpleService", "SimplePort", JMSSimpleService.class,
-                                         JMSSimplePortType.class);
+        JMSSimplePortType simplePort = getPort("JMSSimpleService0001", "SimplePort",
+                                               JMSSimpleService0001.class, JMSSimplePortType.class);
         simplePort.ping("test");
 
         Message message = jmsTemplate.receive(dest);
@@ -79,12 +80,13 @@ public class SOAPJMSTestSuiteClientTest extends AbstractSOAPJMSTestSuite {
         String address = testcase.getAddress().trim();
         JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
         String destinationName = endpoint.getDestinationName();
-        
+
         JmsTemplate jmsTemplate = JMSTestUtil.getJmsTemplate(address);
         Destination dest = JMSTestUtil.getJmsDestination(jmsTemplate, destinationName, false);
 
-        final JMSSimplePortType simplePort = getPort("JMSSimpleService", "SimplePort",
-                                               JMSSimpleService.class, JMSSimplePortType.class);
+        final JMSSimplePortType simplePort = getPort("JMSSimpleService0001", "SimplePort",
+                                                     JMSSimpleService0001.class,
+                                                     JMSSimplePortType.class);
         Thread serviceThread = new Thread() {
             public void run() {
                 simplePort.echo("test");
@@ -94,7 +96,7 @@ public class SOAPJMSTestSuiteClientTest extends AbstractSOAPJMSTestSuite {
 
         Message message = jmsTemplate.receive(dest);
         checkJMSProperties(message, testcase.getRequestMessage(), false);
-        
+
         serviceThread.interrupt();
     }
 }
