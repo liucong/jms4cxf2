@@ -23,22 +23,19 @@
   xmlns:cxf-beans="http://cxf.apache.org/configuration/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
-  targetNamespace="http://cxf.apache.org/bindings/soap" 
+  targetNamespace="http://cxf.apache.org/bindings/jbi" 
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"  >
 
   <xsd:import namespace="http://www.springframework.org/schema/beans" schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd"/>
   <xsd:import namespace="http://cxf.apache.org/configuration/beans" schemaLocation="http://cxf.apache.org/schemas/configuration/cxf-beans.xsd"/>
 
-  <xsd:element name="soapBinding">
+  <xsd:element name="jbiBinding">
     <xsd:complexType>
       <xsd:complexContent>
         <xsd:extension base="beans:identifiedType">
           <xsd:attributeGroup ref="cxf-beans:beanAttributes"/>
-          <xsd:attribute name="version" type="xsd:string" />
           <xsd:attribute name="mtomEnabled" type="xsd:string" />
-          <xsd:attribute name="style" type="xsd:string" />
-          <xsd:attribute name="use" type="xsd:string" />
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
