@@ -180,10 +180,17 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             public javax.jms.Message createMessage(Session session) throws JMSException {
                 String messageType = jmsConfig.getMessageType();
                 Destination replyToDestination = replyTo;
-                if (exchange.isOneWay() && !jmsConfig.isEnforceSpec() && contextReplyToName != null) {
-                    replyToDestination = JMSFactory
-                        .resolveOrCreateDestination(jmsTemplate, contextReplyToName, jmsConfig
-                            .isPubSubDomain());
+                if (exchange.isOneWay() && !jmsConfig.isEnforceSpec() && isSetReplyTo(outMessage)) {
+                    String replyToName = contextReplyToName; 
+                    if (replyToName == null && jmsConfig.getReplyDestination() != null) {
+                        replyToName = jmsConfig.getReplyDestination();
+                    }
+                    if (replyToName != null) {
+                        replyToDestination = 
+                            JMSFactory.resolveOrCreateDestination(jmsTemplate, 
+                                                                  replyToName, 
+                                                                  jmsConfig.isPubSubDomain());
+                    }
                 }
                 jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(jmsConfig, outMessage, request,
                                                                     messageType, session, replyToDestination,
@@ -359,6 +366,11 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
         this.jmsConfig = jmsConfig;
     }
 
+    protected static boolean isSetReplyTo(Message message) {         
+        Boolean ret = (Boolean)message.get(JMSConstants.JMS_SET_REPLY_TO);
+        return ret == null || (ret != null && ret.booleanValue());
+    }
+    
     @Override
     protected void finalize() throws Throwable {
         if (listener != null) {

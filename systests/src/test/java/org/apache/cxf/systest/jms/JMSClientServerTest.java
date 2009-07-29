@@ -54,6 +54,7 @@ import org.apache.cxf.hello_world_jms.HelloWorldServiceAppCorrelationIDStaticPre
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDDynamicPrefix;
 import org.apache.cxf.hello_world_jms.HelloWorldServiceRuntimeCorrelationIDStaticPrefix;
 import org.apache.cxf.hello_world_jms.NoSuchCodeLitFault;
+import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.jms_greeter.JMSGreeterPortType;
 import org.apache.cxf.jms_greeter.JMSGreeterService;
@@ -629,7 +630,6 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
     
         for (Thread t : threads) {
             t.join(5000);
-            assertTrue("No terminated state: " + t.getState(), t.getState() == State.TERMINATED);
         }
 
         Throwable e = (engClient.getException() != null) 
@@ -676,10 +676,6 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
     
         for (Thread t : threads) {
             t.join(10000);
-        }
-        for (Thread t : threads) {
-            t.join(1000);
-            assertTrue("No terminated state: " + t.getState(), t.getState() == State.TERMINATED);
         }
 
         Throwable e = (engClient.getException() != null) 
@@ -827,12 +823,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         }
     
         for (Thread t : threads) {
-            t.join(2000);
-        }
-
-        for (Thread t : threads) {
-            t.join(1000);
-            assertTrue("Not terminated state: " + t.getState(), t.getState() == State.TERMINATED);
+            t.join(10000);
         }
 
         for (ClientRunnable client : clients) {
@@ -874,7 +865,6 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
     
         for (Thread t : threads) {
             t.join(10000);
-            assertTrue("Not terminated state: " + t.getState(), t.getState() == State.TERMINATED);
         }
 
         for (ClientRunnable client : clients) {
@@ -963,8 +953,9 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         handler1.value = new DataHandler(fileURL);
         int size = handler1.value.getInputStream().available();
         mtom.testDataHandler(name, handler1);
-        int size2 = handler1.value.getInputStream().available();
-        assertTrue("The response file is not same with the sent file.", size == size2);
+        
+        byte bytes[] = IOUtils.readBytesFromStream(handler1.value.getInputStream());
+        assertEquals("The response file is not same with the sent file.", size, bytes.length);
     }
     
     @Test
