@@ -31,16 +31,44 @@ import org.apache.cxf.io.CachedOutputStream;
 public class AttachmentDataSource implements DataSource {
 
     private final String ct;    
-    private final CachedOutputStream cache;
+    private CachedOutputStream cache;
+    private InputStream ins;
+    private DelegatingInputStream delegating;
     
     public AttachmentDataSource(String ctParam, InputStream inParam) throws IOException {
         this.ct = ctParam;        
-        cache = new CachedOutputStream();
-        IOUtils.copy(inParam, cache);
-        cache.lockOutputStream();
+        ins = inParam;
+        if (ins instanceof DelegatingInputStream) {
+            delegating = (DelegatingInputStream)ins;
+        }
+    }
+    public AttachmentDataSource(String ctParam, 
+                                InputStream inParam,
+                                InputStream delegate) throws IOException {
+        this.ct = ctParam;        
+        ins = inParam;
+        if (delegate instanceof DelegatingInputStream) {
+            delegating = (DelegatingInputStream)delegate;
+        }
     }
 
-    public void hold() {
+    public boolean isCached() {
+        return cache != null;
+    }
+    public void cache() throws IOException {
+        if (cache == null) {
+            cache = new CachedOutputStream();
+            IOUtils.copy(ins, cache);
+            cache.lockOutputStream();  
+            ins.close();
+            ins = null;
+            if (delegating != null) {
+                delegating.setInputStream(cache.getInputStream());
+            }
+        }
+    }
+    public void hold() throws IOException {
+        cache();
         cache.holdTempFile();
     }
     public void release() {
@@ -50,12 +78,16 @@ public class AttachmentDataSource implements DataSource {
     public String getContentType() {
         return ct;
     }
-
+    public DelegatingInputStream getDelegatingInputStream() {
+        return delegating;
+    }
     public InputStream getInputStream() {
         try {
-            return new DelegatingInputStream(cache.getInputStream());
+            if (cache != null) {
+                return cache.getInputStream();
+            }
+            return ins;
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
     }
