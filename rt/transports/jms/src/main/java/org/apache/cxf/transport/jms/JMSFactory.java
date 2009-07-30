@@ -133,7 +133,7 @@ public final class JMSFactory {
         jmsListener.setMaxConcurrentConsumers(jmsConfig.getMaxConcurrentConsumers());
         jmsListener.setPubSubDomain(jmsConfig.isPubSubDomain());
         jmsListener.setPubSubNoLocal(jmsConfig.isPubSubNoLocal());
-        jmsListener.setAutoStartup(true);
+        
         jmsListener.setConnectionFactory(jmsConfig.getOrCreateWrappedConnectionFactory());
         jmsListener.setMessageSelector(jmsConfig.getMessageSelector());
         //jmsListener.setSubscriptionDurable(jmsConfig.isSubscriptionDurable());
@@ -161,7 +161,7 @@ public final class JMSFactory {
         if (jmsConfig.isAcceptMessagesWhileStopping()) {
             jmsListener.setAcceptMessagesWhileStopping(jmsConfig.isAcceptMessagesWhileStopping());
         }
-        String staticSelectorPrefix = jmsConfig.getConduitSelectorPrefix();
+        /*String staticSelectorPrefix = jmsConfig.getConduitSelectorPrefix();
         if (conduitId != null && jmsConfig.isUseConduitIdSelector()) {
             jmsListener.setMessageSelector("JMSCorrelationID LIKE '" 
                                         + staticSelectorPrefix 
@@ -169,7 +169,7 @@ public final class JMSFactory {
         } else if (staticSelectorPrefix.length() > 0) {
             jmsListener.setMessageSelector("JMSCorrelationID LIKE '" 
                                         + staticSelectorPrefix +  "%'");
-        }
+        }*/
         if (jmsConfig.getDestinationResolver() != null) {
             jmsListener.setDestinationResolver(jmsConfig.getDestinationResolver());
         }

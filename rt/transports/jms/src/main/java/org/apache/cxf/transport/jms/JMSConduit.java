@@ -178,9 +178,8 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender {
         }
         JMSConduitMessageCreator messageCreator = new JMSConduitMessageCreator();    
         /**
-         * If the message is not oneWay we will expect to receive a reply on the listener. To receive this
-         * reply we add the correlationId and an empty CXF Message to the correlationMap. The listener will
-         * fill to Message and notify this thread
+         * If the message is not oneWay we will expect to receive a reply on the listener. 
+         * 
          */
         if (!exchange.isOneWay()) {
             synchronized (exchange) {
@@ -207,9 +206,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender {
     }
 
     /**
-     * When a message is received on the reply destination the correlation map is searched for the
-     * correlationId. If it is found the message is converted to a CXF message and the thread sending the
-     * request is notified {@inheritDoc}
+     * Here we just deal with the reply message
      */
     public void doReplyMessage(Exchange exchange, javax.jms.Message jmsMessage) {
         Message inMessage = new MessageImpl();

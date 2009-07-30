@@ -97,10 +97,9 @@ public class JMSConduitTest extends AbstractJMSTester {
      * sendoutMessage(conduit, message, false); verifyReceivedMessage(message); } } finally { conduit.close();
      * } }
      */
-     
 
     /**
-     * Sends several messages and verfies the results. The service sends the message to itself. So it should
+     * Sends several messages and verifies the results. The service sends the message to itself. So it should
      * always receive the result
      * 
      * @throws Exception
