@@ -80,7 +80,7 @@ public class JMSConfiguration implements InitializingBean {
     private long recoveryInterval = DEFAULT_VALUE;
     private int cacheLevel = DEFAULT_VALUE;
     private String cacheLevelName;
-    private Boolean enforceSpec;
+    private boolean enforceSpec = true;
     private boolean acceptMessagesWhileStopping;
 
     //For jms spec.
@@ -355,7 +355,7 @@ public class JMSConfiguration implements InitializingBean {
 
     public boolean isUseConduitIdSelector() {
         if (useConduitIdSelector == null) {
-            return true;
+            return false;
         }
         return useConduitIdSelector;
     }
@@ -476,17 +476,10 @@ public class JMSConfiguration implements InitializingBean {
     }
     
     public boolean isEnforceSpec() {
-        if (!isSetEnforceSpec()) {
-            return true;
-        }
         return enforceSpec;
     }
 
     public void setEnforceSpec(boolean enforceSpec) {
         this.enforceSpec = enforceSpec;
-    }
-    
-    public boolean isSetEnforceSpec() {
-        return this.enforceSpec != null;
     }
 }

@@ -24,23 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.MessageListener;
 import javax.jms.Session;
 
-import org.apache.cxf.Bus;
-import org.apache.cxf.buslifecycle.BusLifeCycleListener;
-import org.apache.cxf.buslifecycle.BusLifeCycleManager;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.ConfigurationException;
 import org.apache.cxf.message.Exchange;
@@ -52,8 +44,6 @@ import org.apache.cxf.transport.AbstractConduit;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
-import org.springframework.jms.support.JmsUtils;
 
 /**
  * JMSConduit is instantiated by the JMSTransportfactory which is selected by a client if the transport
@@ -61,7 +51,7 @@ import org.springframework.jms.support.JmsUtils;
  * a JMS destination. If the Exchange is not oneway it then recevies the response and converts it to a CXF
  * Message. This is then provided in the Exchange and also sent to the incomingObserver
  */
-public class JMSConduit extends AbstractConduit implements JMSExchangeSender, MessageListener {
+public class JMSConduit extends AbstractConduit implements JMSExchangeSender {
 
     static final Logger LOG = LogUtils.getL7dLogger(JMSConduit.class);
     
@@ -69,19 +59,13 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     
     private EndpointInfo endpointInfo;
     private JMSConfiguration jmsConfig;
-    private Map<String, Exchange> correlationMap;
-    private DefaultMessageListenerContainer jmsListener;
-    private Map<String, DefaultMessageListenerContainer> correlationToListenerMap;
     private String conduitId;
     private AtomicLong messageCount;
-    private JMSBusLifeCycleListener listener;
 
     public JMSConduit(EndpointInfo endpointInfo, EndpointReferenceType target, JMSConfiguration jmsConfig) {
         super(target);
         this.jmsConfig = jmsConfig;
         this.endpointInfo = endpointInfo;
-        correlationMap = new ConcurrentHashMap<String, Exchange>();
-        correlationToListenerMap = new ConcurrentHashMap<String, DefaultMessageListenerContainer>();
         conduitId = UUID.randomUUID().toString().replaceAll("-", "");
         messageCount = new AtomicLong(0);
     }
@@ -131,32 +115,23 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             headers = new JMSMessageHeadersType();
             outMessage.put(JMSConstants.JMS_CLIENT_REQUEST_HEADERS, headers);
         }
-        String rplt = headers.getJMSReplyTo();
-        if (rplt == null) {
-            rplt = jmsConfig.getReplyDestination();
+        String replyTo = headers.getJMSReplyTo();
+        if (replyTo == null) {
+            replyTo = jmsConfig.getReplyDestination();
         }
         final JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, headers);
+        
         String userCID = headers.getJMSCorrelationID();
-        DefaultMessageListenerContainer jmsList = null;
         boolean messageIdPattern = false;
         String correlationId = null;
         if (!exchange.isOneWay()) {
             if (userCID != null) {
-                jmsList = JMSFactory.createJmsListener(jmsConfig, this, rplt, null);
-                addBusListener(exchange.get(Bus.class));
                 correlationId = userCID;
             } else if (!jmsConfig.isSetConduitSelectorPrefix()
                        && (!jmsConfig.isSetUseConduitIdSelector() || !jmsConfig
                            .isUseConduitIdSelector())) {
                 messageIdPattern = true;
-                jmsList = JMSFactory.createJmsListener(jmsConfig, this, rplt, null);
-                addBusListener(exchange.get(Bus.class));
             } else { 
-                if (jmsListener == null) {
-                    jmsListener = JMSFactory.createJmsListener(jmsConfig, this, rplt, conduitId);
-                    jmsListener.start();
-                    addBusListener(exchange.get(Bus.class));
-                }
                 if (jmsConfig.isUseConduitIdSelector()) {
                     correlationId = JMSUtils.createCorrelationId(jmsConfig
                         .getConduitSelectorPrefix()
@@ -169,31 +144,22 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
             }
         }
         
-        final javax.jms.Destination replyTo = exchange.isOneWay() ? null : (jmsList != null
-            ? jmsList.getDestination() : jmsListener.getDestination());
+        Destination replyToDestination = null;
+        if (!exchange.isOneWay() || !jmsConfig.isEnforceSpec() && isSetReplyTo(outMessage)
+            && replyTo != null) {
+            replyToDestination = JMSFactory.resolveOrCreateDestination(jmsTemplate, replyTo,
+                                                                       jmsConfig.isPubSubDomain());
+        }
         
         final String cid = correlationId; 
-        final String contextReplyToName = headers.getJMSReplyTo();
+        final Destination rtd = replyToDestination;
         class JMSConduitMessageCreator implements MessageCreator {
             private javax.jms.Message jmsMessage;
 
             public javax.jms.Message createMessage(Session session) throws JMSException {
                 String messageType = jmsConfig.getMessageType();
-                Destination replyToDestination = replyTo;
-                if (exchange.isOneWay() && !jmsConfig.isEnforceSpec() && isSetReplyTo(outMessage)) {
-                    String replyToName = contextReplyToName; 
-                    if (replyToName == null && jmsConfig.getReplyDestination() != null) {
-                        replyToName = jmsConfig.getReplyDestination();
-                    }
-                    if (replyToName != null) {
-                        replyToDestination = 
-                            JMSFactory.resolveOrCreateDestination(jmsTemplate, 
-                                                                  replyToName, 
-                                                                  jmsConfig.isPubSubDomain());
-                    }
-                }
                 jmsMessage = JMSUtils.buildJMSMessageFromCXFMessage(jmsConfig, outMessage, request,
-                                                                    messageType, session, replyToDestination,
+                                                                    messageType, session, rtd,
                                                                     cid);
                 LOG.log(Level.FINE, "client sending request: ", jmsMessage);
                 return jmsMessage;
@@ -218,79 +184,20 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
          */
         if (!exchange.isOneWay()) {
             synchronized (exchange) {
-                if (!messageIdPattern) {
-                    correlationMap.put(correlationId, exchange);
-                }
                 jmsTemplate.send(jmsConfig.getTargetDestination(), messageCreator);
                 if (messageIdPattern) {
                     correlationId = messageCreator.getMessageID();
-                    correlationMap.put(correlationId, exchange);
                 }
-                if (messageIdPattern || userCID != null) {
-                    jmsList.setMessageSelector("JMSCorrelationID = '" + correlationId + "'");
-                    jmsList.start();                  
-                    correlationToListenerMap.put(correlationId, jmsList);
-                }
+                headers.setJMSMessageID(messageCreator.getMessageID());
                 
-                headers.setJMSMessageID(correlationId);
-                
-                if (exchange.isSynchronous()) {
-                    try {
-                        exchange.wait(jmsTemplate.getReceiveTimeout());
-                    } catch (InterruptedException e) {
-                        correlationMap.remove(correlationId);
-                        throw new RuntimeException(e);
-                    }
-                    correlationMap.remove(correlationId);
-                    if (exchange.get(CORRELATED) == null) {
-                        throw new RuntimeException("Timeout receiving message with correlationId "
-                                                   + correlationId);
-                    }
-                }
+                String messageSelector = "JMSCorrelationID = '" + correlationId + "'";
+                javax.jms.Message replyMessage = jmsTemplate.receiveSelected(replyToDestination,
+                                                                             messageSelector);
+                doReplyMessage(exchange, replyMessage);
             }
         } else {
             jmsTemplate.send(jmsConfig.getTargetDestination(), messageCreator);
             headers.setJMSMessageID(messageCreator.getMessageID());
-        }
-    }
-
-    static class JMSBusLifeCycleListener implements BusLifeCycleListener {
-        final WeakReference<JMSConduit> ref;
-        BusLifeCycleManager blcm;
-        JMSBusLifeCycleListener(JMSConduit c, BusLifeCycleManager b) {
-            ref = new WeakReference<JMSConduit>(c);
-            blcm = b;
-            blcm.registerLifeCycleListener(this);
-        }
-        
-        public void initComplete() {
-        }
-
-        public void postShutdown() {
-        }
-
-        public void preShutdown() {
-            unreg();
-            blcm = null;
-            JMSConduit c = ref.get();
-            if (c != null) {
-                c.listener = null;
-                c.close();
-            }
-        }
-        public void unreg() {
-            if (blcm != null) {
-                blcm.unregisterLifeCycleListener(this);
-            }
-        }
-    }
-    private synchronized void addBusListener(Bus bus) {
-        if ((listener == null || correlationToListenerMap.size() == 0) && bus != null) {
-            BusLifeCycleManager blcm = bus.getExtension(BusLifeCycleManager.class);
-            if (blcm != null) {
-                listener = new JMSBusLifeCycleListener(this,
-                                                       blcm);
-            }
         }
     }
 
@@ -299,19 +206,7 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
      * correlationId. If it is found the message is converted to a CXF message and the thread sending the
      * request is notified {@inheritDoc}
      */
-    public void onMessage(javax.jms.Message jmsMessage) {
-        String correlationId;
-        try {
-            correlationId = jmsMessage.getJMSCorrelationID();
-        } catch (JMSException e) {
-            throw JmsUtils.convertJmsAccessException(e);
-        }
-
-        Exchange exchange = correlationMap.remove(correlationId);
-        if (exchange == null) {
-            LOG.log(Level.WARNING, "Could not correlate message with correlationId " + correlationId);
-            return;
-        }
+    public void doReplyMessage(Exchange exchange, javax.jms.Message jmsMessage) {
         Message inMessage = new MessageImpl();
         exchange.setInMessage(inMessage);
         LOG.log(Level.FINE, "client received reply: ", jmsMessage);
@@ -339,18 +234,6 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     }
 
     public void close() {
-        if (listener != null) {
-            listener.unreg();
-            listener = null;
-        }
-        if (jmsListener != null) {
-            jmsListener.shutdown();
-        }
-        Iterator<DefaultMessageListenerContainer> listeners = correlationToListenerMap.values()
-            .iterator();
-        while (listeners.hasNext()) {
-            listeners.next().shutdown();
-        }
         LOG.log(Level.FINE, "JMSConduit closed ");
     }
 
@@ -373,18 +256,6 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender, Me
     
     @Override
     protected void finalize() throws Throwable {
-        if (listener != null) {
-            listener.unreg();
-            listener = null;
-        }
-        if (jmsListener != null) {
-            jmsListener.shutdown();
-        }
-        Iterator<DefaultMessageListenerContainer> listeners = correlationToListenerMap.values()
-            .iterator();
-        while (listeners.hasNext()) {
-            listeners.next().shutdown();
-        }
         super.finalize();
     }
 

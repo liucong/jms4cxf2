@@ -185,7 +185,6 @@ public final class JMSFactory {
                 .isPubSubDomain());
             jmsListener.setDestination(dest);
         }
-        jmsListener.setAutoStartup(false);
         jmsListener.initialize();
         return jmsListener;
     }

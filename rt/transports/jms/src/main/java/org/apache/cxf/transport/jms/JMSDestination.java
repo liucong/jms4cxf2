@@ -104,7 +104,6 @@ public class JMSDestination extends AbstractMultiplexDestination implements Mess
         jmsConfig.ensureProperlyConfigured(msg);
         jmsListener = JMSFactory.createJmsListener(jmsConfig, this, 
                                                    jmsConfig.getTargetDestination(), null);
-        jmsListener.start();
     }
 
     public void deactivate() {
