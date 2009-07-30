@@ -193,7 +193,12 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender {
                 String messageSelector = "JMSCorrelationID = '" + correlationId + "'";
                 javax.jms.Message replyMessage = jmsTemplate.receiveSelected(replyToDestination,
                                                                              messageSelector);
-                doReplyMessage(exchange, replyMessage);
+                if (replyMessage == null) {
+                    throw new RuntimeException("Timeout receiving message with correlationId "
+                                               + correlationId);
+                } else {
+                    doReplyMessage(exchange, replyMessage);
+                }
             }
         } else {
             jmsTemplate.send(jmsConfig.getTargetDestination(), messageCreator);
