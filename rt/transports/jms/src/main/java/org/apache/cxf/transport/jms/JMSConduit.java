@@ -258,5 +258,4 @@ public class JMSConduit extends AbstractConduit implements JMSExchangeSender {
     protected void finalize() throws Throwable {
         super.finalize();
     }
-
 }
