@@ -17,36 +17,41 @@
  * under the License.
  */
 
-package org.apache.cxf.jaxrs.fortest.jaxb;
+package org.apache.cxf.service.factory;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-@XmlSeeAlso({SuperBook.class })
-public class Book {
-    private String name;
-    private long id;
-    
-    public Book(String name, long id) {
-        this.name = name;
-        this.id = id;
-    }
-    
-    public Book() {
-    }
-    
-    public void setName(String n) {
-        name = n;
-    }
+import javax.annotation.Resource;
 
-    public String getName() {
-        return name;
+import org.apache.cxf.Bus;
+
+/**
+ * 
+ */
+public class FactoryBeanListenerManager {
+    List<FactoryBeanListener> listeners
+        = new CopyOnWriteArrayList<FactoryBeanListener>();
+    
+    public FactoryBeanListenerManager() {
+        listeners.add(new AnnotationsFactoryBeanListener());
     }
     
-    public void setId(long i) {
-        id = i;
+    @Resource
+    public void setBus(Bus bus) {
+        bus.setExtension(this, FactoryBeanListenerManager.class);
     }
-    public long getId() {
-        return id;
+    
+    public List<FactoryBeanListener> getListeners() {
+        return listeners;
     }
-   
+    
+    public void addListener(FactoryBeanListener l) {
+        listeners.add(l);
+    }
+    
+    public void removeListener(FactoryBeanListener l) {
+        listeners.remove(l);
+    }
+    
 }

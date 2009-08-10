@@ -17,36 +17,19 @@
  * under the License.
  */
 
-package org.apache.cxf.jaxrs.fortest.jaxb;
+package org.apache.cxf.annotations;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@XmlSeeAlso({SuperBook.class })
-public class Book {
-    private String name;
-    private long id;
-    
-    public Book(String name, long id) {
-        this.name = name;
-        this.id = id;
-    }
-    
-    public Book() {
-    }
-    
-    public void setName(String n) {
-        name = n;
-    }
-
-    public String getName() {
-        return name;
-    }
-    
-    public void setId(long i) {
-        id = i;
-    }
-    public long getId() {
-        return id;
-    }
-   
+/**
+ * Enables SchemaValidation
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+public @interface SchemaValidation {
+    boolean enabled() default true;
 }
+

@@ -48,6 +48,7 @@ import org.apache.cxf.anonymous_complex_type.RefSplitNameResponse;
 import org.apache.cxf.anonymous_complex_type.SplitName;
 import org.apache.cxf.anonymous_complex_type.SplitNameResponse.Names;
 import org.apache.cxf.binding.soap.Soap11;
+import org.apache.cxf.common.WSDLConstants;
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.cxf.helpers.XMLUtils;
 import org.apache.cxf.helpers.XPathUtils;
@@ -72,6 +73,76 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
     @BeforeClass
     public static void startServers() throws Exception {
         assertTrue("server did not launch correctly", launchServer(ServerMisc.class));
+    }
+
+    @Test
+    public void testWSDLDocs() throws Exception {
+        Map<String, String> ns = new HashMap<String, String>();
+        ns.put("wsdl", WSDLConstants.NS_WSDL11);
+        XPathUtils xpu = new XPathUtils(ns);
+        Document wsdl = XMLUtils.parse(this.getHttpConnection(ServerMisc.DOCLIT_CODEFIRST_URL + "?wsdl")
+                                          .getInputStream());
+        XMLUtils.printDOM(wsdl.getDocumentElement());
+        assertEquals("DocLitWrappedCodeFirstService impl",
+                     xpu.getValue("/wsdl:definitions/wsdl:service/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("DocLitWrappedCodeFirstService interface",
+                     xpu.getValue("/wsdl:definitions/wsdl:portType/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("DocLitWrappedCodeFirstService top level doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("DocLitWrappedCodeFirstService binding doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:binding/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("DocLitWrappedCodeFirstService service/port doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:service/wsdl:port/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:portType/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut Input doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:portType/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:input/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut Output doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:portType/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:output/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut InputMessage doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:message[@name='multiInOut']"
+                                  + "/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut OutputMessage doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:message[@name='multiInOutResponse']"
+                                  + "/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut binding doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:binding/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut binding Input doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:binding/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:input/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
+        assertEquals("multiInOut binding Output doc",
+                     xpu.getValue("/wsdl:definitions/wsdl:binding/wsdl:operation[@name='multiInOut']"
+                                  + "/wsdl:output/wsdl:documentation",
+                                  wsdl.getDocumentElement(),
+                                  XPathConstants.STRING));
     }
     
     @Test
