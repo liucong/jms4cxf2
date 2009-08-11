@@ -31,6 +31,8 @@ import org.apache.cxf.interceptor.AttachmentInInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 
 /**
  * 
@@ -92,8 +94,15 @@ public class SoapJMSInInterceptor extends AbstractSoapInterceptor {
         List<String> ru = headers.get(SoapJMSConstants.REQUESTURI_FIELD);
         JMSFault jmsFault = null;
         if (ru != null && ru.size() > 0) {
-            //String requestURI = ru.get(0);
-            // ToDO malformedRequestURI
+            String requestURI = ru.get(0);
+            try { 
+                JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(requestURI);
+                if (endpoint.getParameter(SoapJMSConstants.TARGETSERVICE_PARAMETER_NAME) != null) {
+                    jmsFault = JMSFaultFactory.createTargetServiceNotAllowedInRequestURIFault();
+                }
+            } catch (Exception e) {
+                jmsFault = JMSFaultFactory.createMalformedRequestURIFault(requestURI);
+            }
             // ToDO tagetServiceNotAllowedInRequestURI
         } else {
             jmsFault = JMSFaultFactory.createMissingRequestURIFault();
@@ -114,8 +123,12 @@ public class SoapJMSInInterceptor extends AbstractSoapInterceptor {
         List<String> ct = headers.get(SoapJMSConstants.CONTENTTYPE_FIELD);
         JMSFault jmsFault = null;
         if (ct != null && ct.size() > 0) {
-            //String contentType = ct.get(0);
-            // ToDO
+            String contentType = ct.get(0);
+            if (!contentType.startsWith("text/xml")
+                && !contentType.startsWith("application/soap+xml")
+                && !contentType.startsWith("multipart/related")) {
+                jmsFault = JMSFaultFactory.createContentTypeMismatchFault(contentType);
+            }
         } else {
             jmsFault = JMSFaultFactory.createMissingContentTypeFault();
         }

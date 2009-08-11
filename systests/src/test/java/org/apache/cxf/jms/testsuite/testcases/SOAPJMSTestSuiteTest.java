@@ -61,9 +61,9 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
         }
         props.put("java.util.logging.config.file", System
             .getProperty("java.util.logging.config.file"));
-/*        assertTrue("server did not launch correctly", launchServer(EmbeddedJMSBrokerLauncher.class,
+        assertTrue("server did not launch correctly", launchServer(EmbeddedJMSBrokerLauncher.class,
                                                                    props, null));
-        assertTrue("server did not launch correctly", launchServer(Server.class, false));*/
+        assertTrue("server did not launch correctly", launchServer(Server.class, false));
     }
 
     private void oneWayTest(TestCaseType testcase, JMSSimplePortType port) throws Exception {
@@ -251,8 +251,42 @@ public class SOAPJMSTestSuiteTest extends AbstractSOAPJMSTestSuite {
     
     @Test
     public void test1002() throws Exception {
-        // same to test0002
         TestCaseType testcase = JMSTestUtil.getTestCase("test1002");
+        
+        twoWayTestWithCreateMessage(testcase);
+    }
+    
+    @Test
+    public void test1003() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1003");
+        
+        twoWayTestWithCreateMessage(testcase);
+    }
+    
+    @Test
+    public void test1004() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1004");
+        
+        twoWayTestWithCreateMessage(testcase);
+    }
+    
+    @Test
+    public void test1006() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1006");
+        
+        twoWayTestWithCreateMessage(testcase);
+    }
+    
+    @Test
+    public void test1007() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1007");
+        
+        twoWayTestWithCreateMessage(testcase);
+    }
+    
+    @Test
+    public void test1008() throws Exception {
+        TestCaseType testcase = JMSTestUtil.getTestCase("test1008");
         
         twoWayTestWithCreateMessage(testcase);
     }

@@ -29,6 +29,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.StreamMessage;
+import javax.jms.TextMessage;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
@@ -166,6 +167,7 @@ public final class JMSTestUtil {
         String messageType = messageProperties.getMessageType();
         if ("text".equals(messageType)) {
             jmsMessage = session.createTextMessage();
+            ((TextMessage)jmsMessage).setText("test");
         } else if ("byte".equals(messageType)) {
             jmsMessage = session.createBytesMessage();
         } else if ("stream".equals(messageType)) {
@@ -190,27 +192,32 @@ public final class JMSTestUtil {
             jmsMessage.setJMSPriority(messageProperties.getExpiration());
         }
         
-        if (messageProperties.isSetTargetService()) {
+        if (messageProperties.isSetTargetService()
+            && !"".equals(messageProperties.getTargetService().trim())) {
             jmsMessage.setStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD, messageProperties
                 .getTargetService().trim());
         }
 
-        if (messageProperties.isSetBindingVersion()) {
+        if (messageProperties.isSetBindingVersion()
+            && !"".equals(messageProperties.getBindingVersion().trim())) {
             jmsMessage.setStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD, messageProperties
                                          .getBindingVersion().trim());
         }
 
-        if (messageProperties.isSetContentType()) {
+        if (messageProperties.isSetContentType()
+            && !"".equals(messageProperties.getContentType().trim())) {
             jmsMessage.setStringProperty(JMSSpecConstants.CONTENTTYPE_FIELD, messageProperties
                 .getContentType().trim());
         }
 
-        if (messageProperties.isSetSoapAction()) {
+        if (messageProperties.isSetSoapAction()
+            && !"".equals(messageProperties.getSoapAction().trim())) {
             jmsMessage.setStringProperty(JMSSpecConstants.SOAPACTION_FIELD, messageProperties
                 .getSoapAction().trim());
         }
 
-        if (messageProperties.isSetRequestURI()) {
+        if (messageProperties.isSetRequestURI()
+            && !"".equals(messageProperties.getRequestURI().trim())) {
             jmsMessage.setStringProperty(JMSSpecConstants.REQUESTURI_FIELD, messageProperties
                 .getRequestURI().trim());
         }
