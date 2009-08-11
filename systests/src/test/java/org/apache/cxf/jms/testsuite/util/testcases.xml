@@ -266,4 +266,42 @@
 			<messageBody></messageBody>
 		</responseMessage>
 	</testCase>
+	
+	<testCase id="test1002" mep="inout">
+		<address>jms:jndi:dynamicQueues/testqueue1002?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;jndiConnectionFactoryName=ConnectionFactory&amp;jndiURL=tcp://localhost:61500</address>
+		<requestMessage>
+			<messageType>stream</messageType>
+			<deliveryMode>2</deliveryMode>
+			<priority>4</priority>
+			<expiration>0</expiration>
+			<replyTo></replyTo>
+			<correlationID></correlationID>
+			<destination>queue://testqueue1002</destination>
+			<redelivered>false</redelivered>
+			<bindingVersion>1.0</bindingVersion>
+			<targetService></targetService>
+			<contentType>text/xml; charset=UTF-8</contentType>
+			<soapAction></soapAction>
+			<requestURI>jms:jndi:dynamicQueues/testqueue1002
+			</requestURI>
+			<messageBody></messageBody>
+		</requestMessage>
+		<responseMessage>
+			<messageType>byte</messageType>
+			<deliveryMode>2</deliveryMode>
+			<priority>4</priority>
+			<expiration>0</expiration>
+			<replyTo></replyTo>
+			<correlationID></correlationID>
+			<destination></destination>
+			<redelivered>false</redelivered>
+			<bindingVersion>1.0</bindingVersion>
+			<targetService></targetService>
+			<contentType>text/xml; charset=UTF-8</contentType>
+			<soapAction></soapAction>
+			<requestURI>jms:jndi:dynamicQueues/testqueue1002</requestURI>
+			<isFault>true</isFault>
+			<messageBody></messageBody>
+		</responseMessage>
+	</testCase>
 </testCases>

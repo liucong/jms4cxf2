@@ -22,16 +22,24 @@ package org.apache.cxf.jms.testsuite.testcases;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.Session;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
+import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.transport.jms.JMSFactory;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 
 /**
  * 
@@ -196,5 +204,47 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
             assertEquals(header.isSOAPJMSIsFault(), messageProperties.isIsFault());
         }
         // todo messagebody
+    }
+    
+    public void twoWayTestWithCreateMessage(final TestCaseType testcase) throws Exception {
+        String address = testcase.getAddress();
+        JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
+        final JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(JMSTestUtil
+            .getInitJMSConfiguration(address), null);
+        
+        final Destination replyToDestination = JMSFactory.resolveOrCreateDestination(jmsTemplate,
+                                                                                     null, false);
+        class JMSConduitMessageCreator implements MessageCreator {
+            private javax.jms.Message jmsMessage;
+
+            public javax.jms.Message createMessage(Session session) throws JMSException {
+                jmsMessage = JMSTestUtil.buildJMSMessageFromTestCase(testcase, session, replyToDestination);
+                return jmsMessage;
+            }
+
+            public String getMessageID() {
+                if (jmsMessage != null) {
+                    try {
+                        return jmsMessage.getJMSMessageID();
+                    } catch (JMSException e) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+        }
+        JMSConduitMessageCreator messageCreator = new JMSConduitMessageCreator();    
+
+        jmsTemplate.send(endpoint.getDestinationName(), messageCreator);
+        String messageId = messageCreator.getMessageID();
+
+        String messageSelector = "JMSCorrelationID = '" + messageId + "'";
+        javax.jms.Message replyMessage = jmsTemplate.receiveSelected(replyToDestination,
+                                                                     messageSelector);
+        checkReplyMessage(replyMessage);
+    }
+
+    private void checkReplyMessage(Message replyMessage) {
+        // TODO Auto-generated method stub
     }
 }

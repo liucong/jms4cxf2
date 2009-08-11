@@ -38,9 +38,10 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
+import org.apache.cxf.annotations.FastInfoset;
+import org.apache.cxf.annotations.GZIP;
 import org.apache.cxf.annotations.WSDLDocumentation;
 import org.apache.cxf.annotations.WSDLDocumentationCollection;
-import org.apache.cxf.feature.Features;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.systest.jaxws.types.Bar;
 
@@ -48,9 +49,6 @@ import org.apache.cxf.systest.jaxws.types.Bar;
             targetNamespace = "http://cxf.apache.org/systest/jaxws/DocLitWrappedCodeFirstService")
 @SOAPBinding(style = SOAPBinding.Style.DOCUMENT,
              use = SOAPBinding.Use.LITERAL)
-//@Features(features = { "org.apache.cxf.feature.FastInfosetFeature" })
-@Features(features = { "org.apache.cxf.transport.http.gzip.GZIPFeature", 
-                       "org.apache.cxf.feature.FastInfosetFeature" })
 @WSDLDocumentationCollection(
     {
         @WSDLDocumentation("DocLitWrappedCodeFirstService interface"),
@@ -62,6 +60,8 @@ import org.apache.cxf.systest.jaxws.types.Bar;
                            placement = WSDLDocumentation.Placement.SERVICE_PORT)   
     }
 )
+@GZIP
+@FastInfoset
 public interface DocLitWrappedCodeFirstService {
 
     @Oneway
@@ -138,7 +138,22 @@ public interface DocLitWrappedCodeFirstService {
     @WebMethod
     List<Foo[]> listObjectArrayOutput();
     
+    String outOnly(@WebParam(mode = WebParam.Mode.OUT) Holder<String> out1, 
+                   @WebParam(mode = WebParam.Mode.OUT) Holder<String> out2);
+    
     @WebMethod
+    @WSDLDocumentationCollection({
+        @WSDLDocumentation(value = "fault message doc",
+                           placement = WSDLDocumentation.Placement.FAULT_MESSAGE,
+                           faultClass = CustomException.class),   
+        @WSDLDocumentation(value = "fault binding doc",
+                           placement = WSDLDocumentation.Placement.BINDING_OPERATION_FAULT,
+                           faultClass = CustomException.class),   
+        @WSDLDocumentation(value = "fault porttype doc",
+                           placement = WSDLDocumentation.Placement.PORT_TYPE_OPERATION_FAULT,
+                           faultClass = CustomException.class)   
+        }
+    )
     int throwException(int i) 
         throws ServiceTestFault,
         CustomException,
