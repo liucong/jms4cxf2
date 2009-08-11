@@ -28,6 +28,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
+import javax.jms.StreamMessage;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
@@ -169,6 +170,7 @@ public final class JMSTestUtil {
             jmsMessage = session.createBytesMessage();
         } else if ("stream".equals(messageType)) {
             jmsMessage = session.createStreamMessage();
+            ((StreamMessage)jmsMessage).writeString("test");
         } else {
             jmsMessage = session.createBytesMessage();
         }
@@ -190,27 +192,27 @@ public final class JMSTestUtil {
         
         if (messageProperties.isSetTargetService()) {
             jmsMessage.setStringProperty(JMSSpecConstants.TARGETSERVICE_FIELD, messageProperties
-                .getTargetService());
+                .getTargetService().trim());
         }
 
         if (messageProperties.isSetBindingVersion()) {
             jmsMessage.setStringProperty(JMSSpecConstants.BINDINGVERSION_FIELD, messageProperties
-                                         .getBindingVersion());
+                                         .getBindingVersion().trim());
         }
 
         if (messageProperties.isSetContentType()) {
             jmsMessage.setStringProperty(JMSSpecConstants.CONTENTTYPE_FIELD, messageProperties
-                .getContentType());
+                .getContentType().trim());
         }
 
         if (messageProperties.isSetSoapAction()) {
             jmsMessage.setStringProperty(JMSSpecConstants.SOAPACTION_FIELD, messageProperties
-                .getSoapAction());
+                .getSoapAction().trim());
         }
 
         if (messageProperties.isSetRequestURI()) {
             jmsMessage.setStringProperty(JMSSpecConstants.REQUESTURI_FIELD, messageProperties
-                .getRequestURI());
+                .getRequestURI().trim());
         }
         return jmsMessage;
     }

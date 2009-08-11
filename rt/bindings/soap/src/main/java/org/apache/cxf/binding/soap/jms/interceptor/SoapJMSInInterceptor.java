@@ -59,7 +59,17 @@ public class SoapJMSInInterceptor extends AbstractSoapInterceptor {
      * @param headers
      */
     private void checkJMSMessageFormat(SoapMessage message, Map<String, List<String>> headers) {
-        // ToDO
+        List<String> mt = headers.get(SoapJMSConstants.JMS_MESSAGE_TYPE);
+        if (mt != null && mt.size() > 0) {
+            String messageType = mt.get(0);
+            if (!"text".equals(messageType) && !"byte".equals(messageType)) {
+                JMSFault jmsFault = JMSFaultFactory.createUnsupportedJMSMessageFormatFault(messageType);
+                Fault f = createFault(message, jmsFault);
+                if (f != null) {
+                    throw f;
+                }
+            }
+        }
     }
 
     /**

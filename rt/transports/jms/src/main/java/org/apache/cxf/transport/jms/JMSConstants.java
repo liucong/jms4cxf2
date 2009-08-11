@@ -22,6 +22,7 @@ package org.apache.cxf.transport.jms;
 public final class JMSConstants {
     
     public static final String JMS_CONTENT_TYPE = "SOAPJMS_contentType";
+    public static final String JMS_MESSAGE_TYPE = "JMSMessageType";
     public static final String JMS_QUEUE = "queue";
     public static final String JMS_TOPIC = "topic";
 

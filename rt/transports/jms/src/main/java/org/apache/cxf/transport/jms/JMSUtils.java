@@ -19,6 +19,8 @@
 
 package org.apache.cxf.transport.jms;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -33,10 +35,12 @@ import java.util.logging.Logger;
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.StreamMessage;
 import javax.jms.Topic;
 
 import org.apache.cxf.common.logging.LogUtils;
@@ -105,15 +109,19 @@ public final class JMSUtils {
 
     /**
      * Extract the payload of an incoming message.
+     * @param inMessage 
      * 
      * @param message the incoming message
      * @param encoding the message encoding
      * @return the message payload as byte[]
      * @throws UnsupportedEncodingException
      */
-    public static byte[] retrievePayload(Message message, String encoding)
+    public static void retrieveAndSetPayload(org.apache.cxf.message.Message inMessage,
+                                             Message message, String encoding)
         throws UnsupportedEncodingException {
+        String messageType = null;
         Object converted;
+        byte[] result;
         try {
             converted = new SimpleMessageConverter102().fromMessage(message);
         } catch (MessageConversionException e) {
@@ -123,16 +131,33 @@ public final class JMSUtils {
         }
         if (converted instanceof String) {
             if (encoding != null) {
-                return ((String)converted).getBytes(encoding);
+                result = ((String)converted).getBytes(encoding);
             } else {
                 // Using the UTF-8 encoding as default
-                return ((String)converted).getBytes("UTF-8");
+                result = ((String)converted).getBytes("UTF-8");
             }
+            inMessage.setContent(InputStream.class, new ByteArrayInputStream(result));
+            messageType = "text";
         } else if (converted instanceof byte[]) {
-            return (byte[])converted;
+            result = (byte[])converted;
+            inMessage.setContent(InputStream.class, new ByteArrayInputStream(result));
+            messageType = "byte";
+        } else if (message instanceof MapMessage) {
+            messageType = "map";
+        } else if (message instanceof ObjectMessage) {
+            messageType = "object";
+        } else if (message instanceof StreamMessage) {
+            messageType = "stream";
         } else {
-            return (byte[])converted; // TODO is this correct?
+            messageType = "unknow";
         }
+        Map<String, List<String>> headers = CastUtils.cast((Map)inMessage
+            .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
+        if (headers == null) {
+            headers = new HashMap<String, List<String>>();
+            inMessage.put(org.apache.cxf.message.Message.PROTOCOL_HEADERS, headers);
+        }
+        headers.put(JMSConstants.JMS_MESSAGE_TYPE, Collections.singletonList(messageType));
     }
 
     public static void populateIncomingContext(javax.jms.Message message,

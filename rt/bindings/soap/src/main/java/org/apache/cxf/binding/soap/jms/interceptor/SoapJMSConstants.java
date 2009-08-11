@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 public final class SoapJMSConstants {
 
     public static final String SOAP_JMS_PREFIX = "SOAPJMS_";
+    public static final String JMS_MESSAGE_TYPE = "JMSMessageType";
     
     // JMS Message properties' names.
     public static final String REQUESTURI_PARAMETER_NAME = "requestURI";

@@ -33,11 +33,10 @@ import org.apache.cxf.jms.testsuite.util.JMSTestUtil;
 import org.apache.cxf.testsuite.testcase.MessagePropertiesType;
 import org.apache.cxf.testsuite.testcase.TestCaseType;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSFactory;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
-import org.apache.cxf.transport.jms.uri.JMSEndpoint;
-import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
@@ -70,8 +69,8 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
         return service.getPort(qPortName, portTypeClass);
     }
 
-    public void checkJMSProperties(Message message, MessagePropertiesType messageProperties,
-                                   boolean noResponse) throws JMSException {
+    public void checkJMSProperties(Message message, MessagePropertiesType messageProperties)
+        throws JMSException {
         // todo messagetype
         // todo messageid
         if (messageProperties.isSetDeliveryMode()) {
@@ -90,10 +89,6 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
         if (messageProperties.isSetCorrelationID()
             && !messageProperties.getCorrelationID().trim().equals("")) {
             assertEquals(message.getJMSCorrelationID(), messageProperties.getCorrelationID());
-        }
-        if (noResponse) {
-            assertEquals(message.getJMSReplyTo(), null);
-            assertEquals(message.getJMSCorrelationID(), null);
         }
         if (messageProperties.isSetDestination()
             && !messageProperties.getDestination().trim().equals("")) {
@@ -128,7 +123,7 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
                          messageProperties.getRequestURI().trim());
         }
         if (messageProperties.isSetIsFault()) {
-            assertEquals(message.getStringProperty(JMSSpecConstants.ISFAULT_FIELD),
+            assertEquals(message.getBooleanProperty(JMSSpecConstants.ISFAULT_FIELD),
                          messageProperties.isIsFault());
         }
         // todo messagebody
@@ -208,9 +203,8 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
     
     public void twoWayTestWithCreateMessage(final TestCaseType testcase) throws Exception {
         String address = testcase.getAddress();
-        JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(address);
-        final JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(JMSTestUtil
-            .getInitJMSConfiguration(address), null);
+        JMSConfiguration jmsConfig = JMSTestUtil.getInitJMSConfiguration(address);
+        final JmsTemplate jmsTemplate = JMSFactory.createJmsTemplate(jmsConfig, null);
         
         final Destination replyToDestination = JMSFactory.resolveOrCreateDestination(jmsTemplate,
                                                                                      null, false);
@@ -235,16 +229,16 @@ public abstract class AbstractSOAPJMSTestSuite extends AbstractBusClientServerTe
         }
         JMSConduitMessageCreator messageCreator = new JMSConduitMessageCreator();    
 
-        jmsTemplate.send(endpoint.getDestinationName(), messageCreator);
+        jmsTemplate.send(jmsConfig.getTargetDestination(), messageCreator);
         String messageId = messageCreator.getMessageID();
 
         String messageSelector = "JMSCorrelationID = '" + messageId + "'";
         javax.jms.Message replyMessage = jmsTemplate.receiveSelected(replyToDestination,
                                                                      messageSelector);
-        checkReplyMessage(replyMessage);
+        checkReplyMessage(replyMessage, testcase);
     }
 
-    private void checkReplyMessage(Message replyMessage) {
-        // TODO Auto-generated method stub
+    private void checkReplyMessage(Message replyMessage, TestCaseType testcase) throws JMSException {
+        checkJMSProperties(replyMessage, testcase.getResponseMessage());
     }
 }
