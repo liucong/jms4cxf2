@@ -159,11 +159,10 @@ public abstract class AbstractSDOTest extends AbstractCXFTest {
         setupSDO(sf, null);
     }
     protected void setupSDO(AbstractWSDLBasedEndpointFactory sf, SDODataBinding binding) {
-        SDODataBinding b = binding;
-        if (b == null) {
-            b = new SDODataBinding();
+        if (binding == null) {
+            binding = new SDODataBinding();
         }
-        sf.getServiceFactory().setDataBinding(b);
+        sf.getServiceFactory().setDataBinding(binding);
     }
 
     protected Collection<Document> getWSDLDocuments(String string) throws WSDLException {
