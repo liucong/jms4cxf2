@@ -49,6 +49,8 @@ import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.security.SecurityContext;
 import org.apache.cxf.transport.jms.spec.JMSSpecConstants;
+import org.apache.cxf.transport.jms.uri.JMSEndpoint;
+import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.SimpleMessageConverter102;
@@ -157,7 +159,7 @@ public final class JMSUtils {
             headers = new HashMap<String, List<String>>();
             inMessage.put(org.apache.cxf.message.Message.PROTOCOL_HEADERS, headers);
         }
-        headers.put(JMSConstants.JMS_MESSAGE_TYPE, Collections.singletonList(messageType));
+        headers.put(JMSSpecConstants.JMS_MESSAGE_TYPE, Collections.singletonList(messageType));
     }
 
     public static void populateIncomingContext(javax.jms.Message message,
@@ -252,6 +254,23 @@ public final class JMSUtils {
             if (jmsMessage.propertyExists(JMSSpecConstants.REQUESTURI_FIELD)) {
                 messageProperties.setSOAPJMSRequestURI(jmsMessage
                     .getStringProperty(JMSSpecConstants.REQUESTURI_FIELD));
+                
+                Map<String, List<String>> headers = CastUtils.cast((Map)inMessage
+                    .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
+                if (headers == null) {
+                    headers = new HashMap<String, List<String>>();
+                    inMessage.put(org.apache.cxf.message.Message.PROTOCOL_HEADERS, headers);
+                }
+                try {
+                    JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(jmsMessage
+                        .getStringProperty(JMSSpecConstants.REQUESTURI_FIELD));
+                    if (endpoint.getParameter(JMSSpecConstants.TARGETSERVICE_PARAMETER_NAME) != null) {
+                        headers.put(JMSSpecConstants.TARGET_SERVICE_IN_REQUESTURI, Collections
+                            .singletonList("true"));
+                    }
+                } catch (Exception e) {
+                    headers.put(JMSSpecConstants.MALFORMED_REQUESTURI, Collections.singletonList("true"));
+                }
             }
 
             if (messageProperties.isSetSOAPJMSContentType()) {

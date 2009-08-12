@@ -31,8 +31,6 @@ import org.apache.cxf.interceptor.AttachmentInInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
-import org.apache.cxf.transport.jms.uri.JMSEndpoint;
-import org.apache.cxf.transport.jms.uri.JMSEndpointParser;
 
 /**
  * 
@@ -95,15 +93,15 @@ public class SoapJMSInInterceptor extends AbstractSoapInterceptor {
         JMSFault jmsFault = null;
         if (ru != null && ru.size() > 0) {
             String requestURI = ru.get(0);
-            try { 
-                JMSEndpoint endpoint = JMSEndpointParser.createEndpoint(requestURI);
-                if (endpoint.getParameter(SoapJMSConstants.TARGETSERVICE_PARAMETER_NAME) != null) {
-                    jmsFault = JMSFaultFactory.createTargetServiceNotAllowedInRequestURIFault();
-                }
-            } catch (Exception e) {
+            List<String> mr = headers.get(SoapJMSConstants.MALFORMED_REQUESTURI);
+            if (mr != null && mr.size() > 0 && mr.get(0).equals("true")) {
                 jmsFault = JMSFaultFactory.createMalformedRequestURIFault(requestURI);
             }
-            // ToDO tagetServiceNotAllowedInRequestURI
+
+            List<String> trn = headers.get(SoapJMSConstants.TARGET_SERVICE_IN_REQUESTURI);
+            if (trn != null && trn.size() > 0 && trn.get(0).equals("true")) {
+                jmsFault = JMSFaultFactory.createTargetServiceNotAllowedInRequestURIFault();
+            }
         } else {
             jmsFault = JMSFaultFactory.createMissingRequestURIFault();
         }
