@@ -17,7 +17,7 @@
   specific language governing permissions and limitations
   under the License.
 -->
-<project name="JMS Specification Greeter" default="build" basedir=".">
+<project name="SOAP/JMS Specification Greeter" default="build" basedir=".">
     <property environment="env"/>
     <condition property="activemq.home" value="${env.ACTIVEMQ_HOME}">
         <isset property="env.ACTIVEMQ_HOME"/>

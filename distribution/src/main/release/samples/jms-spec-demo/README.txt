@@ -1,8 +1,8 @@
-JMS Transport Demo using Document-Literal Style
+SOAP/JMS Specification Transport Demo using Document-Literal Style
 ===============================================
 
 This sample demonstrates use of the Document-Literal style 
-binding over SOAP/JMS Specification Transport using the queue mechanism.
+binding over SOAP/JMS Specification Transport.
 
 Please review the README in the samples directory before
 continuing.
@@ -145,4 +145,3 @@ To remove the code generated from the WSDL file and the .class
 files, either delete the build directory and its contents or run:
 
   ant clean
-
