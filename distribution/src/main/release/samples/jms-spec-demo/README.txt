@@ -2,18 +2,13 @@ JMS Transport Demo using Document-Literal Style
 ===============================================
 
 This sample demonstrates use of the Document-Literal style 
-binding over JMS Transport using the queue mechanism.
+binding over SOAP/JMS Specification Transport using the queue mechanism.
 
 Please review the README in the samples directory before
 continuing.
 
 This demo uses ActiveMQ as the JMS implementation for 
-illustration purposes only. Other JMS implementations 
-such as Apache Qpid could also be used in the same way.
-For details on how to use this demo on non-ActiveMQ 
-implementations please check "Using other JMS implementaions"
-below.
-
+illustration purposes only. 
 
 Prerequisite
 ------------
@@ -151,62 +146,3 @@ files, either delete the build directory and its contents or run:
 
   ant clean
 
-
-Using other JMS implementations:
--------------------------------
-
-
-Using it with Apache Qpid:  
--------------------------
-
-Before running the run, you will have to set QPID_HOME in your environment, 
-and also have to start the Qpid broker. 
-
-The following changes are needed to the demo to make it work for Apache Qpid.
-
-1. Changes to wsdl/jms_greeter.wsdl
-- Replace the jms:address element under wsdl:port with:                
-      <jms:address
-          destinationStyle="queue"
-          jndiConnectionFactoryName="local"
-          jndiDestinationName="dq">
-          <jms:JMSNamingProperty name="java.naming.factory.initial" 
-               value="org.apache.qpid.jndi.PropertiesFileInitialContextFactory"/>
-          <jms:JMSNamingProperty name="java.naming.provider.url" 
-               value="tcp://localhost:5672"/>
-          <jms:JMSNamingProperty name="connectionfactory.local" 
-               value="amqp://guest:guest@clientid/test?brokerlist='tcp://localhost:5672'"/>
-          <jms:JMSNamingProperty name="queue.dq" value="queue://queuetest"/>
-      </jms:address>
-
-2. Changes to build.xml.
-- Replace 
-    <condition property="activemq.home" value="${env.ACTIVEMQ_HOME}">
-        <isset property="env.ACTIVEMQ_HOME"/>
-    </condition>
-    <fail message="this sample need to use activemq, please setup  ACTIVEMQ_HOME in your environment"
-        unless="activemq.home"/>
-    <condition property="activemq.version" value="${env.ACTIVEMQ_VERSION}">
-	<isset property="env.ACTIVEMQ_VERSION"/>
-    </condition>
-    <fail message="this sample need to use activemq, please setup ACTIVEMQ_VERSION in your envrionment"
-        unless="activemq.version"/>
-    <property name="thirdparty.classpath" location="${activemq.home}/incubator-activemq-${activemq.version}.jar"/>
- 
-  with
-
-   <condition property="qpid.home" value="${env.QPID_HOME}">
-        <isset property="env.QPID_HOME"/>
-    </condition>
-
-    <fail message="this sample need to use qpid, please setup QPID_HOME in your environment"
-        unless="qpid.home"/>
-
-    <property name="thirdparty.classpath" location="${qpid.home}/lib/qpid-incubating.jar"/>    
-
-- Remove the target jmsbroker.start from build.xml. This is only a helper function to start the 
-  Active MQ broker, and is not required if the broker can be started through the scripts.
-
-3. Remove the file, EmbeddedBroker.java from under the directory src/demo/jms_greeter/broker. This is
-   only a helper function and therefore need not be used, as long as the broker is started
-   through the scripts.
