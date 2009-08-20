@@ -19,17 +19,15 @@
 
 package org.apache.cxf.binding.soap.tcp.frames;
 
-
 public class SoapTcpFrame {
-    private int channelId;
     private SoapTcpFrameHeader header;
     private byte[] payload;
     
     public int getChannelId() {
-        return channelId;
+        return header.getChannelId();
     }
     public void setChannelId(int channelId) {
-        this.channelId = channelId;
+        this.header.setChannelId(channelId);
     }
     public SoapTcpFrameHeader getHeader() {
         return header;
@@ -43,6 +41,4 @@ public class SoapTcpFrame {
     public void setPayload(byte[] payload) {
         this.payload = payload;
     }
-    
-    
 }

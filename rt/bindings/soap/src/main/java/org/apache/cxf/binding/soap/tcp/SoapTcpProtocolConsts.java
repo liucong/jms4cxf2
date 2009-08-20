@@ -16,26 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.binding.http.mtom;
 
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
+package org.apache.cxf.binding.soap.tcp;
 
-import org.apache.cxf.person.People;
-import org.apache.cxf.person.Person;
+public final class SoapTcpProtocolConsts {
 
-@WebService(targetNamespace = "http://cxf.apache.org/person/")
-public interface PeopleService {
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    People getPeople();
-
-    void addPerson(@WebParam(name = "Person",
-                             targetNamespace = "http://cxf.apache.org/person/")
-                             Person p);
+    public static final String MAGIC_IDENTIFIER = "vnd.sun.ws.tcp";
+    public static final int PROTOCOL_VERSION_MAJOR = 1;
+    public static final int PROTOCOL_VERSION_MINOR = 0;
+    public static final int CONNECTION_MANAGEMENT_VERSION_MAJOR = 1;
+    public static final int CONNECTION_MANAGEMENT_VERSION_MINOR = 0;
     
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    Person getPerson(@WebParam(name = "name") String name);
+    private SoapTcpProtocolConsts() {
+        
+    }
+
 }

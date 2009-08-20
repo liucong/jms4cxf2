@@ -16,26 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.binding.http.mtom;
 
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
+package org.apache.cxf.binding.soap.tcp;
 
-import org.apache.cxf.person.People;
-import org.apache.cxf.person.Person;
-
-@WebService(targetNamespace = "http://cxf.apache.org/person/")
-public interface PeopleService {
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    People getPeople();
-
-    void addPerson(@WebParam(name = "Person",
-                             targetNamespace = "http://cxf.apache.org/person/")
-                             Person p);
+public class SoapTcpSessionState {
+    public static final byte SOAP_TCP_SESSION_STATE_NEW = 0;
+    public static final byte SOAP_TCP_SESSION_STATE_AFTER_HANDSHAKE = 1;
+    public static final byte SOAP_TCP_SESSION_STATE_INITIATED = 2;
     
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    Person getPerson(@WebParam(name = "name") String name);
+    private byte stateId;
+    
+    public SoapTcpSessionState() {
+        stateId = SOAP_TCP_SESSION_STATE_NEW;
+    }
+
+    public byte getStateId() {
+        return stateId;
+    }
+
+    public void setStateId(byte stateId) {
+        this.stateId = stateId;
+    }
+    
+    
 }

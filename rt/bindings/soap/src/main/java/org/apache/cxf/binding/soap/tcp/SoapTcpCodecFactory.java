@@ -16,26 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.binding.http.mtom;
 
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
+package org.apache.cxf.binding.soap.tcp;
 
-import org.apache.cxf.person.People;
-import org.apache.cxf.person.Person;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFactory;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolEncoder;
 
-@WebService(targetNamespace = "http://cxf.apache.org/person/")
-public interface PeopleService {
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    People getPeople();
-
-    void addPerson(@WebParam(name = "Person",
-                             targetNamespace = "http://cxf.apache.org/person/")
-                             Person p);
+public class SoapTcpCodecFactory implements ProtocolCodecFactory {
+    private SoapTcpMessageEncoder encoder;
+    private SoapTcpMessageDecoder decoder;
     
-    @WebResult(name = "Person",
-               targetNamespace = "http://cxf.apache.org/person/")
-    Person getPerson(@WebParam(name = "name") String name);
+    public SoapTcpCodecFactory() {
+        encoder = new SoapTcpMessageEncoder();
+        decoder = new SoapTcpMessageDecoder();
+    }
+    
+    public ProtocolDecoder getDecoder(IoSession arg0) throws Exception {
+        return decoder;
+    }
+
+    public ProtocolEncoder getEncoder(IoSession arg0) throws Exception {
+        return encoder;
+    }
+
 }
