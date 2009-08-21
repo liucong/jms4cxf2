@@ -41,7 +41,6 @@ import org.apache.cxf.transport.Conduit;
 import org.apache.cxf.transport.MessageObserver;
 import org.apache.cxf.transport.MultiplexDestination;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class JMSDestinationTest extends AbstractJMSTester {
@@ -148,8 +147,8 @@ public class JMSDestinationTest extends AbstractJMSTester {
         assertEquals("Get a wrong TargetDestination", jmsConfig.getTargetDestination(), "queue:test");
         assertEquals("Get the wrong pubSubDomain value", jmsConfig.isPubSubDomain(), false);
         
+        destination.shutdown();
         BusFactory.setDefaultBus(null);
-
     }
 
     @Test
@@ -170,16 +169,15 @@ public class JMSDestinationTest extends AbstractJMSTester {
                      "dynamicQueues/test.jmstransport.binary", destination.getJmsConfig()
                          .getTargetDestination());
 
+        destination.shutdown();
         BusFactory.setDefaultBus(null);
-
     }
 
     @Test
-    @Ignore("randomly fails.  Not sure why. Tried increased timeouts and such to no affect. - dkulp")
     public void testDurableSubscriber() throws Exception {
         SpringBusFactory bf = new SpringBusFactory();
         BusFactory.setDefaultBus(null);
-        bus = bf.createBus("jms_test_config.xml");
+        bus = bf.createBus();
         BusFactory.setDefaultBus(bus);
         destMessage = null;
         setupServiceInfo("http://cxf.apache.org/hello_world_jms", "/wsdl/jms_test.wsdl",
@@ -197,8 +195,10 @@ public class JMSDestinationTest extends AbstractJMSTester {
         assertTrue("The destiantion should have got the message ", destMessage != null);
         verifyReceivedMessage(destMessage);
         verifyHeaders(destMessage, outMessage);
+        
         conduit.close();
         destination.shutdown();
+        BusFactory.setDefaultBus(null);
     }
 
     @Test
@@ -216,6 +216,7 @@ public class JMSDestinationTest extends AbstractJMSTester {
         assertTrue("The destiantion should have got the message ", destMessage != null);
         verifyReceivedMessage(destMessage);
         verifyHeaders(destMessage, outMessage);
+        
         conduit.close();
         destination.shutdown();
     }
