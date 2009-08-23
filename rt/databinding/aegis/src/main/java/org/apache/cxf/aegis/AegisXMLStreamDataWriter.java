@@ -33,13 +33,13 @@ import org.apache.cxf.common.logging.LogUtils;
 public class AegisXMLStreamDataWriter extends AbstractAegisIoImpl implements AegisWriter<XMLStreamWriter> {
 
     private static final Logger LOG = LogUtils.getL7dLogger(AegisXMLStreamDataWriter.class);
-
+    
     AegisXMLStreamDataWriter(AegisContext globalContext) {
         super(globalContext);
     }
     
     /**
-     * Write an object to the output.
+     * Write an object to the output. This method always writes xsi:type attributes.
      * @param obj The object to write.
      * @param elementName the QName of the XML Element.
      * @param optional set this for minOccurs = 0. It omits null elements.
@@ -58,7 +58,7 @@ public class AegisXMLStreamDataWriter extends AbstractAegisIoImpl implements Aeg
             throw new DatabindingException(message);
         }
         
-        if (obj != null) {
+        if (obj != null && aegisType == null) {
             aegisType = TypeUtil.getWriteType(aegisContext, obj, aegisType);
         }
         
@@ -77,6 +77,12 @@ public class AegisXMLStreamDataWriter extends AbstractAegisIoImpl implements Aeg
         
         ElementWriter writer = new ElementWriter(output);
         MessageWriter w2 = writer.getElementWriter(elementName);
+        if (getContext().isWriteXsiTypes()
+            && aegisType != null 
+            && aegisType.getSchemaType() != null) {
+            // if we know the type, write it. We are standalone, and the reader needs it.
+            w2.writeXsiType(aegisType.getSchemaType());
+        }
         aegisType.writeObject(obj, w2, context);
         w2.close();
     }
