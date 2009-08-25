@@ -121,9 +121,9 @@ public class WadlGeneratorTest extends Assert {
                                                           XmlSchemaConstants.XSD_NAMESPACE_URI, "schema");
         assertEquals(1, schemasEls.size());
         assertEquals("http://superbooks", schemasEls.get(0).getAttribute("targetNamespace"));
-        assertEquals(2, DOMUtils.getChildrenWithName(schemasEls.get(0), 
+        assertEquals(3, DOMUtils.getChildrenWithName(schemasEls.get(0), 
                        XmlSchemaConstants.XSD_NAMESPACE_URI, "element").size());
-        assertEquals(2, DOMUtils.getChildrenWithName(schemasEls.get(0), 
+        assertEquals(3, DOMUtils.getChildrenWithName(schemasEls.get(0), 
                        XmlSchemaConstants.XSD_NAMESPACE_URI, "complexType").size());
     }
     
@@ -132,12 +132,13 @@ public class WadlGeneratorTest extends Assert {
         
         List<Element> resourceEls = DOMUtils.getChildrenWithName(resource, 
                                          WadlGenerator.WADL_NS, "resource");
-        assertEquals(5, resourceEls.size());        
+        assertEquals(6, resourceEls.size());        
         assertEquals("/", resourceEls.get(0).getAttribute("path"));
-        assertEquals("/books/{bookid}", resourceEls.get(1).getAttribute("path"));
-        assertEquals("/chapter", resourceEls.get(2).getAttribute("path"));
-        assertEquals("/booksubresource", resourceEls.get(3).getAttribute("path"));
-        assertEquals("/itself", resourceEls.get(4).getAttribute("path"));
+        assertEquals("/book2", resourceEls.get(1).getAttribute("path"));
+        assertEquals("/books/{bookid}", resourceEls.get(2).getAttribute("path"));
+        assertEquals("/chapter", resourceEls.get(3).getAttribute("path"));
+        assertEquals("/booksubresource", resourceEls.get(4).getAttribute("path"));
+        assertEquals("/itself", resourceEls.get(5).getAttribute("path"));
         
         
         List<Element> methodEls = DOMUtils.getChildrenWithName(resourceEls.get(0), 
@@ -161,14 +162,14 @@ public class WadlGeneratorTest extends Assert {
         checkParameter(paramsEls.get(0), "a", "query");
         checkParameter(paramsEls.get(1), "b", "query");
         
-        paramsEls = DOMUtils.getChildrenWithName(resourceEls.get(1), 
+        paramsEls = DOMUtils.getChildrenWithName(resourceEls.get(2), 
                                                                WadlGenerator.WADL_NS, "param");
         assertEquals(3, paramsEls.size());
         checkParameter(paramsEls.get(0), "id", "template");
         checkParameter(paramsEls.get(1), "bookid", "template");
         checkParameter(paramsEls.get(2), "mid", "matrix");
         
-        methodEls = DOMUtils.getChildrenWithName(resourceEls.get(1), 
+        methodEls = DOMUtils.getChildrenWithName(resourceEls.get(2), 
                                                  WadlGenerator.WADL_NS, "method");
         assertEquals(1, methodEls.size());
         assertEquals("POST", methodEls.get(0).getAttribute("name"));
