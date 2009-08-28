@@ -31,7 +31,6 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.wsdl.Definition;
 import javax.wsdl.Types;
@@ -52,11 +51,14 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.catalog.CatalogWSDLLocator;
 import org.apache.cxf.common.WSDLConstants;
+import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.CacheMap;
 import org.apache.cxf.common.util.PropertiesLoaderUtils;
+import org.apache.cxf.configuration.ConfiguredBeanLocator;
 import org.apache.cxf.service.model.ServiceSchemaInfo;
 import org.apache.cxf.wsdl.JAXBExtensionHelper;
+import org.apache.cxf.wsdl.WSDLExtensionLoader;
 import org.apache.cxf.wsdl.WSDLManager;
 
 /**
@@ -64,6 +66,7 @@ import org.apache.cxf.wsdl.WSDLManager;
  * 
  * @author dkulp
  */
+@NoJSR250Annotations(unlessNull = "bus")
 public class WSDLManagerImpl implements WSDLManager {
 
     private static final Logger LOG = LogUtils.getL7dLogger(WSDLManagerImpl.class);
@@ -108,16 +111,20 @@ public class WSDLManagerImpl implements WSDLManager {
 
         registerInitialExtensions();
     }
-    
-    @Resource
-    public void setBus(Bus b) {
-        bus = b;
+    public WSDLManagerImpl(Bus b) throws BusException {
+        this();
+        setBus(b);
     }
     
-    @PostConstruct
-    public void register() {
+    @Resource
+    public final void setBus(Bus b) {
+        bus = b;
         if (null != bus) {
             bus.setExtension(this, WSDLManager.class);
+            ConfiguredBeanLocator loc = bus.getExtension(ConfiguredBeanLocator.class);
+            if (loc != null) {
+                loc.getBeansOfType(WSDLExtensionLoader.class);
+            }
         }
     }
 

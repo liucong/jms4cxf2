@@ -35,6 +35,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.annotation.Resources;
 
+
 import org.apache.cxf.common.annotation.AbstractAnnotationVisitor;
 import org.apache.cxf.common.annotation.AnnotationProcessor;
 import org.apache.cxf.common.logging.LogUtils;
@@ -52,17 +53,17 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
     private static final List<Class<? extends Annotation>> ANNOTATIONS = 
         new ArrayList<Class<? extends Annotation>>();
     
-        
     static {
         ANNOTATIONS.add(Resource.class);
         ANNOTATIONS.add(Resources.class);
     }
     
+    
     private final ResourceManager resourceManager; 
     private final List<ResourceResolver> resourceResolvers;
 
     public ResourceInjector(ResourceManager resMgr) {
-        this(resMgr, resMgr.getResourceResolvers());
+        this(resMgr, resMgr == null ? null : resMgr.getResourceResolvers());
     }
 
     public ResourceInjector(ResourceManager resMgr, List<ResourceResolver> resolvers) {
@@ -71,29 +72,70 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
         resourceResolvers = resolvers;
     }
     
+    private static Field getField(Class<?> cls, String name) {
+        if (cls == null) {
+            return null;
+        }
+        try {
+            return cls.getDeclaredField(name);
+        } catch (Exception ex) {
+            return getField(cls.getSuperclass(), name);
+        }
+    }
+    
+    public static boolean processable(Class<?> cls, Object o) {
+        if (cls.getName().startsWith("java.")
+            || cls.getName().startsWith("javax.")) {
+            return false;
+        }
+        NoJSR250Annotations njsr = cls.getAnnotation(NoJSR250Annotations.class);
+        if (njsr != null) {
+            for (String s : njsr.unlessNull()) {
+                try {
+                    Field f = getField(cls, s);
+                    f.setAccessible(true);
+                    if (f.get(o) == null) {
+                        return true;
+                    }
+                } catch (Exception ex) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
     
     public void inject(Object o) {        
         inject(o, o.getClass());
     }
     
-    public void inject(Object o, Class claz) {
-        AnnotationProcessor processor = new AnnotationProcessor(o); 
-        processor.accept(this, claz); 
+    public void inject(Object o, Class<?> claz) {
+        if (processable(claz, o)) {
+            AnnotationProcessor processor = new AnnotationProcessor(o); 
+            processor.accept(this, claz);
+        }
     }
     
     public void construct(Object o) {
         setTarget(o);
-        invokePostConstruct();
+        if (processable(targetClass, o)) {
+            invokePostConstruct();
+        }
     }
     public void construct(Object o, Class<?> cls) {
         setTarget(o, cls);
-        invokePostConstruct();
+        if (processable(targetClass, o)) {
+            invokePostConstruct();
+        }
     }
 
 
     public void destroy(Object o) {
         setTarget(o);
-        invokePreDestroy();
+        if (processable(targetClass, o)) {
+            invokePreDestroy();
+        }
     }
 
 
