@@ -1,1 +1,0 @@
-{"Book":{"id":"123","name":"CXF in Action - 3"}}
