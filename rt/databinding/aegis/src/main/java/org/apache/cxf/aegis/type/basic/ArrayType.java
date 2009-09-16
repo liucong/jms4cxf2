@@ -26,13 +26,15 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamReader;
 
 import org.apache.cxf.aegis.Context;
 import org.apache.cxf.aegis.DatabindingException;
-import org.apache.cxf.aegis.type.Type;
+import org.apache.cxf.aegis.type.AegisType;
 import org.apache.cxf.aegis.type.TypeUtil;
 import org.apache.cxf.aegis.xml.MessageReader;
 import org.apache.cxf.aegis.xml.MessageWriter;
+import org.apache.cxf.aegis.xml.stax.ElementReader;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.xmlschema.XmlSchemaConstants;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -45,54 +47,73 @@ import org.apache.ws.commons.schema.XmlSchemaSequence;
  * 
  * @author <a href="mailto:dan@envoisolutions.com">Dan Diephouse</a>
  */
-public class ArrayType extends Type {
+public class ArrayType extends AegisType {
     private static final Logger LOG = LogUtils.getL7dLogger(ArrayType.class);
 
     private QName componentName;
     private long minOccurs;
     private long maxOccurs = Long.MAX_VALUE;
-    private boolean flat;
 
     public ArrayType() {
     }
-
-    @Override
-    public Object readObject(MessageReader reader, Context context) throws DatabindingException {
+    
+    public Object readObject(MessageReader reader, QName flatElementName, Context context) 
+        throws DatabindingException {
         try {
-            Collection values = readCollection(reader, context);
-
+            Collection values = readCollection(reader, flatElementName, context);
             return makeArray(getComponentType().getTypeClass(), values);
         } catch (IllegalArgumentException e) {
             throw new DatabindingException("Illegal argument.", e);
         }
     }
 
+    /*
+     * This version is not called for the flat case. 
+     */
+    @Override
+    public Object readObject(MessageReader reader, Context context) throws DatabindingException {
+        return readObject(reader, null, context);
+    }
+
     protected Collection<Object> createCollection() {
         return new ArrayList<Object>();
     }
 
-    protected Collection readCollection(MessageReader reader, Context context) throws DatabindingException {
+    /**
+     * Read the elements of an array or array-like item.
+     * @param reader reader to read from.
+     * @param flatElementName if flat, the elements we are looking for. When we see
+     * something else. we stop.
+     * @param context context.
+     * @return a collection of the objects.
+     * @throws DatabindingException
+     */
+    protected Collection readCollection(MessageReader reader, QName flatElementName,
+                                        Context context) throws DatabindingException {
         Collection<Object> values = createCollection();
 
-        while (reader.hasMoreElementReaders()) {
-            MessageReader creader = reader.getNextElementReader();
-            Type compType = TypeUtil.getReadType(creader.getXMLStreamReader(), context.getGlobalContext(),
-                                                 getComponentType());
+        /**
+         * If we are 'flat' (writeOuter is false), then we aren't reading children. We're reading starting
+         * from where we are.
+         */
 
-            if (creader.isXsiNil()) {
-                values.add(null);
-                creader.readToEnd();
-            } else {
-                values.add(compType.readObject(creader, context));
+        if (isFlat()) {
+            // the reader does some really confusing things.
+            XMLStreamReader xmlReader = reader.getXMLStreamReader();
+            while (xmlReader.getName().equals(flatElementName)) {
+                AegisType compType = TypeUtil.getReadType(reader.getXMLStreamReader(),
+                                                     context.getGlobalContext(), getComponentType());
+                // gosh, what about message readers of some other type?
+                ElementReader thisItemReader = new ElementReader(xmlReader);
+                collectOneItem(context, values, thisItemReader, compType);
             }
-
-            // check max occurs
-            int size = values.size();
-            if (size > maxOccurs) {
-                throw new DatabindingException("The number of elements in " + getSchemaType()
-                                               + " exceeds the maximum of " + maxOccurs);
+        } else {
+            while (reader.hasMoreElementReaders()) {
+                MessageReader creader = reader.getNextElementReader();
+                AegisType compType = TypeUtil.getReadType(creader.getXMLStreamReader(),
+                                                     context.getGlobalContext(), getComponentType());
+                collectOneItem(context, values, creader, compType);
             }
-
         }
 
         // check min occurs
@@ -101,6 +122,23 @@ public class ArrayType extends Type {
                                            + " does not meet the minimum of " + minOccurs);
         }
         return values;
+    }
+
+    private void collectOneItem(Context context, Collection<Object> values, MessageReader creader,
+                                AegisType compType) {
+        if (creader.isXsiNil()) {
+            values.add(null);
+            creader.readToEnd();
+        } else {
+            values.add(compType.readObject(creader, context));
+        }
+
+        // check max occurs
+        int size = values.size();
+        if (size > maxOccurs) {
+            throw new DatabindingException("The number of elements in " + getSchemaType()
+                                           + " exceeds the maximum of " + maxOccurs);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -160,16 +198,32 @@ public class ArrayType extends Type {
         return array == null ? values.toArray((Object[])Array.newInstance(getComponentType().getTypeClass(),
                                                                           values.size())) : array;
     }
+    
+    
 
     @Override
     public void writeObject(Object values, MessageWriter writer, 
                             Context context) throws DatabindingException {
+        writeObject(values, writer, context, null);
+    }
+    
+    
+    /**
+     * Write an array type, using the desired element name in the flattened case.
+     * @param values values to write.
+     * @param writer writer to sent it to.
+     * @param context the aegis context.
+     * @param flatElementName name to use for the element if flat.
+     * @throws DatabindingException
+     */
+    public void writeObject(Object values, MessageWriter writer, 
+                            Context context, QName flatElementName) throws DatabindingException {
         boolean forceXsiWrite = false;
         if (values == null) {
             return;
         }
 
-        Type type = getComponentType();
+        AegisType type = getComponentType();
         if (type == null) {
             throw new DatabindingException("Couldn't find type for array.");
         }
@@ -184,7 +238,19 @@ public class ArrayType extends Type {
             ns = type.getSchemaType().getNamespaceURI();
         }
 
-        String name = type.getSchemaType().getLocalPart();
+        /* 
+         * This is not the right name in the 'flat' case. In the flat case,
+         * we need the element name that would have been attached
+         * one level out.
+         */
+        String name;
+        
+        if (isFlat()) {
+            name = flatElementName.getLocalPart();
+            ns = flatElementName.getNamespaceURI(); // override the namespace.
+        } else {
+            name = type.getSchemaType().getLocalPart();
+        }
 
         Class arrayType = type.getTypeClass();
 
@@ -247,11 +313,12 @@ public class ArrayType extends Type {
         }
     }
 
-    protected void writeValue(Object value, MessageWriter writer, Context context, Type type, String name,
+    protected void writeValue(Object value, MessageWriter writer, Context context, 
+                              AegisType type, String name,
                               String ns) throws DatabindingException {
         type = TypeUtil.getWriteType(context.getGlobalContext(), value, type);
         MessageWriter cwriter;
-        if (type.isWriteOuter()) {
+        if (!type.isFlatArray()) {
             cwriter = writer.getElementWriter(name, ns);
         } else {
             cwriter = writer;
@@ -263,13 +330,17 @@ public class ArrayType extends Type {
             type.writeObject(value, cwriter, context);
         }
 
-        if (type.isWriteOuter()) {
+        if (!type.isFlatArray()) {
             cwriter.close();
         }
     }
 
     @Override
     public void writeSchema(XmlSchema root) {
+
+        if (isFlat()) {
+            return; // there is no extra level of type.
+        }
         if (hasDefinedArray(root)) {
             return;
         }
@@ -282,11 +353,11 @@ public class ArrayType extends Type {
         XmlSchemaSequence seq = new XmlSchemaSequence();
         complex.setParticle(seq);
 
-        Type componentType = getComponentType();
+        AegisType componentType = getComponentType();
         XmlSchemaElement element = new XmlSchemaElement();
         element.setName(componentType.getSchemaType().getLocalPart());
         element.setSchemaTypeName(componentType.getSchemaType());
-      
+
         seq.getItems().add(element);
 
         if (componentType.isNillable()) {
@@ -312,7 +383,7 @@ public class ArrayType extends Type {
     /**
      * We need to write a complex type schema for Beans, so return true.
      * 
-     * @see org.apache.cxf.aegis.type.Type#isComplex()
+     * @see org.apache.cxf.aegis.type.AegisType#isComplex()
      */
     @Override
     public boolean isComplex() {
@@ -328,11 +399,11 @@ public class ArrayType extends Type {
     }
 
     /**
-     * @see org.apache.cxf.aegis.type.Type#getDependencies()
+     * @see org.apache.cxf.aegis.type.AegisType#getDependencies()
      */
     @Override
-    public Set<Type> getDependencies() {
-        Set<Type> deps = new HashSet<Type>();
+    public Set<AegisType> getDependencies() {
+        Set<AegisType> deps = new HashSet<AegisType>();
 
         deps.add(getComponentType());
 
@@ -340,14 +411,14 @@ public class ArrayType extends Type {
     }
 
     /**
-     * Get the <code>Type</code> of the elements in the array.
+     * Get the <code>AegisType</code> of the elements in the array.
      * 
      * @return
      */
-    public Type getComponentType() {
+    public AegisType getComponentType() {
         Class compType = getTypeClass().getComponentType();
 
-        Type type;
+        AegisType type;
 
         if (componentName == null) {
             type = getTypeMapping().getType(compType);
@@ -386,12 +457,12 @@ public class ArrayType extends Type {
     }
 
     public boolean isFlat() {
-        return flat;
+        return isFlatArray();
     }
 
     public void setFlat(boolean flat) {
         setWriteOuter(!flat);
-        this.flat = flat;
+        setFlatArray(flat);
     }
 
     @Override

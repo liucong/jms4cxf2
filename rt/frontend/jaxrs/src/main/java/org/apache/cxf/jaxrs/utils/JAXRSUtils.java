@@ -97,6 +97,11 @@ import org.apache.cxf.transport.http.AbstractHTTPDestination;
 public final class JAXRSUtils {
 
     public static final MediaType ALL_TYPES = new MediaType();
+    public static final String RELATIVE_PATH = "relative.path";
+    public static final String ROOT_RESOURCE_CLASS = "root.resource.class";
+    public static final String IGNORE_MESSAGE_WRITERS = "ignore.message.writers";
+    
+    
     private static final Logger LOG = LogUtils.getL7dLogger(JAXRSUtils.class);
     private static final ResourceBundle BUNDLE = BundleUtils.getBundle(JAXRSUtils.class);
     private static final String PROPOGATE_EXCEPTION = "org.apache.cxf.propogate.exception";
@@ -694,7 +699,7 @@ public final class JAXRSUtils {
         if (UriInfo.class.isAssignableFrom(clazz)) {
             o = createUriInfo(contextMessage);
         } else if (HttpHeaders.class.isAssignableFrom(clazz)) {
-            o = new HttpHeadersImpl(contextMessage);
+            o = createHttpHeaders(contextMessage);
         } else if (Request.class.isAssignableFrom(clazz)) {
             o = new RequestImpl(contextMessage);
         } else if (SecurityContext.class.isAssignableFrom(clazz)) {
@@ -719,6 +724,13 @@ public final class JAXRSUtils {
         MultivaluedMap<String, String> templateParams =
             (MultivaluedMap<String, String>)m.get(URITemplate.TEMPLATE_PARAMETERS);
         return new UriInfoImpl(m, templateParams);
+    }
+    
+    private static HttpHeaders createHttpHeaders(Message m) {
+        if (MessageUtils.isRequestor(m)) {
+            m = m.getExchange() != null ? m.getExchange().getOutMessage() : m;
+        }
+        return new HttpHeadersImpl(m);
     }
     
     public static ContextResolver<?> createContextResolver(Type genericType, Message m) {

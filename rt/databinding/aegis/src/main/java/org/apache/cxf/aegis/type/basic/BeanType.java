@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +35,7 @@ import org.apache.cxf.aegis.AegisContext;
 import org.apache.cxf.aegis.Context;
 import org.apache.cxf.aegis.DatabindingException;
 import org.apache.cxf.aegis.type.AbstractTypeCreator;
-import org.apache.cxf.aegis.type.Type;
+import org.apache.cxf.aegis.type.AegisType;
 import org.apache.cxf.aegis.type.TypeMapping;
 import org.apache.cxf.aegis.type.TypeUtil;
 import org.apache.cxf.aegis.type.mtom.AbstractXOPType;
@@ -63,7 +64,7 @@ import org.apache.ws.commons.schema.XmlSchemaSequence;
  * each piece of code that uses the type info needs to call getTypeInfo() instead of referencing the
  * 'info' field. 
  */
-public class BeanType extends Type {
+public class BeanType extends AegisType {
     private BeanTypeInfo info;
 
     private boolean isInterface;
@@ -88,8 +89,10 @@ public class BeanType extends Type {
     }
 
     private void initTypeClass() {
-        this.isInterface = typeClass.isInterface();
-        isException = Exception.class.isAssignableFrom(typeClass);
+        // throw if someone tries to set up a generic bean.
+        Class<?> plainClass = (Class<?>) typeClass;
+        this.isInterface = plainClass.isInterface();
+        isException = Exception.class.isAssignableFrom(plainClass);
     }
 
     /**
@@ -137,7 +140,7 @@ public class BeanType extends Type {
                 MessageReader childReader = reader.getNextAttributeReader();
                 QName name = childReader.getName();
 
-                Type type = inf.getType(name);
+                AegisType type = inf.getType(name);
 
                 if (type != null) {
                     Object writeObj = type.readObject(childReader, context);
@@ -153,12 +156,18 @@ public class BeanType extends Type {
                 // Find the BeanTypeInfo that contains a property for the element name
                 BeanTypeInfo propertyTypeInfo = getBeanTypeInfoWithProperty(name);
 
-                // Get the Type for the property
-                Type type = getElementType(name, propertyTypeInfo, childReader, context);
+                // Get the AegisType for the property
+                AegisType type = getElementType(name, propertyTypeInfo, childReader, context);
 
                 if (type != null) {
                     if (!childReader.isXsiNil()) {
-                        Object writeObj = type.readObject(childReader, context);
+                        Object writeObj;
+                        if (type.isFlatArray()) {
+                            ArrayType aType = (ArrayType) type;
+                            writeObj = aType.readObject(childReader, name, context);
+                        } else {
+                            writeObj = type.readObject(childReader, context);
+                        }
 
                         writeProperty(name, target, writeObj, clazz, propertyTypeInfo);
                     } else {
@@ -188,12 +197,12 @@ public class BeanType extends Type {
         }
     }
 
-    protected Type getElementType(QName name, BeanTypeInfo beanTypeInfo, 
+    protected AegisType getElementType(QName name, BeanTypeInfo beanTypeInfo, 
                                   MessageReader reader, Context context) {
 
-        Type type = beanTypeInfo.getType(name);
+        AegisType type = beanTypeInfo.getType(name);
 
-        // Type can be overriden with a xsi:type attribute
+        // AegisType can be overriden with a xsi:type attribute
         type = TypeUtil.getReadType(reader.getXMLStreamReader(), context.getGlobalContext(), type);
         return type;
     }
@@ -336,7 +345,7 @@ public class BeanType extends Type {
 
             Object value = readProperty(object, name);
             if (value != null) {
-                Type type = getType(inf, name);
+                AegisType type = getType(inf, name);
 
                 if (type == null) {
                     throw new DatabindingException("Couldn't find type for " + value.getClass()
@@ -352,7 +361,7 @@ public class BeanType extends Type {
         }
         
         if (inf.isExtension()) {
-            Type t = getSuperType();
+            AegisType t = getSuperType();
             if (t != null) {
                 t.writeObject(object, writer, context);
             }
@@ -367,8 +376,8 @@ public class BeanType extends Type {
             }
             Object value = readProperty(object, name);
 
-            Type defaultType = getType(inf, name);
-            Type type = TypeUtil.getWriteType(context.getGlobalContext(), value, defaultType);
+            AegisType defaultType = getType(inf, name);
+            AegisType type = TypeUtil.getWriteType(context.getGlobalContext(), value, defaultType);
 
             // Write the value if it is not null.
             if (value != null) {
@@ -387,24 +396,25 @@ public class BeanType extends Type {
                 cwriter.close();
             }
         }
-       
     }
 
-    protected void writeElement(QName name, Object value, Type type, MessageWriter writer, Context context) {
-        MessageWriter cwriter = getWriter(writer, name, type);
+    protected void writeElement(QName name, Object value, 
+                                AegisType type, MessageWriter writer, Context context) {
 
-        type.writeObject(value, cwriter, context);
-
-        cwriter.close();
-    }
-
-    private MessageWriter getWriter(MessageWriter writer, QName name, Type type) {
-        MessageWriter cwriter;
-        if (type.isAbstract()) {
-            cwriter = writer.getElementWriter(name);
+        if (!type.isFlatArray()) {
+            MessageWriter cwriter = null;
+            cwriter = getWriter(writer, name, type);
+            type.writeObject(value, cwriter, context);
+            cwriter.close();
         } else {
-            cwriter = writer.getElementWriter(name);
+            ArrayType arrayType = (ArrayType)type;
+            arrayType.writeObject(value, writer, context, name);
         }
+    }
+
+    private MessageWriter getWriter(MessageWriter writer, QName name, AegisType type) {
+        MessageWriter cwriter;
+        cwriter = writer.getElementWriter(name);
         return cwriter;
     }
 
@@ -425,8 +435,8 @@ public class BeanType extends Type {
         }
     }
 
-    private Type getType(BeanTypeInfo inf, QName name) {
-        Type type = inf.getType(name);
+    private AegisType getType(BeanTypeInfo inf, QName name) {
+        AegisType type = inf.getType(name);
 
         if (type == null) {
             throw new NullPointerException("Couldn't find type for" + name + " in class "
@@ -436,7 +446,7 @@ public class BeanType extends Type {
         return type;
     }
 
-    private void writeTypeReference(QName name, XmlSchemaElement element, Type type, 
+    private void writeTypeReference(QName name, XmlSchemaElement element, AegisType type, 
                                     XmlSchema schemaRoot) {
         if (type.isAbstract()) {
             element.setName(name.getLocalPart());
@@ -470,7 +480,7 @@ public class BeanType extends Type {
      * {@inheritDoc}
      */
     @Override
-    public void setTypeClass(Class typeClass) {
+    public void setTypeClass(Type typeClass) {
         super.setTypeClass(typeClass);
 
         initTypeClass();
@@ -479,7 +489,7 @@ public class BeanType extends Type {
     /**
      * We need to write a complex type schema for Beans, so return true.
      * 
-     * @see org.apache.cxf.aegis.type.Type#isComplex()
+     * @see org.apache.cxf.aegis.type.AegisType#isComplex()
      */
     @Override
     public boolean isComplex() {
@@ -490,8 +500,8 @@ public class BeanType extends Type {
      * {@inheritDoc}
      */
     @Override
-    public Set<Type> getDependencies() {
-        Set<Type> deps = new HashSet<Type>();
+    public Set<AegisType> getDependencies() {
+        Set<AegisType> deps = new HashSet<AegisType>();
 
         BeanTypeInfo inf = getTypeInfo();
 
@@ -512,7 +522,7 @@ public class BeanType extends Type {
          * Automagically add chain of superclasses if this is an an extension.
          */
         if (inf.isExtension()) {
-            Type sooperType = getSuperType();
+            AegisType sooperType = getSuperType();
             if (sooperType != null) {
                 deps.add(sooperType);
             }
@@ -524,12 +534,12 @@ public class BeanType extends Type {
     protected BeanTypeInfo getBeanTypeInfoWithProperty(QName name) {
         // search the BeanType superType tree for the first BeanType with a property named 'name'
         BeanType beanType = this;
-        Type type = null;
+        AegisType type = null;
         while (type == null && beanType != null) {
             type = beanType.getTypeInfo().getType(name);
 
             if (type == null) {
-                Type superType = beanType.getSuperType(); /*
+                AegisType superType = beanType.getSuperType(); /*
                                                            * The class might inherit from, say, 'Integer'. In
                                                            * which case we've got no BeanType to work with.
                                                            */
@@ -552,10 +562,10 @@ public class BeanType extends Type {
     }
 
     /**
-     * Return the Type for the superclass if this type's class, if any.
+     * Return the AegisType for the superclass if this type's class, if any.
      * @return
      */
-    public Type getSuperType() {
+    public AegisType getSuperType() {
         BeanTypeInfo inf = getTypeInfo();
         Class c = inf.getTypeClass().getSuperclass();
         /*
@@ -563,7 +573,7 @@ public class BeanType extends Type {
          */
         if (c != null && c != Object.class && c != Exception.class && c != RuntimeException.class) {
             TypeMapping tm = inf.getTypeMapping();
-            Type superType = tm.getType(c);
+            AegisType superType = tm.getType(c);
             if (superType == null) {
                 // if we call createType, we know that we'll get a BeanType. */
                 superType = (BeanType)getTypeMapping().getTypeCreator().createType(c);
@@ -658,7 +668,7 @@ public class BeanType extends Type {
         root.addType(complex);
         root.getItems().add(complex);
 
-        Type sooperType = getSuperType();
+        AegisType sooperType = getSuperType();
 
         /*
          * See Java Virtual Machine specification:
@@ -708,15 +718,25 @@ public class BeanType extends Type {
             element.setName(name.getLocalPart());
             sequence.getItems().add(element);
 
-            Type type = getType(inf, name);
-            if (AbstractTypeCreator.
-                HTTP_CXF_APACHE_ORG_ARRAYS.equals(type.getSchemaType().getNamespaceURI())) {
-                XmlSchemaUtils.addImportIfNeeded(root, AbstractTypeCreator.HTTP_CXF_APACHE_ORG_ARRAYS);
+            AegisType type = getType(inf, name);
+            if (type.isFlatArray()) {
+                // ok, we need some tricks here
+                element.setMinOccurs(type.getMinOccurs());
+                element.setMaxOccurs(type.getMaxOccurs());
+                // for now, assume ArrayType. Look at lists or more general solutions later.
+                ArrayType aType = (ArrayType)type;
+                type = aType.getComponentType();
+                element.setNillable(type.isNillable());
+            } else {
+                if (AbstractTypeCreator.
+                    HTTP_CXF_APACHE_ORG_ARRAYS.equals(type.getSchemaType().getNamespaceURI())) {
+                    XmlSchemaUtils.addImportIfNeeded(root, AbstractTypeCreator.HTTP_CXF_APACHE_ORG_ARRAYS);
+                }
             }
-
             writeTypeReference(name, element, type, root);
             needXmime |= type.usesXmime();
             needUtilityTypes |= type.usesUtilityTypes();
+
         }
 
         if (needXmime) {
@@ -742,7 +762,7 @@ public class BeanType extends Type {
             XmlSchemaAttribute attribute = new XmlSchemaAttribute();
             complex.getAttributes().add(attribute);
             attribute.setName(name.getLocalPart());
-            Type type = getType(inf, name);
+            AegisType type = getType(inf, name);
             attribute.setSchemaTypeName(type.getSchemaType());
             String ns = name.getNamespaceURI();
             if (!ns.equals(root.getTargetNamespace())) {

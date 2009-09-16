@@ -55,7 +55,7 @@ public class JMSConfiguration implements InitializingBean {
     private boolean wrapInSingleConnectionFactory = true;
     private TaskExecutor taskExecutor;
     private boolean useJms11 = DEFAULT_USEJMS11;
-    private boolean reconnectOnException;
+    private boolean reconnectOnException = true;
     private boolean messageIdEnabled = true;
     private boolean messageTimestampEnabled = true;
     private boolean pubSubNoLocal;
@@ -447,6 +447,17 @@ public class JMSConfiguration implements InitializingBean {
     public ConnectionFactory getWrappedConnectionFactory() {
         return wrappedConnectionFactory;
     }
+    
+    public synchronized void destroyWrappedConnectionFactory() {
+        if (wrappedConnectionFactory instanceof SingleConnectionFactory) {
+            ((SingleConnectionFactory)wrappedConnectionFactory).destroy();
+            if (connectionFactory == wrappedConnectionFactory) {
+                connectionFactory = null;
+            }
+            wrappedConnectionFactory = null;
+        }
+    }
+    
     /**
      * Only for tests
      * @return

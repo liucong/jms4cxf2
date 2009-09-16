@@ -142,6 +142,7 @@ public class ClientImpl
     public ClientImpl(Bus bus, URL wsdlUrl, QName service,
                       QName port, EndpointImplFactory endpointImplFactory) {
         this.bus = bus;
+        outFaultObserver = new ClientOutFaultObserver(bus);
 
         WSDLServiceFactory sf = (service == null)
             ? (new WSDLServiceFactory(bus, wsdlUrl)) : (new WSDLServiceFactory(bus, wsdlUrl, service));
@@ -150,7 +151,11 @@ public class ClientImpl
         EndpointInfo epfo = findEndpoint(svc, port);
 
         try {
-            getConduitSelector().setEndpoint(new EndpointImpl(bus, svc, epfo));
+            if (endpointImplFactory != null) {
+                getConduitSelector().setEndpoint(endpointImplFactory.newEndpointImpl(bus, svc, epfo));
+            } else {
+                getConduitSelector().setEndpoint(new EndpointImpl(bus, svc, epfo));
+            }
         } catch (EndpointException epex) {
             throw new IllegalStateException("Unable to create endpoint: " + epex.getMessage(), epex);
         }

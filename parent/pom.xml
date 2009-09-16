@@ -78,6 +78,8 @@
         <extra.surefire.syspropery.name>None</extra.surefire.syspropery.name>
         <extra.surefire.syspropery.value>None</extra.surefire.syspropery.value>
 
+        <resources.base.path/>
+
     </properties>
 
 
@@ -166,7 +168,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>2.2</version>
+                    <version>2.3</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.cxf</groupId>
@@ -198,11 +200,11 @@
                             <id>validate</id>
                             <phase>validate</phase>
                             <configuration>
-                                <configLocation>cxf-checkstyle${checkstyle.extension}.xml</configLocation>
+                                <configLocation>${resources.base.path}cxf-checkstyle${checkstyle.extension}.xml</configLocation>
                                 <consoleOutput>true</consoleOutput>
                                 <failsOnError>true</failsOnError>
                                 <linkXRef>false</linkXRef>
-                                <suppressionsLocation>cxf-checkstyle-suppressions.xml</suppressionsLocation>
+                                <suppressionsLocation>${resources.base.path}cxf-checkstyle-suppressions.xml</suppressionsLocation>
                                 <sourceDirectory>${basedir}/src</sourceDirectory>
                                 <excludes>**/archetype-resources/**/*.java</excludes>
                             </configuration>
@@ -225,8 +227,8 @@
                     </dependencies>
                     <configuration>
                         <rulesets>
-                            <ruleset>cxf-pmd-ruleset.xml</ruleset>
-                            <ruleset>cxf-pmd-custom.xml</ruleset>
+                            <ruleset>${resources.base.path}cxf-pmd-ruleset.xml</ruleset>
+                            <ruleset>${resources.base.path}cxf-pmd-custom.xml</ruleset>
                         </rulesets>
                         <sourceEncoding>UTF-8</sourceEncoding>
                         <targetJdk>1.5</targetJdk>
@@ -1127,18 +1129,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.1.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.4.3</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.5</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.3</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <configLocation>cxf-checkstyle${checkstyle.extension}.xml</configLocation>

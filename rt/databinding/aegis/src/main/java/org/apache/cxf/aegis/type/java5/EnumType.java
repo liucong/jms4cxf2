@@ -18,9 +18,11 @@
  */
 package org.apache.cxf.aegis.type.java5;
 
+import java.lang.reflect.Type;
+
 import org.apache.cxf.aegis.Context;
 import org.apache.cxf.aegis.DatabindingException;
-import org.apache.cxf.aegis.type.Type;
+import org.apache.cxf.aegis.type.AegisType;
 import org.apache.cxf.aegis.xml.MessageReader;
 import org.apache.cxf.aegis.xml.MessageWriter;
 import org.apache.cxf.common.xmlschema.XmlSchemaConstants;
@@ -30,7 +32,7 @@ import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
 
-public class EnumType extends Type {
+public class EnumType extends AegisType {
     @SuppressWarnings("unchecked")
     @Override
     public Object readObject(MessageReader reader, Context context) {
@@ -46,9 +48,14 @@ public class EnumType extends Type {
     }
 
     @Override
-    public void setTypeClass(Class typeClass) {
-        if (!typeClass.isEnum()) {
-            throw new DatabindingException("Type class must be an enum.");
+    public void setTypeClass(Type typeClass) {
+        if (!(typeClass instanceof Class)) {
+            throw new DatabindingException("Aegis cannot map generic Enums.");
+        }
+        
+        Class<?> plainClass = (Class<?>)typeClass;
+        if (!plainClass.isEnum()) {
+            throw new DatabindingException("EnumType must map an enum.");
         }
 
         super.setTypeClass(typeClass);

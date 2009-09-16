@@ -22,8 +22,11 @@ import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -54,6 +57,7 @@ import org.xml.sax.SAXParseException;
 import org.apache.cxf.aegis.DatabindingException;
 import org.apache.cxf.aegis.type.basic.BeanType;
 import org.apache.cxf.aegis.type.basic.XMLBeanTypeInfo;
+import org.apache.cxf.aegis.type.java5.Java5TypeCreator;
 import org.apache.cxf.aegis.util.NamespaceHelper;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
@@ -228,8 +232,8 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    public Type createEnumType(TypeClassInfo info) {
-        Element mapping = findMapping(info.getTypeClass());
+    public AegisType createEnumType(TypeClassInfo info) {
+        Element mapping = findMapping(info.getType());
         if (mapping != null) {
             return super.createEnumType(info);
         } else {
@@ -238,8 +242,11 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    public Type createCollectionType(TypeClassInfo info) {
-        if (info.getGenericType() instanceof Class || info.getGenericType() instanceof TypeClassInfo) {
+    public AegisType createCollectionType(TypeClassInfo info) {
+        /* If it is a parameterized type, then we already know
+         * the parameter(s) and we don't need to fish them out of the XML.
+         */
+        if (info.getType() instanceof Class) {
             return createCollectionTypeFromGeneric(info);
         }
 
@@ -259,14 +266,22 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         }
 
         TypeClassInfo info = new TypeClassInfo();
-        info.setTypeClass(pd.getReadMethod().getReturnType());
+        Type returnType = pd.getReadMethod().getGenericReturnType();
+        info.setType(returnType);
         info.setDescription("property " + pd.getDisplayName());
         readMetadata(info, mapping, propertyEl);
 
         return info;
     }
 
-    protected Element findMapping(Class clazz) {
+    protected Element findMapping(Type type) {
+        // We are not prepared to find .aegis.xml files for Parameterized types.
+        
+        Class<?> clazz = TypeUtil.getTypeClass(type, false);
+        
+        if (clazz == null) {
+            return null;
+        }
         Document doc = getDocument(clazz);
         if (doc == null) {
             return null;
@@ -282,8 +297,12 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         return mapping;
     }
 
-    protected List<Element> findMappings(Class clazz) {
+    protected List<Element> findMappings(Type type) {
+        Class clazz = TypeUtil.getTypeClass(type, false);
         List<Element> mappings = new ArrayList<Element>();
+        if (clazz == null) {
+            return mappings;
+        }
 
         Element top = findMapping(clazz);
         if (top != null) {
@@ -319,9 +338,10 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    public Type createDefaultType(TypeClassInfo info) {
-        Element mapping = findMapping(info.getTypeClass());
-        List mappings = findMappings(info.getTypeClass());
+    public AegisType createDefaultType(TypeClassInfo info) {
+        Element mapping = findMapping(info.getType());
+        List<Element> mappings = findMappings(info.getType());
+        Class<?> relatedClass = TypeUtil.getTypeRelatedClass(info.getType());
 
         if (mapping != null || mappings.size() > 0) {
             String typeNameAtt = null;
@@ -339,8 +359,7 @@ public class XMLTypeCreator extends AbstractTypeCreator {
                 extensibleAttributes = mapping.getAttribute("extensibleAttributes");
             }
 
-            String defaultNS = NamespaceHelper.makeNamespaceFromClassName(info.getTypeClass().getName(),
-                                                                          "http");
+            String defaultNS = NamespaceHelper.makeNamespaceFromClassName(relatedClass.getName(), "http");
             QName name = null;
             if (typeNameAtt != null) {
                 name = NamespaceHelper.createQName(mapping, typeNameAtt, defaultNS);
@@ -348,7 +367,8 @@ public class XMLTypeCreator extends AbstractTypeCreator {
                 defaultNS = name.getNamespaceURI();
             }
 
-            XMLBeanTypeInfo btinfo = new XMLBeanTypeInfo(info.getTypeClass(), mappings, defaultNS);
+            // We do not deal with Generic beans at this point.
+            XMLBeanTypeInfo btinfo = new XMLBeanTypeInfo(relatedClass, mappings, defaultNS);
             btinfo.setTypeMapping(getTypeMapping());
             btinfo.setDefaultMinOccurs(getConfiguration().getDefaultMinOccurs());
             btinfo.setDefaultNillable(getConfiguration().isDefaultNillable());
@@ -370,12 +390,12 @@ public class XMLTypeCreator extends AbstractTypeCreator {
             BeanType type = new BeanType(btinfo);
 
             if (name == null) {
-                name = createQName(info.getTypeClass());
+                name = createQName(relatedClass);
             }
 
             type.setSchemaType(name);
 
-            type.setTypeClass(info.getTypeClass());
+            type.setTypeClass(info.getType());
             type.setTypeMapping(getTypeMapping());
 
             return type;
@@ -424,7 +444,7 @@ public class XMLTypeCreator extends AbstractTypeCreator {
                 // no mapping for this method
                 return info;
             }
-            info.setTypeClass(m.getParameterTypes()[index]);
+            info.setType(m.getGenericParameterTypes()[index]);
             // info.setAnnotations(m.getParameterAnnotations()[index]);
             Element parameter = getMatch(bestMatch, "parameter[@index='" + index + "']");
             readMetadata(info, mapping, parameter);
@@ -439,7 +459,7 @@ public class XMLTypeCreator extends AbstractTypeCreator {
                 // no mapping for this method
                 return info;
             }
-            info.setTypeClass(m.getReturnType());
+            info.setType(m.getGenericReturnType());
             // info.setAnnotations(m.getAnnotations());
             Element rtElement = DOMUtils.getFirstChildWithName(bestMatch, "", "return-type");
             readMetadata(info, mapping, rtElement);
@@ -452,9 +472,50 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         info.setTypeName(createQName(parameter, DOMUtils.getAttributeValueEmptyNull(parameter, "typeName")));
         info.setMappedName(createQName(parameter, 
                                        DOMUtils.getAttributeValueEmptyNull(parameter, "mappedName")));
-        setComponentType(info, mapping, parameter);
-        setKeyType(info, mapping, parameter);
-        setValueType(info, mapping, parameter);
+        Class<?> relatedClass = TypeUtil.getTypeRelatedClass(info.getType());
+        // we only mess with the generic issues for list and map
+        if (Collection.class.isAssignableFrom(relatedClass)) {
+            Type componentType = getComponentType(mapping, parameter);
+            if (componentType != null) { // there is actually XML config.
+                Type fullType = ParameterizedTypeFactory.createParameterizedType(relatedClass,
+                                                                                 new Type[] {componentType});
+                info.setType(fullType);
+            }
+        } else if (Map.class.isAssignableFrom(relatedClass)) {
+            Type keyType = getKeyType(mapping, parameter);
+            if (keyType != null) {
+                info.setKeyType(keyType);
+            }
+            Type valueType = getValueType(mapping, parameter);
+            if (valueType != null) {
+                info.setValueType(valueType);
+            }
+            // if the XML only specifies one, we expect the other to come from a full
+            // parameterized type.
+            if (keyType != null || valueType != null) {
+                if (keyType == null || valueType == null) {
+                    if (keyType == null) {
+                        keyType = TypeUtil.getSingleTypeParameter(info.getType(), 0);
+                    }
+                    if (keyType == null) {
+                        keyType = Object.class;
+                    }
+                    if (valueType == null) {
+                        valueType = TypeUtil.getSingleTypeParameter(info.getType(), 1);
+                    }
+                    if (valueType == null) {
+                        valueType = Object.class;
+                    }
+                }
+                Type fullType 
+                    = ParameterizedTypeFactory.createParameterizedType(relatedClass,
+                                                                       new Type[] {keyType, valueType});
+                info.setType(fullType);
+                
+            }
+            
+
+        }
         setType(info, parameter);
 
         String min = DOMUtils.getAttributeValueEmptyNull(parameter, "minOccurs");
@@ -479,10 +540,10 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    protected Type getOrCreateGenericType(TypeClassInfo info) {
-        Type type = null;
-        if (info.getGenericType() != null) {
-            type = createTypeFromGeneric(info.getGenericType());
+    protected AegisType getOrCreateGenericType(TypeClassInfo info) {
+        AegisType type = null;
+        if (info.getType() instanceof ParameterizedType) { 
+            type = createTypeFromGeneric(info.getType());
         }
 
         if (type == null) {
@@ -492,7 +553,7 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         return type;
     }
 
-    private Type createTypeFromGeneric(Object cType) {
+    private AegisType createTypeFromGeneric(Object cType) {
         if (cType instanceof TypeClassInfo) {
             return createTypeForClass((TypeClassInfo)cType);
         } else if (cType instanceof Class) {
@@ -503,8 +564,8 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    protected Type getOrCreateMapKeyType(TypeClassInfo info) {
-        Type type = null;
+    protected AegisType getOrCreateMapKeyType(TypeClassInfo info) {
+        AegisType type = null;
         if (info.getKeyType() != null) {
             type = createTypeFromGeneric(info.getKeyType());
         }
@@ -517,9 +578,10 @@ public class XMLTypeCreator extends AbstractTypeCreator {
     }
 
     @Override
-    protected Type getOrCreateMapValueType(TypeClassInfo info) {
-        Type type = null;
-        if (info.getGenericType() != null) {
+    protected AegisType getOrCreateMapValueType(TypeClassInfo info) {
+        AegisType type = null;
+        if (info.getType() instanceof ParameterizedType) {
+            // well, let's hope that someone has filled in the value type.
             type = createTypeFromGeneric(info.getValueType());
         }
 
@@ -530,14 +592,32 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         return type;
     }
 
-    protected void setComponentType(TypeClassInfo info, Element mapping, Element parameter) {
-        String componentType = DOMUtils.getAttributeValueEmptyNull(parameter, "componentType");
-        if (componentType != null) {
-            info.setGenericType(loadGeneric(info, mapping, componentType));
+    private Type getComponentType(Element mapping, Element parameter) {
+        String componentSpec = DOMUtils.getAttributeValueEmptyNull(parameter, "componentType");
+        if (componentSpec == null) {
+            return null;
         }
+        return getGenericParameterFromSpec(mapping, componentSpec);
+    }
+    
+    private Type getKeyType(Element mapping, Element parameter) {
+        String spec = DOMUtils.getAttributeValueEmptyNull(parameter, "keyType");
+        if (spec == null) {
+            return null;
+        }
+        return getGenericParameterFromSpec(mapping, spec);
     }
 
-    private Object loadGeneric(TypeClassInfo info, Element mapping, String componentType) {
+    private Type getValueType(Element mapping, Element parameter) {
+        String spec = DOMUtils.getAttributeValueEmptyNull(parameter, "valueType");
+        if (spec == null) {
+            return null;
+        }
+        return getGenericParameterFromSpec(mapping, spec);
+    }
+
+    // This cannot do List<List<x>>.
+    private Type getGenericParameterFromSpec(Element mapping, String componentType) {
         if (componentType.startsWith("#")) {
             String name = componentType.substring(1);
             Element propertyEl = getMatch(mapping, "./component[@name='" + name + "']");
@@ -546,18 +626,13 @@ public class XMLTypeCreator extends AbstractTypeCreator {
                                                + "'");
             }
 
-            TypeClassInfo componentInfo = new TypeClassInfo();
-            componentInfo.setDescription("generic component " + componentInfo.getDescription());
-            readMetadata(componentInfo, mapping, propertyEl);
             String className = DOMUtils.getAttributeValueEmptyNull(propertyEl, "class");
             if (className == null) {
                 throw new DatabindingException("A 'class' attribute must be specified for <component> "
                                                + name);
             }
-
-            componentInfo.setTypeClass(loadComponentClass(className));
-
-            return componentInfo;
+            
+            return loadComponentClass(className);
         } else {
             return loadComponentClass(componentType);
         }
@@ -575,26 +650,15 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         String type = DOMUtils.getAttributeValueEmptyNull(parameter, "type");
         if (type != null) {
             try {
-                info.setType(ClassLoaderUtils.loadClass(type, getClass()));
+                Class aegisTypeClass = ClassLoaderUtils.loadClass(type, getClass()); 
+                info.setAegisTypeClass(Java5TypeCreator.castToAegisTypeClass(aegisTypeClass));
             } catch (ClassNotFoundException e) {
                 throw new DatabindingException("Unable to load type class " + type, e);
             }
         }
     }
 
-    protected void setKeyType(TypeClassInfo info, Element mapping, Element parameter) {
-        String componentType = DOMUtils.getAttributeValueEmptyNull(parameter, "keyType");
-        if (componentType != null) {
-            info.setKeyType(loadGeneric(info, mapping, componentType));
-        }
-    }
 
-    private void setValueType(TypeClassInfo info, Element mapping, Element parameter) {
-        String componentType = DOMUtils.getAttributeValueEmptyNull(parameter, "valueType");
-        if (componentType != null) {
-            info.setValueType(loadGeneric(info, mapping, componentType));
-        }
-    }
 
     private Element getBestMatch(Element mapping, Method method, List<Element> availableNodes) {
         // first find all the matching method names

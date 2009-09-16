@@ -21,6 +21,7 @@ package org.apache.cxf.jaxrs;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ public class JAXRSServiceImpl extends AbstractAttributedInterceptorProvider impl
     private Invoker invoker;
     private Map<QName, Endpoint> endpoints = new HashMap<QName, Endpoint>();
     private String address;
+    private boolean createServiceModel;
     
     public JAXRSServiceImpl() {
     }
@@ -70,6 +72,15 @@ public class JAXRSServiceImpl extends AbstractAttributedInterceptorProvider impl
         executor = SynchronousExecutor.getInstance();    
     }
     
+    public JAXRSServiceImpl(List<ClassResourceInfo> cri, boolean createModel) {
+        this(cri);
+        this.createServiceModel = createModel;
+    }
+    
+    public void setCreateServiceModel(boolean create) {
+        createServiceModel = create;
+    }
+    
     public String getBeanName() {
         return getName().toString();
     }
@@ -78,9 +89,9 @@ public class JAXRSServiceImpl extends AbstractAttributedInterceptorProvider impl
         if (address == null) {
             Class primaryClass = classResourceInfos.get(0).getServiceClass();
             String ns = PackageUtils.getNamespace(PackageUtils.getPackageName(primaryClass));
-            return new QName(ns + "jaxrs", primaryClass.getSimpleName());
+            return new QName(ns, primaryClass.getSimpleName());
         } else {
-            return new QName(address, "WebResource");
+            return new QName(address, "WebClient");
         }
     }
 
@@ -89,6 +100,9 @@ public class JAXRSServiceImpl extends AbstractAttributedInterceptorProvider impl
     }
     
     public List<ServiceInfo> getServiceInfos() {
+        if (!createServiceModel) {
+            return Collections.emptyList();
+        }
         // try to convert to WSDL-centric model so that CXF DataBindings can get initialized
         // might become useful too if we support wsdl2
         

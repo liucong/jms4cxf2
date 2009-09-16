@@ -47,6 +47,17 @@ public class DataBindingJSONProvider extends DataBindingProvider {
     private ConcurrentHashMap<String, String> namespaceMap = new ConcurrentHashMap<String, String>();
     private boolean writeXsiType = true;
     private boolean readXsiType = true;
+    private boolean dropRootElement;
+    private boolean ignoreMixedContent; 
+    private boolean ignoreNamespaces;
+    
+    public void setIgnoreNamespaces(boolean ignoreNamespaces) {
+        this.ignoreNamespaces = ignoreNamespaces;
+    }
+    
+    public void setDropRootElement(boolean dropRootElement) {
+        this.dropRootElement = dropRootElement;
+    }
     
     public void setWriteXsiType(boolean write) {
         writeXsiType = write;
@@ -82,8 +93,10 @@ public class DataBindingJSONProvider extends DataBindingProvider {
         } else {
             qname = getQName(InjectionUtils.getActualType(genericType));
         }
-        return JSONUtils.createStreamWriter(os, qname, writeXsiType, namespaceMap, 
-                                            serializeAsArray, arrayKeys);
+        XMLStreamWriter writer = JSONUtils.createStreamWriter(os, qname, 
+             writeXsiType && !ignoreNamespaces, namespaceMap, serializeAsArray, arrayKeys, dropRootElement);
+        writer = JSONUtils.createIgnoreMixedContentWriterIfNeeded(writer, ignoreMixedContent);
+        return JSONUtils.createIgnoreNsWriterIfNeeded(writer, ignoreNamespaces);
     }
     
     @Override
@@ -108,6 +121,10 @@ public class DataBindingJSONProvider extends DataBindingProvider {
         QName qname = JAXRSUtils.getClassQName(type); 
         namespaceMap.putIfAbsent(qname.getNamespaceURI(), "ns1");
         return qname;
+    }
+
+    public void setIgnoreMixedContent(boolean ignoreMixedContent) {
+        this.ignoreMixedContent = ignoreMixedContent;
     }
     
 }

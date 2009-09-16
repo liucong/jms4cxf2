@@ -22,8 +22,11 @@ package org.apache.cxf.jaxrs.provider;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.InvalidPropertiesFormatException;
+import java.util.Properties;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -53,16 +56,19 @@ public class DataBindingProviderTest extends Assert {
 
     private ClassResourceInfo c;
     private ClassResourceInfo c2;
+    private Properties properties;
     
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidPropertiesFormatException, IOException {
         c = ResourceUtils.createClassResourceInfo(TheBooks.class, TheBooks.class, true, true);
         c2 = ResourceUtils.createClassResourceInfo(TheSDOBooks.class, TheSDOBooks.class, true, true);
+        properties = new Properties();
+        properties.loadFromXML(getClass().getResourceAsStream("jsonCases.xml"));
     }
     
     @Test
     public void testAegisWrite() throws Exception {
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c));
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c), true);
         s.put("writeXsiType", true);
         AegisDatabinding binding = new AegisDatabinding();
         binding.initialize(s);
@@ -71,19 +77,20 @@ public class DataBindingProviderTest extends Assert {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         p.writeTo(b, Book.class, Book.class,
             new Annotation[0], MediaType.TEXT_XML_TYPE, new MetadataMap<String, Object>(), bos);
-        String data = "<ns1:Book xmlns:ns1=\"http://resources.jaxrs.cxf.apache.org\" "
-            + "xmlns:ns2=\"http://www.w3.org/2001/XMLSchema-instance\" ns2:type=\"ns1:Book\">"
-            + "<ns1:id>127</ns1:id><ns1:name>CXF</ns1:name><ns1:state></ns1:state></ns1:Book>";
-        assertEquals(bos.toString(), data);
+        doTestAegisRead(bos.toString());
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     public void testAegisRead() throws Exception {
         String data = "<ns1:Book xmlns:ns1=\"http://resources.jaxrs.cxf.apache.org\" "
             + "xmlns:ns2=\"http://www.w3.org/2001/XMLSchema-instance\" ns2:type=\"ns1:Book\">"
             + "<ns1:id>127</ns1:id><ns1:name>CXF</ns1:name><ns1:state></ns1:state></ns1:Book>";
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c));
+        doTestAegisRead(data);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public void doTestAegisRead(String data) throws Exception { 
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c), true);
         s.put("readXsiType", true);
         AegisDatabinding binding = new AegisDatabinding();
         binding.initialize(s);
@@ -98,7 +105,7 @@ public class DataBindingProviderTest extends Assert {
     
     @Test
     public void testJAXBWrite() throws Exception {
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c));
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c), true);
         DataBinding binding = new JAXBDataBinding();
         binding.initialize(s);
         DataBindingProvider p = new DataBindingProvider(binding);
@@ -114,7 +121,7 @@ public class DataBindingProviderTest extends Assert {
     @Test
     public void testJAXBRead() throws Exception {
         String data = "<Book><id>127</id><name>CXF</name><state></state></Book>";
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c));
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c), true);
         DataBinding binding = new JAXBDataBinding();
         binding.initialize(s);
         DataBindingProvider p = new DataBindingProvider(binding);
@@ -129,7 +136,7 @@ public class DataBindingProviderTest extends Assert {
     @SuppressWarnings("unchecked")
     @Test
     public void testSDOWrite() throws Exception {
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c2));
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c2), true);
         DataBinding binding = new SDODataBinding();
         binding.initialize(s);
         DataBindingProvider p = new DataBindingProvider(binding);
@@ -157,7 +164,7 @@ public class DataBindingProviderTest extends Assert {
             + "xsi:type=\"p0:Structure\">"
             + "<p0:text>sdo</p0:text><p0:int>3</p0:int><p0:dbl>123.5</p0:dbl><p0:texts>text1</p0:texts>"
             + "</p0:Structure>";
-        Service s = new JAXRSServiceImpl(Collections.singletonList(c2));
+        Service s = new JAXRSServiceImpl(Collections.singletonList(c2), true);
         DataBinding binding = new SDODataBinding();
         binding.initialize(s);
         DataBindingProvider p = new DataBindingProvider(binding);

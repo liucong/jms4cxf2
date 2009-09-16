@@ -18,11 +18,13 @@
  */
 package org.apache.cxf.aegis.type;
 
+import java.lang.reflect.Type;
+
 import javax.xml.namespace.QName;
 
 /**
- * @author <a href="mailto:dan@envoisolutions.com">Dan Diephouse</a>
- * @since Feb 18, 2004
+ * Abstraction for the map between Java types (represented as 
+ * {@link java.lang.reflect.Type} and Aegis types.
  */
 public interface TypeMapping {
     /**
@@ -30,7 +32,7 @@ public interface TypeMapping {
      * @param javaType the class.
      * @return <code>true</code> if there is a mapping for the type.
      */
-    boolean isRegistered(Class javaType);
+    boolean isRegistered(Type javaType);
 
     /**
      * Returns a flag indicating if this type mapping has a mapping for a particular
@@ -48,21 +50,21 @@ public interface TypeMapping {
      * @param xmlType XML Schema type QName.
      * @param type Aegis type object.
      */
-    void register(Class javaType, QName xmlType, Type type);
+    void register(Type javaType, QName xmlType, AegisType type);
 
     /**
      * Register a type that self-describes the schema type and the Java class.
      * @param type Aegis type object that 
      */
-    void register(Type type);
+    void register(AegisType type);
 
-    void removeType(Type type);
+    void removeType(AegisType type);
 
-    Type getType(Class javaType);
+    AegisType getType(Type javaType);
 
-    Type getType(QName xmlType);
+    AegisType getType(QName xmlType);
 
-    QName getTypeQName(Class clazz);
+    QName getTypeQName(Type clazz);
 
     TypeCreator getTypeCreator();
     

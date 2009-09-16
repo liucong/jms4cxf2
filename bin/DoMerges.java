@@ -44,6 +44,36 @@ import java.util.*;
 public class DoMerges {
     public static boolean auto = false;
 
+    static void removeSvnMergeInfo() throws Exception {
+        Process p = Runtime.getRuntime().exec(new String[] {"svn", "st", "."});
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        List<String> list = new ArrayList<String>();
+        String line = reader.readLine();
+        while (line != null) {
+            if (line.charAt(1) == 'M') {
+                list.add(line.substring(5).trim());
+            } else if (line.charAt(1) == 'C' && line.charAt(0) != 'C') {
+                Process p2 = Runtime.getRuntime().exec(new String[] {"svn", "resolved", line.substring(5).trim()});
+                if (p2.waitFor() != 0) {
+                    Thread.sleep(10);
+                }
+
+                list.add(line.substring(5).trim());
+            }
+            line = reader.readLine();
+        }
+        p.waitFor();
+
+        for (String s : list) { 
+            p = Runtime.getRuntime().exec(new String[] {"svn", "propdel", "svn:mergeinfo", s});
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            line = reader.readLine();
+            while (line != null) {
+                line = reader.readLine();
+            }
+            p.waitFor();
+        }
+    }
     static void doCommit() throws Exception {
         while (System.in.available() > 0) {
             System.in.read();
@@ -140,6 +170,7 @@ public class DoMerges {
         System.out.println("Root: " + root);
         p.waitFor();
 
+        List<String> blocks = new ArrayList<String>();
 
         int count = 1;
         for (String ver : verList) {
@@ -184,33 +215,45 @@ public class DoMerges {
                     }
                     System.exit(1);
                 }
-
+                removeSvnMergeInfo();
                 doCommit();
                 break;
             case 'B':
-                p = Runtime.getRuntime().exec(getCommandLine(new String[] {"svnmerge.py", "block", "-r", ver}));
-                reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                line = reader.readLine();
-                while (line != null) {
-                    System.out.println(line);
-                    line = reader.readLine();
-                }
-                if (p.waitFor() != 0) {
-                    System.out.println("ERROR!");
-                    reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                    line = reader.readLine();
-                    while (line != null) {
-                        System.out.println(line);
-                        line = reader.readLine();
-                    }
-                    System.exit(1);
-                }
-                doCommit();
+                blocks.add(ver);
                 break;
             case 'I':
                 System.out.println("Ignoring");
                 break;
             }
+        }
+
+        if (!blocks.isEmpty()) {
+            StringBuilder ver = new StringBuilder();
+            for (String s : blocks) {
+                if (ver.length() > 0) {
+                    ver.append(',');
+                }
+                ver.append(s);
+            }
+            System.out.println("Blocking " + ver);
+            p = Runtime.getRuntime().exec(getCommandLine(new String[] {"svnmerge.py", "block", "-r", ver.toString()}));
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+            if (p.waitFor() != 0) {
+                System.out.println("ERROR!");
+                reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                line = reader.readLine();
+                while (line != null) {
+                    System.out.println(line);
+                    line = reader.readLine();
+                }
+                System.exit(1);
+            }
+            doCommit();
         }
     }
 
