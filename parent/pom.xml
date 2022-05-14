@@ -65,7 +65,7 @@
         <stax.impl.artifactId>woodstox-core-asl</stax.impl.artifactId>
         <stax.impl.version>4.0.5</stax.impl.version>
         <wsdl4j.version>1.6.2</wsdl4j.version>
-        <xmlbeans.version>2.4.0</xmlbeans.version>
+        <xmlbeans.version>3.0.0</xmlbeans.version>
         <xmlschema.version>1.4.5</xmlschema.version>
         <checkstyle.extension />
 
