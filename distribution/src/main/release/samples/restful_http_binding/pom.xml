@@ -26,7 +26,7 @@
             <cxf.version>[2,)</cxf.version>
             <httpclient.version>3.1</httpclient.version>
             <jsr311.version>0.8</jsr311.version>
-            <jettison.version>1.0.1</jettison.version>
+            <jettison.version>1.5.1</jettison.version>
             <jra.version>1.0-alpha-4</jra.version>
     </properties>
     <build>
